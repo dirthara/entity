@@ -47,7 +47,11 @@ final readonly class EntityManager
                 persister: $this->persister,
             );
         } catch (ConnectionException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
+            throw EntityDatabaseException::fromDatabaseException(
+                exception: $exception,
+                entity: $entity,
+                operation: 'connect',
+            );
         }
     }
 }

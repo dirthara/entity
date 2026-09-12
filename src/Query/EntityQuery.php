@@ -197,7 +197,11 @@ final readonly class EntityQuery
                 $entities[] = $entity;
             }
         } catch (DatabaseException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
+            throw EntityDatabaseException::fromDatabaseException(
+                exception: $exception,
+                entity: $this->metadata->entity,
+                operation: 'get',
+            );
         }
 
         return new ImmutableCollection($entities);
@@ -216,7 +220,11 @@ final readonly class EntityQuery
         try {
             $row = $this->builder->first();
         } catch (DatabaseException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
+            throw EntityDatabaseException::fromDatabaseException(
+                exception: $exception,
+                entity: $this->metadata->entity,
+                operation: 'first',
+            );
         }
 
         if ($row === null) {
@@ -249,7 +257,11 @@ final readonly class EntityQuery
                 yield $entity;
             }
         } catch (DatabaseException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
+            throw EntityDatabaseException::fromDatabaseException(
+                exception: $exception,
+                entity: $this->metadata->entity,
+                operation: 'cursor',
+            );
         }
     }
 
@@ -261,7 +273,11 @@ final readonly class EntityQuery
         try {
             return $this->builder->exists();
         } catch (DatabaseException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
+            throw EntityDatabaseException::fromDatabaseException(
+                exception: $exception,
+                entity: $this->metadata->entity,
+                operation: 'exists',
+            );
         }
     }
 
@@ -273,7 +289,11 @@ final readonly class EntityQuery
         try {
             return $this->builder->count();
         } catch (DatabaseException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
+            throw EntityDatabaseException::fromDatabaseException(
+                exception: $exception,
+                entity: $this->metadata->entity,
+                operation: 'count',
+            );
         }
     }
 

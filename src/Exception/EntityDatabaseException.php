@@ -8,8 +8,14 @@ use Dirthara\Database\Exceptions\DatabaseException;
 
 class EntityDatabaseException extends EntityException
 {
-    public static function fromDatabaseException(DatabaseException $exception): self
+    public static function fromDatabaseException(DatabaseException $exception, string $entity, string $operation): self
     {
-        return new self($exception->getMessage(), $exception->getCode(), $exception);
+        return new self(
+            message: sprintf('Database operation "%s" failed for entity "%s"', $operation, $entity),
+            previous: $exception,
+        )->addContext([
+            'entity' => $entity,
+            'operation' => $operation,
+        ]);
     }
 }
