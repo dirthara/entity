@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Hydration;
 
 use Dirthara\Entity\Metadata\EntityMetadata;
-use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Entity\Exceptions\CreateEntityException;
 
 interface Hydrator
@@ -19,5 +18,5 @@ interface Hydrator
      */
     public function newInstance(EntityMetadata $metadata): object;
 
-    public function hydrate(object $entity, Result $data): void;
+    public function hydrate(object $entity, array $data): void;
 }

@@ -6,7 +6,6 @@ namespace Dirthara\Entity\Hydration;
 
 use ReflectionClass;
 use Dirthara\Entity\Metadata\EntityMetadata;
-use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Entity\Exceptions\CreateEntityException;
 
 final class ReflectionHydrator implements Hydrator
@@ -34,7 +33,7 @@ final class ReflectionHydrator implements Hydrator
         }
     }
 
-    public function hydrate(object $entity, Result $data): void
+    public function hydrate(object $entity, array $data): void
     {
         // TODO: Implement hydrate() method.
     }
