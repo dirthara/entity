@@ -11,6 +11,6 @@ final readonly class Id
 {
     public function __construct(
         public ?string $column = null,
-        public ?string $type = null,
+        public ?string $converter = null,
     ) {}
 }

@@ -188,7 +188,7 @@ final readonly class EntityStore
      */
     private function applyIdentifier(EntityQuery $query, mixed $identifier): void
     {
-        $primary = $this->metadata->primaryKey;
+        $primary = $this->metadata->identifier;
 
         if ($primary->isSingle()) {
             $property = $primary->single();

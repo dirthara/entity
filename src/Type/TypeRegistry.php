@@ -54,4 +54,22 @@ final class TypeRegistry
     {
         return $this->converters[$type] ?? throw TypeConversionException::unsupportedType($type);
     }
+
+    /**
+     * @throws TypeConversionException
+     */
+    public function resolve(string $propertyType, ?string $converterType = null): TypeConverter
+    {
+        $type = $converterType ?? $propertyType;
+
+        return $this->converter($type);
+    }
+
+    /**
+     * @throws TypeConversionException
+     */
+    private function converter(string $type): TypeConverter
+    {
+        return $this->has($type) ? $this->get($type) : throw TypeConversionException::unsupportedType($type);
+    }
 }

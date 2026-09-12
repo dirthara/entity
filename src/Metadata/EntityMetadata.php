@@ -17,7 +17,7 @@ final readonly class EntityMetadata
     public function __construct(
         public string $entity,
         public string $table,
-        public IdentifierMetadata $primaryKey,
+        public IdentifierMetadata $identifier,
         public array $properties,
         public ?string $connection = null,
     ) {}

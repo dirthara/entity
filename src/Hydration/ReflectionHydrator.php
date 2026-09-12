@@ -8,12 +8,10 @@ use Throwable;
 use ReflectionClass;
 use ReflectionProperty;
 use ReflectionException;
-use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Entity\Exception\CreateEntityException;
-use Dirthara\Entity\Exception\TypeConversionException;
 
 final class ReflectionHydrator implements Hydrator
 {
@@ -26,10 +24,6 @@ final class ReflectionHydrator implements Hydrator
      * @var array<class-string, array<string, ReflectionProperty>>
      */
     private array $properties = [];
-
-    public function __construct(
-        private readonly TypeRegistry $types,
-    ) {}
 
     /**
      * @throws CreateEntityException
@@ -45,7 +39,6 @@ final class ReflectionHydrator implements Hydrator
 
     /**
      * @throws HydrationException
-     * @throws TypeConversionException
      */
     public function hydrate(EntityMetadata $metadata, object $entity, array $data): void
     {
@@ -74,7 +67,6 @@ final class ReflectionHydrator implements Hydrator
 
     /**
      * @throws HydrationException
-     * @throws TypeConversionException
      */
     private function hydrateProperty(
         object $entity,
@@ -90,9 +82,7 @@ final class ReflectionHydrator implements Hydrator
             );
         }
 
-        $typeConverter = $this->types->get($property->converterType);
-
-        $value = $typeConverter->fromDatabase($data[$property->column]);
+        $value = $property->converter->fromDatabase($data[$property->column]);
 
         try {
             $this->reflectionProperty($metadata->entity, $property->property)->setValue($entity, $value);
