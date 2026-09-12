@@ -13,13 +13,13 @@ use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Query\Sql\OrderDirection;
-use Dirthara\Entity\Exceptions\HydrationException;
+use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
-use Dirthara\Entity\Exceptions\CreateEntityException;
-use Dirthara\Entity\Exceptions\EntityMappingException;
-use Dirthara\Entity\Exceptions\EntityDatabaseException;
-use Dirthara\Entity\Exceptions\TypeConversionException;
+use Dirthara\Entity\Exception\CreateEntityException;
+use Dirthara\Entity\Exception\EntityMappingException;
+use Dirthara\Entity\Exception\EntityDatabaseException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 /**
  * @template T of object

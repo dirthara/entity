@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Metadata;
 
-use Dirthara\Entity\Exceptions\EntityMappingException;
+use Dirthara\Entity\Exception\EntityMappingException;
 
 final readonly class EntityMetadata
 {
@@ -19,6 +19,7 @@ final readonly class EntityMetadata
         public string $table,
         public IdentifierMetadata $primaryKey,
         public array $properties,
+        public ?string $connection = null,
     ) {}
 
     /**

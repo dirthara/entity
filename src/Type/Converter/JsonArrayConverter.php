@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Type\Converter;
 
 use JsonException;
 use Dirthara\Entity\Type\TypeConverter;
-use Dirthara\Entity\Exceptions\TypeConversionException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 final readonly class JsonArrayConverter implements TypeConverter
 {

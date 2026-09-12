@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Hydration;
 
 use Dirthara\Entity\Metadata\EntityMetadata;
-use Dirthara\Entity\Exceptions\HydrationException;
-use Dirthara\Entity\Exceptions\CreateEntityException;
-use Dirthara\Entity\Exceptions\TypeConversionException;
+use Dirthara\Entity\Exception\HydrationException;
+use Dirthara\Entity\Exception\CreateEntityException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 interface Hydrator
 {

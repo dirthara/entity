@@ -11,9 +11,9 @@ use ReflectionException;
 use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
-use Dirthara\Entity\Exceptions\HydrationException;
-use Dirthara\Entity\Exceptions\CreateEntityException;
-use Dirthara\Entity\Exceptions\TypeConversionException;
+use Dirthara\Entity\Exception\HydrationException;
+use Dirthara\Entity\Exception\CreateEntityException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 final class ReflectionHydrator implements Hydrator
 {

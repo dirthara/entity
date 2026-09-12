@@ -7,7 +7,7 @@ namespace Dirthara\Entity\Type\Converter;
 use BackedEnum;
 use ValueError;
 use Dirthara\Entity\Type\TypeConverter;
-use Dirthara\Entity\Exceptions\TypeConversionException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 /**
  * @template T of BackedEnum

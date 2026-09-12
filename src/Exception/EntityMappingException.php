@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Dirthara\Entity\Exceptions;
+namespace Dirthara\Entity\Exception;
 
 class EntityMappingException extends EntityException
 {

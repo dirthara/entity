@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Metadata;
 
-use Dirthara\Entity\Exceptions\EntityMappingException;
+use Dirthara\Entity\Exception\EntityMappingException;
 
 final readonly class IdentifierMetadata
 {

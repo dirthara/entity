@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Type\Converter;
 
 use Dirthara\Entity\Type\TypeConverter;
-use Dirthara\Entity\Exceptions\TypeConversionException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 final class BooleanConverter implements TypeConverter
 {

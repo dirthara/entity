@@ -8,8 +8,8 @@ use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
-use Dirthara\Entity\Exceptions\TypeConversionException;
 use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
 final class TypeRegistry

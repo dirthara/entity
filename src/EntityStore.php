@@ -4,23 +4,23 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity;
 
-use Dirthara\Database\Database;
 use Dirthara\Collection\Collection;
 use Dirthara\Entity\Query\EntityQuery;
 use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
+use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Persistence\EntityPersister;
-use Dirthara\Entity\Exceptions\HydrationException;
+use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
-use Dirthara\Entity\Exceptions\CreateEntityException;
-use Dirthara\Entity\Exceptions\EntityMappingException;
-use Dirthara\Entity\Exceptions\InvalidEntityException;
-use Dirthara\Entity\Exceptions\EntityDatabaseException;
-use Dirthara\Entity\Exceptions\EntityNotFoundException;
-use Dirthara\Entity\Exceptions\TypeConversionException;
-use Dirthara\Entity\Exceptions\InvalidIdentifierException;
+use Dirthara\Entity\Exception\CreateEntityException;
+use Dirthara\Entity\Exception\EntityMappingException;
+use Dirthara\Entity\Exception\InvalidEntityException;
+use Dirthara\Entity\Exception\EntityDatabaseException;
+use Dirthara\Entity\Exception\EntityNotFoundException;
+use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Exception\InvalidIdentifierException;
 use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 /**
@@ -32,7 +32,7 @@ final readonly class EntityStore
      * @param EntityMetadata<T> $metadata
      */
     public function __construct(
-        private Database $database,
+        private ConnectedDatabase $database,
         private EntityMetadata $metadata,
         private Hydrator $hydrator,
         private TypeRegistry $types,

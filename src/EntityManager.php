@@ -7,8 +7,11 @@ namespace Dirthara\Entity;
 use Dirthara\Database\Database;
 use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
+use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Persistence\EntityPersister;
+use Dirthara\Entity\Exception\EntityDatabaseException;
+use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 final readonly class EntityManager
 {
@@ -26,17 +29,24 @@ final readonly class EntityManager
      * @param class-string<T> $entity
      *
      * @return EntityStore<T>
+     *
+     * @throws EntityDatabaseException
      */
-    public function of(string $entity): EntityStore
+    public function of(string $entity, ?string $connection = null): EntityStore
     {
+        /** @var EntityMetadata<T> $metadata */
         $metadata = $this->metadata->for($entity);
 
-        return new EntityStore(
-            database: $this->database,
-            metadata: $metadata,
-            hydrator: $this->hydrator,
-            types: $this->types,
-            persister: $this->persister,
-        );
+        try {
+            return new EntityStore(
+                database: $this->database->using($connection ?? $metadata->connection),
+                metadata: $metadata,
+                hydrator: $this->hydrator,
+                types: $this->types,
+                persister: $this->persister,
+            );
+        } catch (ConnectionException $exception) {
+            throw EntityDatabaseException::fromDatabaseException($exception);
+        }
     }
 }
