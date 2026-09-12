@@ -17,23 +17,16 @@ use Dirthara\Entity\Exceptions\EntityNotFoundException;
  */
 final readonly class EntitySet
 {
-    private EntityQuery $query;
-
     public function __construct(
         private Database $database,
         private EntityMetadata $metadata,
         private Hydrator $hydrator,
         private EntityPersister $persister,
-    ) {
-        $this->query = new EntityQuery(
-            entity: $this->metadata,
-            queryBuilder: $this->database->table($this->metadata->table),
-        );
-    }
+    ) {}
 
     public function query(): EntityQuery
     {
-        return $this->query; //  todo should this return a new instance?
+        // @todo
     }
 
     /**
@@ -41,15 +34,15 @@ final readonly class EntitySet
      */
     public function find(mixed $id): ?object
     {
-        $result = $this->query()->where($this->metadata->primaryKey, '=', $id)->first();
+        $result = $this->query()->where($this->metadata->primaryKey->single()->column, '=', $id)->first();
 
         if ($result === null) {
             return null;
         }
 
-        $entity = $this->metadata->newInstance();
+        $entity = $this->hydrator->newInstance($this->metadata);
 
-        $this->hydrator->hydrate($entity, $result);
+        $this->hydrator->hydrate($this->metadata, $entity, $result);
 
         return $entity;
     }

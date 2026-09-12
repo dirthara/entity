@@ -196,7 +196,7 @@ final readonly class EntityQuery
             foreach ($this->builder->get() as $row) {
                 $entity = $this->hydrator->newInstance($this->metadata);
 
-                $this->hydrator->hydrate($entity, $row);
+                $this->hydrator->hydrate($this->metadata, $entity, $row);
 
                 $entities[] = $entity;
             }
@@ -227,7 +227,7 @@ final readonly class EntityQuery
 
         $entity = $this->hydrator->newInstance($this->metadata);
 
-        $this->hydrator->hydrate($entity, $row);
+        $this->hydrator->hydrate($this->metadata, $entity, $row);
 
         return $entity;
     }
@@ -244,7 +244,7 @@ final readonly class EntityQuery
             foreach ($this->builder->cursor() as $row) {
                 $entity = $this->hydrator->newInstance($this->metadata);
 
-                $this->hydrator->hydrate($entity, $row);
+                $this->hydrator->hydrate($this->metadata, $entity, $row);
 
                 yield $entity;
             }
@@ -294,7 +294,7 @@ final readonly class EntityQuery
             return null;
         }
 
-        $typeConverter = $this->types->get($property->type);
+        $typeConverter = $this->types->get($property->propertyType);
 
         return $typeConverter->toDatabase($value);
     }

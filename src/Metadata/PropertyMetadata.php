@@ -7,10 +7,11 @@ namespace Dirthara\Entity\Metadata;
 final readonly class PropertyMetadata
 {
     public function __construct(
-        public string $name,
+        public string $property,
         public string $column,
-        public string $type,
+        public string $propertyType,
         public string $columnType,
+        public string $converterType,
         public bool $nullable,
     ) {}
 }
