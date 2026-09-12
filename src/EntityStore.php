@@ -57,29 +57,17 @@ final readonly class EntityStore
      * @throws EntityDatabaseException
      * @throws InvalidIdentifierException
      * @throws TypeConversionException
-     * @throws EntityNotFoundException
+     * @throws CreateEntityException
      * @throws HydrationException
      * @throws MappingException
      */
-    public function find(mixed $identifier, bool $throw = false): ?object
+    public function find(mixed $identifier): ?object
     {
         $query = $this->query();
 
         $this->applyIdentifier(query: $query, identifier: $identifier);
 
-        try {
-            return $query->first();
-        } catch (CreateEntityException $exception) {
-            if ($throw) {
-                throw EntityNotFoundException::forIdentifier(
-                    identifier: $identifier,
-                    entity: $this->metadata->entity,
-                    previous: $exception,
-                );
-            }
-
-            return null;
-        }
+        return $query->first();
     }
 
     /**
@@ -90,11 +78,17 @@ final readonly class EntityStore
      * @throws InvalidIdentifierException
      * @throws MappingException
      * @throws TypeConversionException
+     * @throws CreateEntityException
      * @throws HydrationException
      */
     public function findOrFail(mixed $identifier): object
     {
-        return $this->find($identifier, true);
+        return (
+            $this->find($identifier) ?? throw EntityNotFoundException::forIdentifier(
+                identifier: $identifier,
+                entity: $this->metadata->entity,
+            )
+        );
     }
 
     /**
