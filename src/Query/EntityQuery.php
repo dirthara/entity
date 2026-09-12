@@ -6,7 +6,6 @@ namespace Dirthara\Entity\Query;
 
 use Closure;
 use Dirthara\Collection\Collection;
-use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\Query\QueryBuilder;
 use Dirthara\Collection\ImmutableCollection;
@@ -32,7 +31,6 @@ final readonly class EntityQuery
     public function __construct(
         private EntityMetadata $metadata,
         private Hydrator $hydrator,
-        private TypeRegistry $types,
         private QueryBuilder $builder,
     ) {}
 
@@ -136,12 +134,7 @@ final readonly class EntityQuery
     public function whereNested(Closure $callback): self
     {
         $this->builder->whereNested(function (QueryBuilder $builder) use ($callback): void {
-            $query = new self(
-                metadata: $this->metadata,
-                hydrator: $this->hydrator,
-                types: $this->types,
-                builder: $builder,
-            );
+            $query = new self(metadata: $this->metadata, hydrator: $this->hydrator, builder: $builder);
 
             $callback($query);
         });
@@ -301,9 +294,7 @@ final readonly class EntityQuery
             return null;
         }
 
-        $typeConverter = $this->types->get($property->propertyType);
-
-        return $typeConverter->toDatabase($value);
+        return $property->converter->toDatabase($value);
     }
 
     /**

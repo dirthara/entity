@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Dirthara\Entity;
 
 use Dirthara\Database\Database;
-use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\MetadataRegistry;
@@ -21,7 +20,6 @@ final readonly class EntityManager
         private Database $database,
         private MetadataRegistry $metadata,
         private Hydrator $hydrator,
-        private TypeRegistry $types,
         private EntityPersister $persister,
     ) {}
 
@@ -46,7 +44,6 @@ final readonly class EntityManager
                 database: $this->database->using($connection ?? $metadata->connection),
                 metadata: $metadata,
                 hydrator: $this->hydrator,
-                types: $this->types,
                 persister: $this->persister,
             );
         } catch (ConnectionException $exception) {

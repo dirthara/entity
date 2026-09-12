@@ -6,7 +6,6 @@ namespace Dirthara\Entity;
 
 use Dirthara\Collection\Collection;
 use Dirthara\Entity\Query\EntityQuery;
-use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
@@ -34,7 +33,6 @@ final readonly class EntityStore
         private ConnectedDatabase $database,
         private EntityMetadata $metadata,
         private Hydrator $hydrator,
-        private TypeRegistry $types,
         private EntityPersister $persister,
     ) {}
 
@@ -46,7 +44,6 @@ final readonly class EntityStore
         return new EntityQuery(
             metadata: $this->metadata,
             hydrator: $this->hydrator,
-            types: $this->types,
             builder: $this->database->table($this->metadata->table),
         );
     }
