@@ -9,6 +9,21 @@ final readonly class DefaultNamingStrategy implements NamingStrategy
     private const array IRREGULAR_PLURALS = [
         'person' => 'people',
         'child' => 'children',
+        'man' => 'men',
+        'woman' => 'women',
+        'mouse' => 'mice',
+        'goose' => 'geese',
+        'tooth' => 'teeth',
+        'foot' => 'feet',
+        'ox' => 'oxen',
+        'analysis' => 'analyses',
+        'basis' => 'bases',
+        'crisis' => 'crises',
+        'thesis' => 'theses',
+        'deer' => 'deer',
+        'sheep' => 'sheep',
+        'species' => 'species',
+        'series' => 'series',
     ];
 
     public function table(string $entityShortName): string
@@ -32,8 +47,10 @@ final readonly class DefaultNamingStrategy implements NamingStrategy
 
     private function pluralize(string $value): string
     {
-        if (isset(self::IRREGULAR_PLURALS[$value])) {
-            return self::IRREGULAR_PLURALS[$value];
+        $irregular = $this->irregularPlural($value);
+
+        if ($irregular !== null) {
+            return $irregular;
         }
 
         if (preg_match('/[^aeiou]y$/', $value) === 1) {
@@ -51,5 +68,16 @@ final readonly class DefaultNamingStrategy implements NamingStrategy
         }
 
         return $value . 's';
+    }
+
+    private function irregularPlural(string $value): ?string
+    {
+        foreach (self::IRREGULAR_PLURALS as $singular => $plural) {
+            if ($value === $singular || str_ends_with($value, '_' . $singular)) {
+                return substr($value, 0, -strlen($singular)) . $plural;
+            }
+        }
+
+        return null;
     }
 }
