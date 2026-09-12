@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Entity;
 
 use Dirthara\Database\Database;
+use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Persistence\EntityPersister;
@@ -15,6 +16,7 @@ final readonly class EntityManager
         private Database $database,
         private MetadataRegistry $metadata,
         private Hydrator $hydrator,
+        private TypeRegistry $types,
         private EntityPersister $persister,
     ) {}
 
@@ -23,16 +25,17 @@ final readonly class EntityManager
      *
      * @param class-string<T> $entity
      *
-     * @return EntitySet<T>
+     * @return EntityStore<T>
      */
-    public function of(string $entity): EntitySet
+    public function of(string $entity): EntityStore
     {
         $metadata = $this->metadata->for($entity);
 
-        return new EntitySet(
+        return new EntityStore(
             database: $this->database,
             metadata: $metadata,
             hydrator: $this->hydrator,
+            types: $this->types,
             persister: $this->persister,
         );
     }

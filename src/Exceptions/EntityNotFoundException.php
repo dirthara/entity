@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Exceptions;
 
+use Throwable;
+
 use function sprintf;
 
 class EntityNotFoundException extends EntityException
@@ -11,12 +13,15 @@ class EntityNotFoundException extends EntityException
     /**
      * @template T of object
      *
-     * @param class-string<T> $type
+     * @param class-string<T> $entity
      */
-    public static function forIdentifier(mixed $identifier, string $type): self
+    public static function forIdentifier(mixed $identifier, string $entity, ?Throwable $previous = null): self
     {
-        return new self(sprintf('Entity of type %s not found for identifier "%s"', $type, $identifier))->addContext([
-            'type' => $type,
+        return new self(
+            message: sprintf('Entity of type %s not found for identifier "%s"', $entity, $identifier),
+            previous: $previous,
+        )->addContext([
+            'type' => $entity,
             'identifier' => $identifier,
         ]);
     }

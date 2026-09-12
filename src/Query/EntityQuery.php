@@ -13,6 +13,7 @@ use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Query\Sql\OrderDirection;
+use Dirthara\Entity\Exceptions\HydrationException;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exceptions\CreateEntityException;
@@ -187,6 +188,8 @@ final readonly class EntityQuery
      *
      * @throws CreateEntityException
      * @throws EntityDatabaseException
+     * @throws TypeConversionException
+     * @throws HydrationException
      */
     public function get(): Collection
     {
@@ -212,6 +215,8 @@ final readonly class EntityQuery
      *
      * @throws EntityDatabaseException
      * @throws CreateEntityException
+     * @throws TypeConversionException
+     * @throws HydrationException
      */
     public function first(): ?object
     {
@@ -237,6 +242,8 @@ final readonly class EntityQuery
      *
      * @throws EntityDatabaseException
      * @throws CreateEntityException
+     * @throws TypeConversionException
+     * @throws HydrationException
      */
     public function cursor(): iterable
     {
