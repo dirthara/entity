@@ -131,11 +131,11 @@ final readonly class EntityStore
      *
      * @throws InvalidEntityException
      */
-    public function insert(object $entity): mixed
+    public function insert(object $entity): ?string
     {
         $this->assertEntity($entity);
 
-        return $this->persister->insert(metadata: $this->metadata, entity: $entity);
+        return $this->persister->insert(database: $this->database, metadata: $this->metadata, entity: $entity);
     }
 
     /**
@@ -143,11 +143,11 @@ final readonly class EntityStore
      *
      * @throws InvalidEntityException
      */
-    public function update(object $entity): mixed
+    public function update(object $entity): int
     {
         $this->assertEntity($entity);
 
-        return $this->persister->update(metadata: $this->metadata, entity: $entity);
+        return $this->persister->update(database: $this->database, metadata: $this->metadata, entity: $entity);
     }
 
     /**
@@ -155,11 +155,11 @@ final readonly class EntityStore
      *
      * @throws InvalidEntityException
      */
-    public function delete(object $entity): mixed
+    public function delete(object $entity): bool
     {
         $this->assertEntity($entity);
 
-        return $this->persister->delete(metadata: $this->metadata, entity: $entity);
+        return $this->persister->delete(database: $this->database, metadata: $this->metadata, entity: $entity);
     }
 
     /**
