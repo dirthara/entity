@@ -7,7 +7,8 @@ COPY --from=ghcr.io/mlocati/php-extension-installer:2.11.12 /usr/bin/install-php
 RUN apt-get update \
     && apt-get install -y --no-install-recommends git unzip \
     && rm -rf /var/lib/apt/lists/* \
-    && install-php-extensions xdebug
+    && docker-php-ext-install pdo \
+    && install-php-extensions pdo_mysql pdo_pgsql pdo_sqlsrv xdebug
 
 # Xdebug is installed but inactive, so the suite runs at full speed. Enable it
 # per command with XDEBUG_MODE, which is what the coverage script does.

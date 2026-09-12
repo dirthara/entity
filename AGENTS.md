@@ -17,11 +17,13 @@ Line coverage of `src` must stay at 100%; `composer coverage` fails below it and
 the uncovered lines. Add tests in `tests` with every implementation change.
 The empty scaffold explicitly skips tests and coverage until PHP files exist in
 `src` or `tests`; after that, the full checks are required.
+Behaviour that needs a real database belongs in the shared conformance suite in
+`tests/Integration`, not in a copy per driver.
 
 ## Development
 Use the PHP container for Composer and PHP commands; see [README.md](README.md).
-This package has no database services or database dependencies yet; add them
-only when the implementation actually needs them.
+`docker compose up -d php` also starts the PostgreSQL, MySQL, and SQL Server
+services the tests run against, and waits until each is healthy.
 Use the `Dirthara\Entity` namespace for source and `Dirthara\Entity\Tests`
 for tests. Declare strict types in every PHP file.
 
