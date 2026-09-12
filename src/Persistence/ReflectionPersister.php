@@ -13,6 +13,7 @@ use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 final class ReflectionPersister implements EntityPersister
 {
@@ -23,8 +24,9 @@ final class ReflectionPersister implements EntityPersister
 
     /**
      * @throws PersistenceException
+     * @throws TypeConversionException
      */
-    public function insert(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): ?string
+    public function insert(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): void
     {
         $this->assertEntity($metadata, $entity);
 
@@ -42,11 +44,46 @@ final class ReflectionPersister implements EntityPersister
             );
         }
 
+        $generated = $this->generatedIdentifier($metadata);
+
         try {
-            return $database->table($metadata->table)->insertGetId($values);
+            if ($generated === null) {
+                $database->table($metadata->table)->insert($values);
+
+                return;
+            }
+
+            $identifier = $database->table($metadata->table)->insertGetId($values, $generated->column);
         } catch (DatabaseException $exception) {
             throw PersistenceException::insertFailed(entity: $metadata->entity, previous: $exception);
         }
+
+        if ($identifier === null) {
+            throw PersistenceException::missingGeneratedIdentifier(
+                entity: $metadata->entity,
+                property: $generated->property,
+            );
+        }
+
+        $this->property(entity: $metadata->entity, property: $generated->property)->setRawValue(
+            $entity,
+            $generated->converter->fromDatabase($identifier),
+        );
+    }
+
+    /**
+     * The database only reports one generated key, so only a single-property
+     * identifier can be read back from the insert.
+     */
+    private function generatedIdentifier(EntityMetadata $metadata): ?PropertyMetadata
+    {
+        if (!$metadata->identifier->isSingle()) {
+            return null;
+        }
+
+        $property = $metadata->identifier->properties[0];
+
+        return $property->generated ? $property : null;
     }
 
     /**

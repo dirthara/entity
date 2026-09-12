@@ -47,6 +47,18 @@ class PersistenceException extends EntityException
         ]);
     }
 
+    public static function missingGeneratedIdentifier(string $entity, string $property): self
+    {
+        return new self(sprintf(
+            'The database returned no generated identifier for property "%s" in entity "%s"',
+            $property,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+        ]);
+    }
+
     public static function insertFailed(string $entity, Throwable $previous): self
     {
         return new self(message: sprintf('Failed to insert entity "%s"', $entity), previous: $previous)->addContext([

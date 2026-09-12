@@ -9,7 +9,7 @@ use Dirthara\Entity\Metadata\EntityMetadata;
 
 interface EntityPersister
 {
-    public function insert(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): ?string;
+    public function insert(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): void;
 
     public function update(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): int;
 

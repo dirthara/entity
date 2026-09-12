@@ -122,11 +122,11 @@ final readonly class EntityStore
      *
      * @throws InvalidEntityException
      */
-    public function insert(object $entity): ?string
+    public function insert(object $entity): void
     {
         $this->assertEntity($entity);
 
-        return $this->persister->insert(database: $this->database, metadata: $this->metadata, entity: $entity);
+        $this->persister->insert(database: $this->database, metadata: $this->metadata, entity: $entity);
     }
 
     /**
