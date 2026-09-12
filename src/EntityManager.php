@@ -9,8 +9,10 @@ use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\MetadataRegistry;
+use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
 use Dirthara\Entity\Exception\EntityDatabaseException;
+use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 final readonly class EntityManager
@@ -31,6 +33,8 @@ final readonly class EntityManager
      * @return EntityStore<T>
      *
      * @throws EntityDatabaseException
+     * @throws MappingException
+     * @throws TypeConversionException
      */
     public function of(string $entity, ?string $connection = null): EntityStore
     {

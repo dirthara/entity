@@ -11,17 +11,16 @@ use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\CreateEntityException;
-use Dirthara\Entity\Exception\EntityMappingException;
 use Dirthara\Entity\Exception\InvalidEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\EntityNotFoundException;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
-use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 /**
  * @template T of object
@@ -41,21 +40,15 @@ final readonly class EntityStore
 
     /**
      * @return EntityQuery<T>
-     *
-     * @throws EntityDatabaseException
      */
     public function query(): EntityQuery
     {
-        try {
-            return new EntityQuery(
-                metadata: $this->metadata,
-                hydrator: $this->hydrator,
-                types: $this->types,
-                builder: $this->database->table($this->metadata->table),
-            );
-        } catch (ConnectionException $exception) {
-            throw EntityDatabaseException::fromDatabaseException($exception);
-        }
+        return new EntityQuery(
+            metadata: $this->metadata,
+            hydrator: $this->hydrator,
+            types: $this->types,
+            builder: $this->database->table($this->metadata->table),
+        );
     }
 
     /**
@@ -63,10 +56,10 @@ final readonly class EntityStore
      *
      * @throws EntityDatabaseException
      * @throws InvalidIdentifierException
-     * @throws EntityMappingException
      * @throws TypeConversionException
      * @throws EntityNotFoundException
      * @throws HydrationException
+     * @throws MappingException
      */
     public function find(mixed $identifier, bool $throw = false): ?object
     {
@@ -95,7 +88,7 @@ final readonly class EntityStore
      * @throws EntityDatabaseException
      * @throws EntityNotFoundException
      * @throws InvalidIdentifierException
-     * @throws EntityMappingException
+     * @throws MappingException
      * @throws TypeConversionException
      * @throws HydrationException
      */
@@ -178,13 +171,13 @@ final readonly class EntityStore
             return;
         }
 
-        throw InvalidEntityException::forEntitySet(expected: $this->metadata->entity, actual: $entity::class);
+        throw InvalidEntityException::forEntityStore(expected: $this->metadata->entity, actual: $entity::class);
     }
 
     /**
-     * @throws EntityMappingException
      * @throws TypeConversionException
      * @throws InvalidIdentifierException
+     * @throws MappingException
      */
     private function applyIdentifier(EntityQuery $query, mixed $identifier): void
     {
@@ -211,7 +204,7 @@ final readonly class EntityStore
      * @param array<string, mixed> $identifier
      *
      * @throws InvalidIdentifierException
-     * @throws EntityMappingException
+     * @throws MappingException
      * @throws TypeConversionException
      */
     private function applyCompositeIdentifierProperty(

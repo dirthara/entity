@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Exception;
 
 class InvalidEntityException extends EntityException
 {
-    public static function forEntitySet(string $expected, string $actual): self
+    public static function forEntityStore(string $expected, string $actual): self
     {
         return new self(sprintf('Invalid entity set, expected "%s", got "%s"', $expected, $actual))->addContext([
             'expected' => $expected,

@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Metadata;
 
+use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Exception\TypeConversionException;
+
 final class MetadataRegistry
 {
     /**
@@ -21,6 +24,9 @@ final class MetadataRegistry
      * @param class-string<T> $entity
      *
      * @return EntityMetadata<T>
+     *
+     * @throws MappingException
+     * @throws TypeConversionException
      */
     public function for(string $entity): EntityMetadata
     {

@@ -13,11 +13,11 @@ use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Query\Sql\OrderDirection;
+use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\CreateEntityException;
-use Dirthara\Entity\Exception\EntityMappingException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
 
@@ -37,8 +37,8 @@ final readonly class EntityQuery
     ) {}
 
     /**
-     * @throws EntityMappingException
      * @throws TypeConversionException
+     * @throws MappingException
      */
     public function where(string $property, ComparisonOperator|string $operator, mixed $value): self
     {
@@ -50,7 +50,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      * @throws TypeConversionException
      */
     public function orWhere(string $property, ComparisonOperator|string $operator, mixed $value): self
@@ -63,7 +63,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      */
     public function whereNull(string $property): self
     {
@@ -75,7 +75,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      */
     public function whereNotNull(string $property): self
     {
@@ -89,7 +89,7 @@ final readonly class EntityQuery
     /**
      * @param iterable<mixed> $values
      *
-     * @throws EntityMappingException
+     * @throws MappingException
      * @throws TypeConversionException
      */
     public function whereIn(string $property, iterable $values): self
@@ -104,7 +104,7 @@ final readonly class EntityQuery
     /**
      * @param iterable<mixed> $values
      *
-     * @throws EntityMappingException
+     * @throws MappingException
      * @throws TypeConversionException
      */
     public function whereNotIn(string $property, iterable $values): self
@@ -117,7 +117,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      * @throws TypeConversionException
      */
     public function whereBetween(string $property, mixed $from, mixed $to): self
@@ -150,7 +150,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      */
     public function orderBy(string $property, OrderDirection $direction = OrderDirection::Ascending): self
     {
@@ -162,7 +162,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      */
     public function orderByDesc(string $property): self
     {
@@ -285,7 +285,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      */
     private function property(string $property): PropertyMetadata
     {

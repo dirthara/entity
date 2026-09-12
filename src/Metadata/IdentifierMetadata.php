@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Metadata;
 
-use Dirthara\Entity\Exception\EntityMappingException;
+use Dirthara\Entity\Exception\InvalidIdentifierException;
 
 final readonly class IdentifierMetadata
 {
@@ -26,12 +26,12 @@ final readonly class IdentifierMetadata
     }
 
     /**
-     * @throws EntityMappingException
+     * @throws InvalidIdentifierException
      */
     public function single(): PropertyMetadata
     {
         if (!$this->isSingle()) {
-            throw new EntityMappingException('The entity has a composite identifier.');
+            throw InvalidIdentifierException::identifierIsComposite($this->properties);
         }
 
         return $this->properties[0];

@@ -106,4 +106,17 @@ class MappingException extends EntityException
             'type' => $type,
         ]);
     }
+
+    /**
+     * @template T of object
+     *
+     * @param class-string<T> $entity
+     */
+    public static function unknownProperty(string $entity, string $property): self
+    {
+        return new self(message: sprintf('Unknown property "%s" in entity "%s"', $property, $entity))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+        ]);
+    }
 }

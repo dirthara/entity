@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Metadata;
 
-use Dirthara\Entity\Exception\EntityMappingException;
+use Dirthara\Entity\Exception\MappingException;
 
 final readonly class EntityMetadata
 {
@@ -23,15 +23,12 @@ final readonly class EntityMetadata
     ) {}
 
     /**
-     * @throws EntityMappingException
+     * @throws MappingException
      */
     public function property(string $name): PropertyMetadata
     {
         return (
-            $this->properties[$name] ?? throw EntityMappingException::unknownProperty(
-                entity: $this->entity,
-                property: $name,
-            )
+            $this->properties[$name] ?? throw MappingException::unknownProperty(entity: $this->entity, property: $name)
         );
     }
 }
