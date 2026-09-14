@@ -50,7 +50,7 @@ class TypeConversionException extends EntityException
     public static function conversionFailed(string $type, mixed $value, Throwable $previous): self
     {
         return new self(
-            sprintf('Conversion failed for type "%s" with value "%s"', $type, $value),
+            sprintf('Conversion failed for type "%s" with a value of type "%s"', $type, get_debug_type($value)),
             previous: $previous,
         )->addContext([
             'type' => $type,

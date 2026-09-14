@@ -29,14 +29,6 @@ class MappingException extends EntityException
         ]);
     }
 
-    public static function duplicateProperty(string $entity, string $property): self
-    {
-        return new self(sprintf('Duplicate property "%s" in entity "%s"', $property, $entity))->addContext([
-            'entity' => $entity,
-            'property' => $property,
-        ]);
-    }
-
     public static function duplicateColumn(
         string $entity,
         string $column,

@@ -22,6 +22,20 @@ class HydrationException extends EntityException
         ]);
     }
 
+    public static function nullNotAllowed(string $entity, string $property, string $column): self
+    {
+        return new self(sprintf(
+            'Column "%s" is null while property "%s" in entity "%s" does not accept null',
+            $column,
+            $property,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'column' => $column,
+        ]);
+    }
+
     public static function propertyFailed(string $entity, string $property, Throwable $previous): self
     {
         return new self(

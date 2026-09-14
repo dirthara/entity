@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Hydration;
 
-use Throwable;
+use TypeError;
 use ReflectionClass;
 use ReflectionProperty;
 use ReflectionException;
@@ -12,6 +12,7 @@ use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Entity\Exception\CreateEntityException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 final class ReflectionHydrator implements Hydrator
 {
@@ -82,17 +83,47 @@ final class ReflectionHydrator implements Hydrator
             );
         }
 
-        $value = $property->converter->fromDatabase($data[$property->column]);
+        $value = $this->value(metadata: $metadata, property: $property, value: $data[$property->column]);
 
+        $reflection = $this->reflectionProperty($metadata->entity, $property->property);
+
+        // A converter that answers with a value the property refuses fails here, and
+        // the property it failed on is what the caller needs to know.
+        // @mago-expect lint:avoid-catching-error
+        // @mago-expect analysis:avoid-catching-error
         try {
-            $this->reflectionProperty($metadata->entity, $property->property)->setValue($entity, $value);
-        } catch (Throwable $exception) {
+            $reflection->setValue($entity, $value);
+        } catch (TypeError $exception) {
             throw HydrationException::propertyFailed(
                 entity: $metadata->entity,
                 property: $property->property,
                 previous: $exception,
             );
         }
+    }
+
+    /**
+     * A column that is NULL is null on the entity, whatever the converter would
+     * have made of it. Only a property that cannot hold null is a failure.
+     *
+     * @throws HydrationException
+     * @throws TypeConversionException
+     */
+    private function value(EntityMetadata $metadata, PropertyMetadata $property, mixed $value): mixed
+    {
+        if ($value !== null) {
+            return $property->converter->fromDatabase($value);
+        }
+
+        if ($property->nullable) {
+            return null;
+        }
+
+        throw HydrationException::nullNotAllowed(
+            entity: $metadata->entity,
+            property: $property->property,
+            column: $property->column,
+        );
     }
 
     /**

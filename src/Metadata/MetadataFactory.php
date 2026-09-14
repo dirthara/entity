@@ -68,10 +68,6 @@ final readonly class MetadataFactory
                 continue;
             }
 
-            if (isset($properties[$metadata->property])) {
-                throw MappingException::duplicateProperty(entity: $entity, property: $metadata->property);
-            }
-
             if (isset($columns[$metadata->column])) {
                 throw MappingException::duplicateColumn(
                     entity: $entity,

@@ -18,11 +18,25 @@ class EntityNotFoundException extends EntityException
     public static function forIdentifier(mixed $identifier, string $entity, ?Throwable $previous = null): self
     {
         return new self(
-            message: sprintf('Entity of type %s not found for identifier "%s"', $entity, $identifier),
+            message: sprintf('Entity of type %s not found for identifier %s', $entity, self::describe($identifier)),
             previous: $previous,
         )->addContext([
             'type' => $entity,
             'identifier' => $identifier,
         ]);
+    }
+
+    /**
+     * A composite identifier is an array, which `%s` cannot render.
+     */
+    private static function describe(mixed $identifier): string
+    {
+        if (is_scalar($identifier)) {
+            return sprintf('"%s"', $identifier);
+        }
+
+        $encoded = json_encode($identifier);
+
+        return $encoded === false ? get_debug_type($identifier) : $encoded;
     }
 }
