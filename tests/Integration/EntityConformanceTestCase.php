@@ -25,7 +25,6 @@ use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Persistence\ReflectionPersister;
-use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
@@ -258,7 +257,7 @@ abstract class EntityConformanceTestCase extends TestCase
 
     protected function manager(): EntityManager
     {
-        $types = new TypeRegistry([new BackedEnumConverter(Role::class)]);
+        $types = new TypeRegistry();
 
         return new EntityManager(
             database: $this->database,

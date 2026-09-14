@@ -38,7 +38,7 @@ $articles->update($article);
   convention cannot guess.
 - **Values cross the boundary through a converter.** Every property has one, so
   a `bool` is written the way the database wants it and read back as a `bool`
-  whatever the driver reports.
+  whatever the driver reports. Scalars and backed enums need no setting up.
 - **The store is typed.** `of(Article::class)` returns a store whose `find()`,
   `all()` and `first()` are `Article`, so a static analyzer follows the entity
   through your code.
@@ -64,5 +64,6 @@ $articles->update($article);
   `EntityManager`.
 - [Getting started](getting-started.md) to map a class and write a row.
 - [Mapping attributes](mapping/attributes.md) for every attribute and option.
-- [Converters](types/converters.md) before you map an enum, an array or a date.
+- [Converters](types/converters.md) before you map an array, a date, or
+  anything else the built-in converters do not cover.
 - [Error handling](error-handling.md) for what each failure means.

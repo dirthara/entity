@@ -129,10 +129,11 @@ property does not.
 | Property | Result |
 | --- | --- |
 | A single type with a converter, such as `string` or `?int` | Mapped. |
+| A backed enum | Mapped; a converter is built for it without registration. |
 | No type at all | `MappingException`: missing property type. |
 | A union or intersection type, such as `string\|int` | `MappingException`: unsupported property type. |
 | `mixed` | `MappingException`: unsupported property type. |
-| A single type with no converter, such as `DateTimeImmutable` or a bare `array` | `TypeConversionException`: unsupported type. |
+| A single type with no converter, such as `DateTimeImmutable`, a bare `array` or an enum with no backing type | `TypeConversionException`: unsupported type. |
 
 A nullable type is recorded as nullable, which is what lets a `NULL` column read
 back as `null`. See [Converters](../types/converters.md#null).

@@ -47,9 +47,10 @@ turn it on.
 2. Otherwise the property's type name: `string`, `int`, `float`, `bool`, or a
    class name.
 
-The name is looked up in the `TypeRegistry`. Nothing registered under it throws
-`TypeConversionException` naming the type, which is what a `DateTimeImmutable`
-property does out of the box.
+The name is looked up in the `TypeRegistry`. With nothing registered under it,
+the registry tries one last thing: a name that is a backed enum gets a converter
+built for it. Anything else throws `TypeConversionException` naming the type,
+which is what a `DateTimeImmutable` property does out of the box.
 
 ```php
 #[Column(converter: 'json')]
@@ -74,37 +75,41 @@ So a converter you write only ever receives a value, and never has to answer for
 
 ## Backed enums
 
-`BackedEnumConverter` maps a backed enum to its backing value. It is not
-registered by default and cannot be: it needs to know which enum it is for, so
-there is one instance per enum.
+A backed enum needs no registration. Ask the registry for a type it does not
+know, and if that type is a backed enum it builds a `BackedEnumConverter` for it
+and keeps it.
 
 ```php
-use Dirthara\Entity\Type\TypeRegistry;
-use Dirthara\Entity\Type\Converter\BackedEnumConverter;
-
-$types = new TypeRegistry([
-    new BackedEnumConverter(Role::class),
-    new BackedEnumConverter(Status::class),
-]);
+enum Role: string
+{
+    case Admin = 'admin';
+    case Member = 'member';
+}
 ```
-
-It registers itself under the enum's class name, which is exactly what a
-property typed `Role` looks up, so no `#[Column]` is needed:
 
 ```php
 public Role $role;
 ```
 
+The column stores the backing value, `'admin'`, and reads back as `Role::Admin`.
+One converter is built per enum, the first time that enum is mapped.
+
+A backing value the column holds that the enum does not have throws
+`TypeConversionException`, with the original `ValueError` attached.
+
 :::caution
-Every enum you map needs its own registration. A property typed with an
-unregistered enum throws `TypeConversionException` naming the enum class, and it
-throws while mapping the class rather than when a row is read, so it fails on
-the first `of()` call.
+An enum with no backing type cannot be mapped. There is no value a column could
+hold for `enum Role { case Admin; }`, so it throws `TypeConversionException`
+naming the enum, and it throws while mapping the class rather than when a row is
+read — so it fails on the first `of()` call.
 :::
 
-Passing something that is not a backed enum throws `TypeConversionException` on
-construction. A backing value the enum does not have throws it too, with the
-original `ValueError` attached.
+To map an enum some other way, register a converter under its class name and
+that one is used instead:
+
+```php
+$types = new TypeRegistry([new LabelledRoleConverter()]);
+```
 
 ## The registry
 
@@ -120,8 +125,8 @@ $types->get('money');       // TypeConverter, or TypeConversionException
 | Method | Returns | Notes |
 | --- | --- | --- |
 | `register(TypeConverter $converter)` | `void` | Keyed by the converter's own `type()`. |
-| `has(string $type)` | `bool` | |
-| `get(string $type)` | `TypeConverter` | Throws when nothing is registered. |
+| `has(string $type)` | `bool` | True for a registered type and for any backed enum. |
+| `get(string $type)` | `TypeConverter` | Builds one for a backed enum; throws for anything else unregistered. |
 | `resolve(string $propertyType, ?string $converterType = null)` | `TypeConverter` | The named converter, falling back to the property type. |
 
 The constructor registers the built-in converters first and the ones you pass

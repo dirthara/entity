@@ -9,6 +9,7 @@ use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Dirthara\Entity\Tests\Entities\UnbackedRole;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
@@ -89,6 +90,50 @@ final class TypeRegistryTest extends TestCase
         $this->expectExceptionMessage('Unsupported type "csv"');
 
         new TypeRegistry()->resolve(propertyType: 'array', converterType: 'csv');
+    }
+
+    #[Test]
+    public function it_converts_a_backed_enum_without_being_told_to(): void
+    {
+        $registry = new TypeRegistry();
+
+        self::assertTrue($registry->has(Role::class));
+
+        $converter = $registry->get(Role::class);
+
+        self::assertSame(Role::class, $converter->type());
+        self::assertSame(Role::Admin, $converter->fromDatabase('admin'));
+        self::assertSame('admin', $converter->toDatabase(Role::Admin));
+    }
+
+    #[Test]
+    public function it_builds_one_converter_per_backed_enum_and_keeps_it(): void
+    {
+        $registry = new TypeRegistry();
+
+        self::assertSame($registry->get(Role::class), $registry->get(Role::class));
+    }
+
+    #[Test]
+    public function it_lets_a_registered_converter_replace_the_one_it_would_build(): void
+    {
+        $replacement = new BackedEnumConverter(Role::class);
+        $registry = new TypeRegistry([$replacement]);
+
+        self::assertSame($replacement, $registry->get(Role::class));
+    }
+
+    #[Test]
+    public function it_reports_an_enum_with_no_backing_type(): void
+    {
+        $registry = new TypeRegistry();
+
+        self::assertFalse($registry->has(UnbackedRole::class));
+
+        $this->expectException(TypeConversionException::class);
+        $this->expectExceptionMessage(sprintf('Unsupported type "%s"', UnbackedRole::class));
+
+        $registry->get(UnbackedRole::class);
     }
 
     #[Test]

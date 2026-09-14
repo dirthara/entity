@@ -11,7 +11,6 @@ use Dirthara\Entity\EntityManager;
 use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Database\ConnectedDatabase;
-use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\MetadataFactory;
@@ -25,7 +24,6 @@ use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
 use Dirthara\Database\Query\Grammar\SQLiteQueryGrammar;
-use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
@@ -87,7 +85,7 @@ abstract class EntityTestCase extends TestCase
 
     protected function types(TypeConverter ...$converters): TypeRegistry
     {
-        return new TypeRegistry([new BackedEnumConverter(Role::class), ...$converters]);
+        return new TypeRegistry($converters);
     }
 
     protected function factory(?TypeRegistry $types = null): MetadataFactory

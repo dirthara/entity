@@ -62,7 +62,7 @@ that package's installation page for building one.
 | --- | --- | --- |
 | `MetadataRegistry` | none, it is a final class | Nothing; it caches `MetadataFactory` per class. |
 | `DefaultNamingStrategy` | `NamingStrategy` | A different table or column convention. |
-| `TypeRegistry` | none, it is a final class | Registering your own converters, including one per enum. |
+| `TypeRegistry` | none, it is a final class | Registering your own converters, or replacing a built-in. |
 | `ReflectionHydrator` | `Hydrator` | Filling entities some other way than reflection. |
 | `ReflectionPersister` | `EntityPersister` | Writing entities some other way than reflection. |
 
@@ -72,11 +72,8 @@ application code. Nothing here opens a connection, and metadata is read the
 first time a class is asked for, so building it early costs nothing.
 :::
 
-:::caution
-A backed enum property needs a converter registered for that enum before it can
-be mapped. `new TypeRegistry()` does not know your enums, so a class with one
-fails with `TypeConversionException` until you register it. See
-[Converters](types/converters.md#backed-enums).
-:::
+A `TypeRegistry` with nothing passed to it already handles every scalar, plus
+any backed enum you map. Registering is for your own types and for replacing a
+built-in; see [Converters](types/converters.md).
 
 Next: [Getting started](getting-started.md).

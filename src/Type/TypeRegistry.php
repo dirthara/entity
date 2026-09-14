@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Type;
 
+use BackedEnum;
 use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
+use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
 final class TypeRegistry
@@ -44,7 +46,7 @@ final class TypeRegistry
 
     public function has(string $type): bool
     {
-        return isset($this->converters[$type]);
+        return isset($this->converters[$type]) || is_subclass_of($type, BackedEnum::class);
     }
 
     /**
@@ -52,7 +54,7 @@ final class TypeRegistry
      */
     public function get(string $type): TypeConverter
     {
-        return $this->converters[$type] ?? throw TypeConversionException::unsupportedType($type);
+        return $this->converters[$type] ??= $this->build($type);
     }
 
     /**
@@ -61,5 +63,17 @@ final class TypeRegistry
     public function resolve(string $propertyType, ?string $converterType = null): TypeConverter
     {
         return $this->get($converterType ?? $propertyType);
+    }
+
+    /**
+     * @throws TypeConversionException
+     */
+    private function build(string $type): TypeConverter
+    {
+        if (!is_subclass_of($type, BackedEnum::class)) {
+            throw TypeConversionException::unsupportedType($type);
+        }
+
+        return new BackedEnumConverter($type);
     }
 }
