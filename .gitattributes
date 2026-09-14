@@ -1,4 +1,25 @@
-# A lockfile inside an installed dependency is ignored by Composer, but audit
-# tools that walk `vendor/` read it and report versions the consuming project
-# does not use. Keep it in the repository and out of the release.
-/composer.lock export-ignore
+# Only `src` is loaded by a consumer. Everything below is development
+# infrastructure, contributor documentation, or branding that no install needs,
+# so it is kept in the repository and out of the release archive.
+#
+# A lockfile is the one with a consequence rather than just weight: Composer
+# ignores a lockfile inside an installed dependency, but audit tools that walk
+# `vendor/` read it and report versions the consuming project does not use.
+/.dockerignore          export-ignore
+/.gitattributes         export-ignore
+/.github                export-ignore
+/.gitignore             export-ignore
+/AGENTS.md              export-ignore
+/CONTRIBUTING.md        export-ignore
+/Docker                 export-ignore
+/agents                 export-ignore
+/blog-card.png          export-ignore
+/compose.yaml           export-ignore
+/composer.lock          export-ignore
+/logo-no-bg.png         export-ignore
+/logo-square-no-bg.png  export-ignore
+/logo-square.png        export-ignore
+/mago.toml              export-ignore
+/phpunit.xml            export-ignore
+/scripts                export-ignore
+/tests                  export-ignore

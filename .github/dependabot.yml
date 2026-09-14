@@ -2,6 +2,10 @@ version: 2
 
 # Composer because a lockfile is committed, GitHub Actions because the workflow
 # pins third-party actions to a commit SHA that has to be moved deliberately.
+#
+# Each ecosystem is grouped into a single pull request per run. Plumb scores how
+# long the oldest open Dependabot pull request has been waiting, so fewer, larger
+# pull requests are easier to keep current than one per dependency.
 updates:
   - package-ecosystem: composer
     directory: /
@@ -11,6 +15,10 @@ updates:
     # before proposing one.
     cooldown:
       default-days: 7
+    groups:
+      composer:
+        patterns:
+          - '*'
 
   - package-ecosystem: github-actions
     directory: /
@@ -18,3 +26,7 @@ updates:
       interval: weekly
     cooldown:
       default-days: 7
+    groups:
+      github-actions:
+        patterns:
+          - '*'
