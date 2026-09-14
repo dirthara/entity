@@ -1,0 +1,4 @@
+# A lockfile inside an installed dependency is ignored by Composer, but audit
+# tools that walk `vendor/` read it and report versions the consuming project
+# does not use. Keep it in the repository and out of the release.
+/composer.lock export-ignore
