@@ -6,7 +6,6 @@ namespace Dirthara\Entity;
 
 use Dirthara\Database\Database;
 use Dirthara\Entity\Hydration\Hydrator;
-use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
@@ -36,7 +35,6 @@ final readonly class EntityManager
      */
     public function of(string $entity, ?string $connection = null): EntityStore
     {
-        /** @var EntityMetadata<T> $metadata */
         $metadata = $this->metadata->for($entity);
 
         try {

@@ -7,7 +7,7 @@ namespace Dirthara\Entity\Type\Converter;
 use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
-final class BooleanConverter implements TypeConverter
+final readonly class BooleanConverter implements TypeConverter
 {
     public function type(): string
     {

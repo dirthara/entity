@@ -40,9 +40,7 @@ final class MetadataRegistry
     }
 
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $entity
+     * @param class-string $entity
      */
     public function has(string $entity): bool
     {

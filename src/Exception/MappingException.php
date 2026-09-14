@@ -100,9 +100,7 @@ final class MappingException extends EntityException
     }
 
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $entity
+     * @param class-string $entity
      */
     public static function unknownProperty(string $entity, string $property): self
     {

@@ -11,9 +11,7 @@ use function sprintf;
 final class EntityNotFoundException extends EntityException
 {
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $entity
+     * @param class-string $entity
      */
     public static function forIdentifier(mixed $identifier, string $entity, ?Throwable $previous = null): self
     {

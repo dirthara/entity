@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "81481e93a3d78d451014c303ec80566c",
+    "content-hash": "7cdfed9b066692827de13a2fb0b7a551",
     "packages": [
         {
             "name": "dirthara/collection",

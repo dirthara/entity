@@ -48,7 +48,7 @@ final readonly class MetadataFactory
 
         $entityAttribute = $this->entityAttribute($reflection);
 
-        $table = $entityAttribute->table ?? $this->naming->table($reflection->getShortName());
+        $table = $entityAttribute?->table ?? $this->naming->table($reflection->getShortName());
 
         $connection = $entityAttribute?->connection;
 
@@ -128,11 +128,7 @@ final readonly class MetadataFactory
     {
         $attribute = $reflection->getAttributes(Entity::class)[0] ?? null;
 
-        // @mago-expect lint:inline-variable-return
-        /** @var Entity|null $entity */
-        $entity = $attribute?->newInstance();
-
-        return $entity;
+        return $attribute?->newInstance();
     }
 
     /**
@@ -147,9 +143,7 @@ final readonly class MetadataFactory
     }
 
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $entity
+     * @param class-string $entity
      *
      * @throws MappingException
      * @throws TypeConversionException
@@ -189,7 +183,7 @@ final readonly class MetadataFactory
 
         return new PropertyMetadata(
             property: $property->getName(),
-            column: $mapping->column ?? $this->naming->column($property->getName()),
+            column: $mapping?->column ?? $this->naming->column($property->getName()),
             propertyType: $type->getName(),
             converter: $converter,
             nullable: $type->allowsNull(),
@@ -199,9 +193,7 @@ final readonly class MetadataFactory
     }
 
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $entity
+     * @param class-string $entity
      *
      * @throws MappingException
      */
@@ -271,9 +263,7 @@ final readonly class MetadataFactory
     }
 
     /**
-     * @template T of object
-     *
-     * @param class-string<T> $attribute
+     * @param class-string $attribute
      */
     private function hasAttribute(ReflectionProperty $property, string $attribute): bool
     {
