@@ -6,11 +6,12 @@ namespace Dirthara\Entity\Metadata;
 
 use Dirthara\Entity\Exception\MappingException;
 
+/**
+ * @template T of object
+ */
 final readonly class EntityMetadata
 {
     /**
-     * @template T of object
-     *
      * @param class-string<T> $entity
      * @param array<string, PropertyMetadata> $properties
      */

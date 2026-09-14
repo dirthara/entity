@@ -14,6 +14,8 @@ interface Hydrator
     /**
      * @template T of object
      *
+     * @param EntityMetadata<T> $metadata
+     *
      * @return T
      *
      * @throws CreateEntityException
@@ -21,6 +23,11 @@ interface Hydrator
     public function newInstance(EntityMetadata $metadata): object;
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     * @param array<string, mixed> $data
+     *
      * @throws HydrationException
      * @throws TypeConversionException
      */

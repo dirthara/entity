@@ -99,7 +99,9 @@ final readonly class MetadataFactory
     }
 
     /**
-     * @param ReflectionClass<object> $reflection
+     * @template T of object
+     *
+     * @param ReflectionClass<T> $reflection
      *
      * @throws MappingException
      */
@@ -118,7 +120,9 @@ final readonly class MetadataFactory
     }
 
     /**
-     * @param ReflectionClass<object> $reflection
+     * @template T of object
+     *
+     * @param ReflectionClass<T> $reflection
      */
     private function entityAttribute(ReflectionClass $reflection): ?Entity
     {

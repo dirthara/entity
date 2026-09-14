@@ -30,8 +30,8 @@ final class EntityQueryTest extends EntityTestCase
         self::assertCount(3, $entities);
         self::assertContainsOnlyInstancesOf(Article::class, $entities);
         // @mago-expect analysis:mixed-argument
-        // `get()` declares `Collection<T>` against a two-parameter generic whose T
-        // never binds, so the analyzer cannot see what `values()` answers with.
+        // The assertions above narrow `$entities` to the bare contract, so the
+        // analyzer no longer knows what `values()` answers with.
         self::assertSame(
             ['First', 'Second', 'Third'],
             array_map(

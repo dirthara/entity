@@ -177,7 +177,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @return Collection<T>
+     * @return Collection<int, T>
      *
      * @throws CreateEntityException
      * @throws EntityDatabaseException
@@ -308,7 +308,7 @@ final readonly class EntityQuery
     /**
      * @throws TypeConversionException
      */
-    private function toDatabase(PropertyMetadata $property, mixed $value): mixed
+    private function toDatabase(PropertyMetadata $property, mixed $value): string|int|float|bool|null
     {
         if ($value === null) {
             return null;
@@ -318,9 +318,12 @@ final readonly class EntityQuery
     }
 
     /**
+     * A null is not a value `IN` can match, so unlike `where()` this does not let
+     * one through: every value goes to the converter, which refuses it.
+     *
      * @param iterable<mixed> $values
      *
-     * @return list<mixed>
+     * @return list<string|int|float|bool>
      *
      * @throws TypeConversionException
      */
@@ -329,7 +332,7 @@ final readonly class EntityQuery
         $converted = [];
 
         foreach ($values as $value) {
-            $converted[] = $this->toDatabase($property, $value);
+            $converted[] = $property->converter->toDatabase($value);
         }
 
         return $converted;

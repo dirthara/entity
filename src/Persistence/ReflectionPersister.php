@@ -23,6 +23,10 @@ final class ReflectionPersister implements EntityPersister
     private array $properties = [];
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
      * @throws PersistenceException
      * @throws TypeConversionException
      */
@@ -87,6 +91,10 @@ final class ReflectionPersister implements EntityPersister
     }
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
      * @throws PersistenceException
      */
     public function update(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): int
@@ -140,6 +148,10 @@ final class ReflectionPersister implements EntityPersister
     }
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
      * @throws PersistenceException
      */
     public function delete(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): bool
@@ -177,8 +189,11 @@ final class ReflectionPersister implements EntityPersister
     /**
      * @throws PersistenceException
      */
-    private function databaseValue(object $entity, EntityMetadata $metadata, PropertyMetadata $property): mixed
-    {
+    private function databaseValue(
+        object $entity,
+        EntityMetadata $metadata,
+        PropertyMetadata $property,
+    ): string|int|float|bool|null {
         $reflection = $this->property(entity: $metadata->entity, property: $property->property);
 
         if (!$reflection->isInitialized($entity)) {
@@ -217,6 +232,10 @@ final class ReflectionPersister implements EntityPersister
     }
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
      * @throws PersistenceException
      */
     private function assertEntity(EntityMetadata $metadata, object $entity): void

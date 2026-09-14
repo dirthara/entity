@@ -17,9 +17,9 @@ final readonly class FaultyConverter implements TypeConverter
         return 'faulty';
     }
 
-    public function toDatabase(mixed $value): mixed
+    public function toDatabase(mixed $value): string
     {
-        return $value;
+        return serialize($value);
     }
 
     public function fromDatabase(mixed $value): array

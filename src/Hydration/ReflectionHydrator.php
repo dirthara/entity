@@ -27,18 +27,32 @@ final class ReflectionHydrator implements Hydrator
     private array $properties = [];
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
+     * @return T
+     *
      * @throws CreateEntityException
      */
     public function newInstance(EntityMetadata $metadata): object
     {
         try {
-            return $this->reflection($metadata->entity)->newInstanceWithoutConstructor();
+            /** @var T $entity */
+            $entity = $this->reflection($metadata->entity)->newInstanceWithoutConstructor();
         } catch (ReflectionException $exception) {
             throw CreateEntityException::fromReflection(exception: $exception, entity: $metadata->entity);
         }
+
+        return $entity;
     }
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     * @param array<string, mixed> $data
+     *
      * @throws HydrationException
      */
     public function hydrate(EntityMetadata $metadata, object $entity, array $data): void
@@ -67,6 +81,8 @@ final class ReflectionHydrator implements Hydrator
     }
 
     /**
+     * @param array<string, mixed> $data
+     *
      * @throws HydrationException
      */
     private function hydrateProperty(
@@ -89,7 +105,6 @@ final class ReflectionHydrator implements Hydrator
 
         // A converter that answers with a value the property refuses fails here, and
         // the property it failed on is what the caller needs to know.
-        // @mago-expect lint:avoid-catching-error
         // @mago-expect analysis:avoid-catching-error
         try {
             $reflection->setValue($entity, $value);
@@ -146,6 +161,10 @@ final class ReflectionHydrator implements Hydrator
     }
 
     /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
      * @throws HydrationException
      */
     private function assertEntityMatchesMetadata(EntityMetadata $metadata, object $entity): void

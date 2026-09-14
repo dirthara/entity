@@ -89,7 +89,7 @@ final readonly class EntityStore
     }
 
     /**
-     * @return Collection<T>
+     * @return Collection<int, T>
      *
      * @throws EntityDatabaseException
      * @throws CreateEntityException
@@ -192,7 +192,7 @@ final readonly class EntityStore
     }
 
     /**
-     * @param array<string, mixed> $identifier
+     * @param array<array-key, mixed> $identifier
      *
      * @throws InvalidIdentifierException
      * @throws MappingException
