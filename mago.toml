@@ -28,3 +28,98 @@ enabled = false
 
 [linter.rules.too-many-properties]
 enabled = false
+
+# `dependency` and `on` recurse only with `**`; a single `*` matches one segment.
+# `allow-from` and `deny-from` match the using namespace by prefix, so
+# `Dirthara\Entity` would match every namespace in the package. The rules are
+# written as denials for that reason, and "only the root namespace" is therefore
+# not expressible.
+[guard]
+excludes = ["tests"]
+
+[guard.perimeter]
+restrictions = [
+    { dependency = "Dirthara\\Database\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Metadata",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Collection\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Metadata",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Persistence",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Metadata\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Naming\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Persistence",
+        "Dirthara\\Entity\\Query",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Type\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Persistence",
+        "Dirthara\\Entity\\Query",
+    ] },
+    { dependency = "Dirthara\\Entity\\Hydration\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Metadata",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Persistence",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Persistence\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Metadata",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Query",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Query\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Exception",
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Metadata",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Persistence",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Attribute\\**", deny-from = [
+        "Dirthara\\Entity\\Hydration",
+        "Dirthara\\Entity\\Naming",
+        "Dirthara\\Entity\\Persistence",
+        "Dirthara\\Entity\\Query",
+        "Dirthara\\Entity\\Type",
+    ] },
+    { dependency = "Dirthara\\Entity\\Exception\\**", deny-from = [
+        "Dirthara\\Entity\\Attribute",
+        "Dirthara\\Entity\\Naming",
+    ] },
+]
+
+[guard.structural]
+rules = [
+    { on = "Dirthara\\Entity\\**", not-on = "Dirthara\\Entity\\Exception\\EntityException", target = "class", must-be-final = true, reason = "Extend the package through its interfaces; EntityException is the only open class." },
+    { on = "Dirthara\\Entity\\Exception\\**", not-on = "Dirthara\\Entity\\Exception\\EntityException", target = "class", must-extend = "Dirthara\\Entity\\Exception\\EntityException", reason = "Catching EntityException catches everything this package throws." },
+    { on = "Dirthara\\Entity\\Attribute\\**", target = "class", must-be-readonly = true, must-use-attribute = "Attribute", reason = "An attribute is read-only data PHP builds from the entity's declaration." },
+    { on = "Dirthara\\Entity\\Type\\Converter\\**", target = "class", must-implement = "Dirthara\\Entity\\Type\\TypeConverter", reason = "The registry stores converters behind TypeConverter." },
+]

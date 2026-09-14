@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Exception;
 
 use Dirthara\Database\Exceptions\DatabaseException;
 
-class EntityDatabaseException extends EntityException
+final class EntityDatabaseException extends EntityException
 {
     public static function fromDatabaseException(DatabaseException $exception, string $entity, string $operation): self
     {

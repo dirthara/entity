@@ -22,9 +22,8 @@ final readonly class BackedEnumConverter implements TypeConverter
     public function __construct(
         private string $enum,
     ) {
-        // The declared `class-string<T of BackedEnum>` is a promise the analyzer
-        // believes, so it reads this branch as dead. A class name resolved at runtime
-        // keeps no such promise, which is what this guard is here for.
+        // The declared `class-string<T>` makes this branch look dead; a class name
+        // resolved at runtime is not checked.
         // @mago-expect analysis:no-value
         if (!is_subclass_of($enum, BackedEnum::class)) {
             throw TypeConversionException::invalidConverterType(BackedEnum::class, $enum);

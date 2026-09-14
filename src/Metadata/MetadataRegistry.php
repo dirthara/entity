@@ -32,8 +32,6 @@ final class MetadataRegistry
     {
         $this->metadata[$entity] ??= $this->factory->create($entity);
 
-        // The cache is keyed by class name, so the entity type comes back from the
-        // key rather than from the stored value.
         // @mago-expect lint:inline-variable-return
         /** @var EntityMetadata<T> $metadata */
         $metadata = $this->metadata[$entity];

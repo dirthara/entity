@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Exception;
 
 use Throwable;
 
-class TypeConversionException extends EntityException
+final class TypeConversionException extends EntityException
 {
     public static function unsupportedType(string $type): self
     {

@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Exception;
 
 use Throwable;
 
-class PersistenceException extends EntityException
+final class PersistenceException extends EntityException
 {
     public static function invalidEntity(string $expected, string $actual): self
     {

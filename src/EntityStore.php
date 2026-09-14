@@ -4,16 +4,17 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity;
 
-use Dirthara\Collection\Collection;
 use Dirthara\Entity\Query\EntityQuery;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
+use Dirthara\Collection\Contract\Collection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
+use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\InvalidEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
@@ -121,6 +122,8 @@ final readonly class EntityStore
      * @param T $entity
      *
      * @throws InvalidEntityException
+     * @throws PersistenceException
+     * @throws TypeConversionException
      */
     public function insert(object $entity): void
     {
@@ -133,6 +136,8 @@ final readonly class EntityStore
      * @param T $entity
      *
      * @throws InvalidEntityException
+     * @throws PersistenceException
+     * @throws TypeConversionException
      */
     public function update(object $entity): int
     {
@@ -145,8 +150,10 @@ final readonly class EntityStore
      * @param T $entity
      *
      * @throws InvalidEntityException
+     * @throws PersistenceException
+     * @throws TypeConversionException
      */
-    public function delete(object $entity): bool
+    public function delete(object $entity): int
     {
         $this->assertEntity($entity);
 

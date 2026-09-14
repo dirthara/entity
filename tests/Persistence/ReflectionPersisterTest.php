@@ -241,7 +241,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article = $this->article('First');
         $article->id = 1;
 
-        self::assertTrue(new ReflectionPersister()->delete(
+        self::assertSame(1, new ReflectionPersister()->delete(
             $this->connected(),
             $this->metadata(Article::class),
             $article,
@@ -257,7 +257,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article = $this->article('First');
         $article->id = 404;
 
-        self::assertFalse(new ReflectionPersister()->delete(
+        self::assertSame(0, new ReflectionPersister()->delete(
             $this->connected(),
             $this->metadata(Article::class),
             $article,

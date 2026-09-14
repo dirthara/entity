@@ -10,7 +10,7 @@ use Dirthara\Entity\Attribute\Column;
 use Dirthara\Entity\Attribute\Ignore;
 use Dirthara\Entity\Attribute\Generated;
 
-class MappingException extends EntityException
+final class MappingException extends EntityException
 {
     public static function fromReflection(ReflectionException $exception, string $entity): self
     {

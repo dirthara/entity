@@ -185,9 +185,7 @@ final readonly class MetadataFactory
 
         $mapping = $id ?? $column;
 
-        $converterType = $mapping->converter ?? $type->getName();
-
-        $converter = $this->types->resolve(propertyType: $type->getName(), converterType: $converterType);
+        $converter = $this->types->resolve(propertyType: $type->getName(), converterType: $mapping?->converter);
 
         return new PropertyMetadata(
             property: $property->getName(),

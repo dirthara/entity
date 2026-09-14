@@ -31,7 +31,10 @@ final readonly class IdentifierMetadata
     public function single(): PropertyMetadata
     {
         if (!$this->isSingle()) {
-            throw InvalidIdentifierException::identifierIsComposite($this->properties);
+            throw InvalidIdentifierException::identifierIsComposite(array_map(
+                static fn(PropertyMetadata $property): string => $property->property,
+                $this->properties,
+            ));
         }
 
         return $this->properties[0];

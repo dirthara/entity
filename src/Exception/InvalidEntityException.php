@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Exception;
 
-class InvalidEntityException extends EntityException
+final class InvalidEntityException extends EntityException
 {
     public static function forEntityStore(string $expected, string $actual): self
     {

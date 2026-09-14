@@ -139,7 +139,7 @@ final class EntityStoreTest extends EntityTestCase
 
         self::assertSame(1, $store->update($article));
         self::assertSame('Second', self::entity(Article::class, $store->findOrFail(1))->title);
-        self::assertTrue($store->delete($article));
+        self::assertSame(1, $store->delete($article));
         self::assertSame(0, $store->count());
     }
 

@@ -96,6 +96,7 @@ final class ReflectionPersister implements EntityPersister
      * @param EntityMetadata<T> $metadata
      *
      * @throws PersistenceException
+     * @throws TypeConversionException
      */
     public function update(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): int
     {
@@ -153,8 +154,9 @@ final class ReflectionPersister implements EntityPersister
      * @param EntityMetadata<T> $metadata
      *
      * @throws PersistenceException
+     * @throws TypeConversionException
      */
-    public function delete(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): bool
+    public function delete(ConnectedDatabase $database, EntityMetadata $metadata, object $entity): int
     {
         $this->assertEntity($metadata, $entity);
 
@@ -183,11 +185,12 @@ final class ReflectionPersister implements EntityPersister
             );
         }
 
-        return $affected === 1;
+        return $affected;
     }
 
     /**
      * @throws PersistenceException
+     * @throws TypeConversionException
      */
     private function databaseValue(
         object $entity,

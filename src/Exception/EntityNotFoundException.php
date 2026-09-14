@@ -8,7 +8,7 @@ use Throwable;
 
 use function sprintf;
 
-class EntityNotFoundException extends EntityException
+final class EntityNotFoundException extends EntityException
 {
     /**
      * @template T of object

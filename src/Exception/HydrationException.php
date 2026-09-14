@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Exception;
 
 use Throwable;
 
-class HydrationException extends EntityException
+final class HydrationException extends EntityException
 {
     public static function missingColumn(string $entity, string $property, string $column): self
     {

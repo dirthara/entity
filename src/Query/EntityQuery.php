@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Query;
 
 use Closure;
-use Dirthara\Collection\Collection;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\Query\QueryBuilder;
+use Dirthara\Collection\Contract\Collection;
 use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
@@ -318,9 +318,6 @@ final readonly class EntityQuery
     }
 
     /**
-     * A null is not a value `IN` can match, so unlike `where()` this does not let
-     * one through: every value goes to the converter, which refuses it.
-     *
      * @param iterable<mixed> $values
      *
      * @return list<string|int|float|bool>

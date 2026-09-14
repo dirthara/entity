@@ -167,9 +167,23 @@ abstract class EntityConformanceTestCase extends TestCase
         self::assertSame('Ada Lovelace', $found->displayName);
         self::assertFalse($found->active);
 
-        self::assertTrue($records->delete($record));
+        self::assertSame(1, $records->delete($record));
         self::assertNull($records->find($record->id));
         self::assertSame(0, $records->count());
+    }
+
+    #[Test]
+    public function it_reports_the_affected_rows_its_driver_counts_for_an_unchanged_update(): void
+    {
+        $records = $this->records();
+
+        $record = $this->record('Ada');
+        $records->insert($record);
+
+        $expected = $this->driverName() === DriverName::MySql ? 0 : 1;
+
+        self::assertSame($expected, $records->update($record));
+        self::assertSame('Ada', $records->findOrFail($record->id)->displayName);
     }
 
     #[Test]
@@ -222,7 +236,7 @@ abstract class EntityConformanceTestCase extends TestCase
 
         self::assertSame(1, $memberships->update($membership));
         self::assertSame('member', $memberships->findOrFail(['teamId' => 1, 'userId' => 2])->role);
-        self::assertTrue($memberships->delete($membership));
+        self::assertSame(1, $memberships->delete($membership));
         self::assertSame(0, $memberships->count());
     }
 

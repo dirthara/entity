@@ -6,7 +6,7 @@ namespace Dirthara\Entity\Exception;
 
 use \ReflectionException;
 
-class CreateEntityException extends EntityException
+final class CreateEntityException extends EntityException
 {
     public static function fromReflection(ReflectionException $exception, string $entity): self
     {
