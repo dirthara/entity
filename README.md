@@ -4,19 +4,26 @@
 
 # Dirthara Entity
 
-Entities for the Dirthara framework. This repository is the initial package
-scaffold; no entity API or release is available yet. Usage documentation lives
-in [`docs`](docs/intro.md), prepared for the shared Docusaurus documentation
-site.
+Entities for the Dirthara framework. Describe a class with attributes and read or
+write its table through a typed store, with every value crossing the boundary
+through a converter.
 
 ## Installation
-
-Requires PHP `^8.5` (PHP 8.5 or a later PHP 8 release), with no additional
-runtime Composer dependencies. Install with:
 
 ```sh
 composer require dirthara/entity
 ```
+
+The package requires PHP 8.5,
+[`dirthara/database`](https://github.com/dirthara/database) `^0.1` and
+[`dirthara/collection`](https://github.com/dirthara/collection) `^0.1`, which
+Composer installs for you. The database package owns the connections, drivers and
+query builder; this one maps classes onto them. It never touches PDO itself, but
+that package does, so each database needs its own PDO extension: `pdo_mysql`,
+`pdo_pgsql`, `pdo_sqlite`, or `pdo_sqlsrv`.
+
+Usage documentation lives in [`docs`](docs/intro.md), which is published as a
+Docusaurus site by a separate package.
 
 ## Docker development environment
 
@@ -58,17 +65,17 @@ docker compose exec php composer test
 Tests belong in `tests`, under `Dirthara\Entity\Tests`. Source belongs in
 `src`, under `Dirthara\Entity`.
 
+Most of the suite maps classes and asserts on the result, which needs no server.
 Behaviour that needs a real database belongs in `tests/Integration`, where one
-conformance suite runs against every driver. SQLite runs in memory and always
-runs; the PostgreSQL, MySQL, and SQL Server suites skip when their PDO driver is
-missing, and read their connection from `DIRTHARA_POSTGRES_*`, `DIRTHARA_MYSQL_*`,
-and `DIRTHARA_SQLSRV_*` (`_HOST`, `_PORT`, `_DATABASE`, `_USERNAME`, `_PASSWORD`),
-defaulting to the services in `compose.yaml`.
+conformance suite runs against every driver: writing a row, reading it back, and
+checking what each driver reports for a converted column. What a driver answers
+with for a boolean or a float cannot be judged without one.
 
-The initial scaffold has no PHP source or tests. Test and coverage commands
-explicitly report that checks are not applicable while both directories contain
-no PHP files. As soon as either contains PHP files, PHPUnit and the coverage
-gate run normally; an empty test suite fails.
+SQLite runs in memory and always runs; the PostgreSQL, MySQL, and SQL Server
+suites skip when their PDO driver is missing, and read their connection from
+`DIRTHARA_POSTGRES_*`, `DIRTHARA_MYSQL_*`, and `DIRTHARA_SQLSRV_*` (`_HOST`,
+`_PORT`, `_DATABASE`, `_USERNAME`, `_PASSWORD`), defaulting to the services in
+`compose.yaml`.
 
 ## Code quality
 
@@ -87,9 +94,11 @@ docker compose exec php composer analyze
 docker compose exec php composer guard
 ```
 
-`composer mago` runs the formatting, import-order, lint, analysis, and configured
+`composer mago` runs the formatting, import-order, lint, analysis, and
 architecture checks. `composer ci` also runs tooling tests, unit tests, and the
-coverage gate.
+coverage gate. The architecture rules in `mago.toml` keep the mapping, hydration,
+type, and naming layers free of any dependency on the database packages, and
+require every class outside `EntityException` to be final.
 
 Apply formatting and import sorting with `composer fmt`, or include automatic
 lint fixes with `composer cs`:

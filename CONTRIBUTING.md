@@ -110,7 +110,8 @@ Then update the supported versions table below and in
 | --- | --- | --- |
 | `0.1` | 8.5 | Active |
 
-The initial `0.1` scaffold is unreleased.
+Every database the package maps entities onto is exercised against a real server
+by the conformance suite.
 
 ## Before you open a pull request
 
@@ -121,9 +122,9 @@ docker compose exec php composer ci
 ```
 
 That is Mago's formatter, linter, analyzer, and architecture rules, then the
-test suite with coverage, then the coverage gate. Start the PHP container with `docker compose up -d php`. CI uses the same
-image. The empty scaffold skips tests and coverage until PHP files exist in
-`src` or `tests`. The individual commands are in [README.md](README.md).
+test suite with coverage, then the coverage gate. Start the PHP container with
+`docker compose up -d php`. CI uses the same image. The individual commands are
+in [README.md](README.md).
 
 Your pull request needs:
 

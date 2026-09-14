@@ -1,0 +1,10 @@
+{
+  "label": "Converters",
+  "position": 7,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Converters",
+    "description": "How a PHP value becomes a column value and back, which converters ship, and how to add one."
+  }
+}

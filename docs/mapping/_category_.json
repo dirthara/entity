@@ -1,0 +1,10 @@
+{
+  "label": "Mapping",
+  "position": 5,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Mapping",
+    "description": "Declare which table a class belongs to, which column each property is, and what its identifier looks like."
+  }
+}
