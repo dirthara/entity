@@ -5,6 +5,8 @@
 # A lockfile is the one with a consequence rather than just weight: Composer
 # ignores a lockfile inside an installed dependency, but audit tools that walk
 # `vendor/` read it and report versions the consuming project does not use.
+#
+# Add a path here when you add a development file. Anything not listed ships.
 /.dockerignore          export-ignore
 /.gitattributes         export-ignore
 /.github                export-ignore

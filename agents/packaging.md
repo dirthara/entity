@@ -91,8 +91,10 @@ not.
 
 ## Verifying it
 
-[Plumb](https://plumbphp.dev) scores these mechanically, and its free API needs
-no key:
+Every package scores 100 before it is released, which is what these rules exist
+to satisfy; [CONTRIBUTING.md](../CONTRIBUTING.md) states the gate.
+[Plumb](https://plumbphp.dev) scores it mechanically, and its free API needs no
+key:
 
 ```sh
 curl https://plumbphp.dev/api/v1/packages/dirthara/<package>
