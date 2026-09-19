@@ -36,6 +36,35 @@ final readonly class DefaultNamingStrategy implements NamingStrategy
         return $this->snakeCase($property);
     }
 
+    public function relationForeignKey(string $property, string $identifierColumn): string
+    {
+        return sprintf('%s_%s', $this->column($property), $this->column($identifierColumn));
+    }
+
+    public function entityForeignKey(string $entityShortName, string $identifierColumn): string
+    {
+        $entity = $this->snakeCase($entityShortName);
+        $identifier = $this->column($identifierColumn);
+
+        if ($identifier === $entity || str_starts_with($identifier, $entity . '_')) {
+            return $identifier;
+        }
+
+        return sprintf('%s_%s', $entity, $identifier);
+    }
+
+    public function joinTable(string $entityShortName, string $relatedEntityShortName): string
+    {
+        $entities = [
+            $this->snakeCase($entityShortName),
+            $this->snakeCase($relatedEntityShortName),
+        ];
+
+        sort($entities);
+
+        return implode('_', $entities);
+    }
+
     private function snakeCase(string $value): string
     {
         $value = preg_replace('/([A-Z]+)([A-Z][a-z])/', '$1_$2', $value);

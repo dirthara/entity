@@ -15,4 +15,19 @@ final readonly class NoNamingStrategy implements NamingStrategy
     {
         return $property;
     }
+
+    public function relationForeignKey(string $property, string $identifierColumn): string
+    {
+        return sprintf('%s_%s', $this->column($property), $this->column($identifierColumn));
+    }
+
+    public function entityForeignKey(string $entityShortName, string $identifierColumn): string
+    {
+        return sprintf('%s_%s', $this->table($entityShortName), $this->column($identifierColumn));
+    }
+
+    public function joinTable(string $entityShortName, string $relatedEntityShortName): string
+    {
+        return sprintf('%s_%s', $this->table($entityShortName), $this->table($relatedEntityShortName));
+    }
 }
