@@ -183,7 +183,7 @@ final readonly class MetadataFactory
 
         return new PropertyMetadata(
             property: $property->getName(),
-            column: $mapping?->column ?? $this->naming->column($property->getName()),
+            column: $mapping?->name ?? $this->naming->column($property->getName()),
             propertyType: $type->getName(),
             converter: $converter,
             nullable: $type->allowsNull(),

@@ -10,7 +10,7 @@ use Attribute;
 final readonly class Column
 {
     public function __construct(
-        public ?string $column = null,
+        public ?string $name = null,
         public ?string $converter = null,
     ) {}
 }

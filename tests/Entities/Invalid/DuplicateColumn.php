@@ -14,6 +14,6 @@ final class DuplicateColumn
     #[Id]
     public int $id;
 
-    #[Column(column: 'id')]
+    #[Column(name: 'id')]
     public string $reference;
 }

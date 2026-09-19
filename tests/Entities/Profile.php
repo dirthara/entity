@@ -24,7 +24,7 @@ final class Profile
     #[Generated]
     public int $id;
 
-    #[Column(column: 'display_name')]
+    #[Column(name: 'display_name')]
     public string $displayName;
 
     #[Column(converter: 'json')]

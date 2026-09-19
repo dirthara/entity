@@ -19,7 +19,7 @@ final class Record
     #[Generated]
     public int $id;
 
-    #[Column(column: 'display_name')]
+    #[Column(name: 'display_name')]
     public string $displayName;
 
     public bool $active;
