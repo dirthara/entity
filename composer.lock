@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "dirthara/collection",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dirthara/collection.git",
-                "reference": "d0093a46b4b5cfb0f3a64148b644c95d8fefac8b"
+                "reference": "291201fecce2141bbb239872a1ad14aeae98a0b0"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dirthara/collection/zipball/d0093a46b4b5cfb0f3a64148b644c95d8fefac8b",
-                "reference": "d0093a46b4b5cfb0f3a64148b644c95d8fefac8b",
+                "url": "https://api.github.com/repos/dirthara/collection/zipball/291201fecce2141bbb239872a1ad14aeae98a0b0",
+                "reference": "291201fecce2141bbb239872a1ad14aeae98a0b0",
                 "shasum": ""
             },
             "require": {
@@ -44,22 +44,22 @@
             "description": "Collections for the Dirthara framework",
             "support": {
                 "issues": "https://github.com/dirthara/collection/issues",
-                "source": "https://github.com/dirthara/collection/tree/0.1.0"
+                "source": "https://github.com/dirthara/collection/tree/0.1.1"
             },
-            "time": "2026-09-12T07:00:32+00:00"
+            "time": "2026-09-14T20:23:25+00:00"
         },
         {
             "name": "dirthara/database",
-            "version": "0.1.0",
+            "version": "0.1.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/dirthara/database.git",
-                "reference": "e4431bf9e23487f02a9ebb509426702cf5b15130"
+                "reference": "933d2b7368b981510e6bd052a2c2637d4723722f"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/dirthara/database/zipball/e4431bf9e23487f02a9ebb509426702cf5b15130",
-                "reference": "e4431bf9e23487f02a9ebb509426702cf5b15130",
+                "url": "https://api.github.com/repos/dirthara/database/zipball/933d2b7368b981510e6bd052a2c2637d4723722f",
+                "reference": "933d2b7368b981510e6bd052a2c2637d4723722f",
                 "shasum": ""
             },
             "require": {
@@ -93,9 +93,9 @@
             "description": "Database connection for the Dirthara framework",
             "support": {
                 "issues": "https://github.com/dirthara/database/issues",
-                "source": "https://github.com/dirthara/database/tree/0.1.0"
+                "source": "https://github.com/dirthara/database/tree/0.1.1"
             },
-            "time": "2026-09-10T10:44:36+00:00"
+            "time": "2026-09-14T20:25:47+00:00"
         }
     ],
     "packages-dev": [
