@@ -123,7 +123,7 @@ Then update the supported versions table below and in
 
 | Branch | PHP | Status |
 | --- | --- | --- |
-| `0.1` | 8.5 | Active |
+| `0.2` | 8.5 | Active |
 
 Every database the package maps entities onto is exercised against a real server
 by the conformance suite.
