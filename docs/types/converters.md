@@ -29,11 +29,15 @@ guarantees what it holds; `float` is the one exception, taking a numeric string
 as well. A value a converter cannot make sense of throws
 `TypeConversionException` rather than being coerced.
 
-:::caution
-`json` and `serialized` are not chosen for you. A bare `array` property has no
-converter registered under `array`, so it throws `TypeConversionException` until
-you name one with `#[Column(converter: 'json')]`. Which representation belongs
-in the column is not something the package can guess.
+A bare `array` property uses `json`. Nothing has to be named for it, and
+`#[Column(converter: 'serialized')]` is how you ask for the other one.
+
+:::note
+The default is an alias, not a registration: `array` resolves to whatever is
+registered under `json`, so replacing the `json` converter moves every bare
+`array` with it. To point the default somewhere else entirely, register a
+converter whose own `type()` returns `array`; anything registered under that key
+wins over the alias.
 :::
 
 The `serialized` converter passes `allowed_classes: false`, so a payload can
@@ -48,13 +52,16 @@ turn it on.
    class name.
 
 The name is looked up in the `TypeRegistry`. With nothing registered under it,
-the registry tries one last thing: a name that is a backed enum gets a converter
-built for it. Anything else throws `TypeConversionException` naming the type,
-which is what a `DateTimeImmutable` property does out of the box.
+the registry tries two more things: `array` falls back to the `json` converter,
+and a name that is a backed enum gets a converter built for it. Anything else
+throws `TypeConversionException` naming the type, which is what a
+`DateTimeImmutable` property does out of the box.
 
 ```php
-#[Column(converter: 'json')]
-public array $meta;     // the named converter
+public array $meta;     // 'array', so the 'json' converter
+
+#[Column(converter: 'serialized')]
+public array $legacy;   // the named converter instead
 
 public bool $published; // looked up as 'bool'
 ```
@@ -125,8 +132,8 @@ $types->get('money');       // TypeConverter, or TypeConversionException
 | Method | Returns | Notes |
 | --- | --- | --- |
 | `register(TypeConverter $converter)` | `void` | Keyed by the converter's own `type()`. |
-| `has(string $type)` | `bool` | True for a registered type and for any backed enum. |
-| `get(string $type)` | `TypeConverter` | Builds one for a backed enum; throws for anything else unregistered. |
+| `has(string $type)` | `bool` | True for a registered type, for `array`, and for any backed enum. |
+| `get(string $type)` | `TypeConverter` | Resolves `array` to `json`, builds one for a backed enum; throws for anything else unregistered. |
 | `resolve(string $propertyType, ?string $converterType = null)` | `TypeConverter` | The named converter, falling back to the property type. |
 
 The constructor registers the built-in converters first and the ones you pass

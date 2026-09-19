@@ -12,6 +12,7 @@ use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Profile;
 use Dirthara\Entity\Tests\Entities\Replica;
+use Dirthara\Entity\Tests\Entities\Document;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Tests\Entities\Membership;
 use PHPUnit\Framework\Attributes\DataProvider;
@@ -126,6 +127,15 @@ final class MetadataFactoryTest extends EntityTestCase
         self::assertSame('display_name', $metadata->property('displayName')->column);
         self::assertInstanceOf(JsonArrayConverter::class, $metadata->property('meta')->converter);
         self::assertSame('array', $metadata->property('meta')->propertyType);
+    }
+
+    #[Test]
+    public function it_converts_a_bare_array_property_with_json(): void
+    {
+        $metadata = $this->metadata(Document::class);
+
+        self::assertSame('array', $metadata->property('payload')->propertyType);
+        self::assertInstanceOf(JsonArrayConverter::class, $metadata->property('payload')->converter);
     }
 
     #[Test]

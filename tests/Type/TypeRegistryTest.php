@@ -4,14 +4,17 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Type;
 
+use DateTimeImmutable;
 use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Tests\Entities\UnbackedRole;
+use Dirthara\Entity\Tests\Doubles\ArrayConverter;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 
 final class TypeRegistryTest extends TestCase
@@ -59,12 +62,41 @@ final class TypeRegistryTest extends TestCase
     {
         $registry = new TypeRegistry();
 
-        self::assertFalse($registry->has('array'));
+        self::assertFalse($registry->has(DateTimeImmutable::class));
 
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Unsupported type "array"');
+        $this->expectExceptionMessage(sprintf('Unsupported type "%s"', DateTimeImmutable::class));
 
-        $registry->get('array');
+        $registry->get(DateTimeImmutable::class);
+    }
+
+    #[Test]
+    public function it_converts_a_bare_array_with_the_json_converter(): void
+    {
+        $registry = new TypeRegistry();
+
+        self::assertTrue($registry->has('array'));
+        self::assertSame($registry->get('json'), $registry->get('array'));
+        self::assertSame($registry->get('json'), $registry->resolve(propertyType: 'array'));
+    }
+
+    #[Test]
+    public function it_lets_a_registered_converter_replace_the_array_default(): void
+    {
+        $replacement = new ArrayConverter();
+        $registry = new TypeRegistry([$replacement]);
+
+        self::assertSame($replacement, $registry->get('array'));
+        self::assertNotSame($replacement, $registry->get('json'));
+    }
+
+    #[Test]
+    public function it_follows_a_replaced_json_converter_for_a_bare_array(): void
+    {
+        $replacement = new JsonArrayConverter();
+        $registry = new TypeRegistry([$replacement]);
+
+        self::assertSame($replacement, $registry->get('array'));
     }
 
     #[Test]

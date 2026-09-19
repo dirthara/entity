@@ -17,6 +17,17 @@ use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 final class TypeRegistry
 {
     /**
+     * Property types that fall back to a built-in converter registered under
+     * another name. An alias only applies when nothing is registered under the
+     * type itself, so registering under `array` still replaces the default.
+     *
+     * @var array<string, string>
+     */
+    private const array ALIASES = [
+        'array' => 'json',
+    ];
+
+    /**
      * @var array<string, TypeConverter>
      */
     private array $converters = [];
@@ -46,7 +57,9 @@ final class TypeRegistry
 
     public function has(string $type): bool
     {
-        return isset($this->converters[$type]) || is_subclass_of($type, BackedEnum::class);
+        return isset($this->converters[$type])
+            || isset(self::ALIASES[$type])
+            || is_subclass_of($type, BackedEnum::class);
     }
 
     /**
@@ -54,6 +67,10 @@ final class TypeRegistry
      */
     public function get(string $type): TypeConverter
     {
+        if (!isset($this->converters[$type]) && isset(self::ALIASES[$type])) {
+            $type = self::ALIASES[$type];
+        }
+
         return $this->converters[$type] ??= $this->build($type);
     }
 
