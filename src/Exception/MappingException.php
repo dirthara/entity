@@ -228,4 +228,69 @@ final class MappingException extends EntityException
             'property' => $property,
         ]);
     }
+
+    public static function multipleRelations(string $entity, string $property): self
+    {
+        return new self(message: sprintf(
+            'Property "%s" in entity "%s" has multiple relations',
+            $property,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+        ]);
+    }
+
+    public static function compositeIdentifierNotSupportedForRelation(string $entity, ?string $relation = null): self
+    {
+        return new self(message: sprintf(
+            'Composite identifier not supported for relation %s in entity "%s"',
+            $relation ?? '',
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+        ]);
+    }
+
+    public static function invalidRelationType(string $entity, string $property, string $type): self
+    {
+        return new self(message: sprintf(
+            'Invalid relation type "%s" for property "%s" in entity "%s"',
+            $type,
+            $property,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'type' => $type,
+        ]);
+    }
+
+    public static function invalidRelationTarget(
+        string $entity,
+        string $property,
+        string $propertyType,
+        string $target,
+    ): self {
+        return new self(message: sprintf(
+            'Invalid relation target "%s" for property "%s" in entity "%s"',
+            $target,
+            $property,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'propertyType' => $propertyType,
+            'target' => $target,
+        ]);
+    }
+
+    public static function unknownRelation(string $entity, string $relation): self
+    {
+        return new self(message: sprintf('Unknown relation "%s" in entity "%s"', $relation, $entity))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+        ]);
+    }
 }
