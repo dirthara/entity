@@ -185,7 +185,7 @@ final class DateTimeConverterTest extends TestCase
         $this->expectException(TypeConversionException::class);
         $this->expectExceptionMessage('Invalid column value of type "int"');
 
-        new DateTimeConverter('datetime')->fromDatabase(1772620530);
+        new DateTimeConverter('datetime')->fromDatabase(1_772_620_530);
     }
 
     #[Test]

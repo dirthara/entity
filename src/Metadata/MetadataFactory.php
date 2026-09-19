@@ -51,7 +51,7 @@ final readonly class MetadataFactory
 
         $entityAttribute = $this->entityAttribute($reflection);
 
-        $table = $entityAttribute?->table ?? $this->naming->table($reflection->getShortName());
+        $table = $entityAttribute->table ?? $this->naming->table($reflection->getShortName());
 
         $connection = $entityAttribute?->connection;
 
