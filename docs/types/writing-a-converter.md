@@ -105,6 +105,18 @@ $types = new TypeRegistry([new DateTimeConverter()]);
 public DateTimeImmutable $createdAt;
 ```
 
+Registering it makes it the default for `DateTimeImmutable` everywhere. For a
+single property, name the class on the mapping instead and skip the registry:
+
+```php
+#[Column(converter: DateTimeConverter::class)]
+public DateTimeImmutable $createdAt;
+```
+
+That builds it with `new`, so a converter meant to be used this way should take
+no required constructor arguments. See
+[a converter for one property](converters.md#a-converter-for-one-property).
+
 ## Which exception to throw
 
 | Factory | For |

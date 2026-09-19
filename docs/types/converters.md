@@ -47,9 +47,18 @@ turn it on.
 
 ## How one is chosen
 
-1. The `converter` option on `#[Id]` or `#[Column]`, if given.
+1. The `converter` option on `#[Id]` or `#[Column]`, if given:
+   - a **closure** is called once and has to answer a converter;
+   - a **class name** implementing `TypeConverter` is built for this property
+     alone;
+   - anything else is a **registry key**.
 2. Otherwise the property's type name: `string`, `int`, `float`, `bool`, or a
    class name.
+
+Only the last of those three reaches the registry, so a converter named on a
+property never has to be registered. What is registered stays the default for
+the type it is registered under, which is what every property that names nothing
+gets.
 
 The name is looked up in the `TypeRegistry`. With nothing registered under it,
 the registry tries two more things: `array` falls back to the `json` converter,
@@ -61,10 +70,57 @@ throws `TypeConversionException` naming the type, which is what a
 public array $meta;     // 'array', so the 'json' converter
 
 #[Column(converter: 'serialized')]
-public array $legacy;   // the named converter instead
+public array $legacy;   // a registry key
 
 public bool $published; // looked up as 'bool'
 ```
+
+## A converter for one property
+
+A property can name a converter the registry has never heard of. Give it a class
+name and the package builds it, or a closure and the package asks it:
+
+```php
+#[Column(converter: MoneyConverter::class)]
+public Money $price;
+
+#[Column(converter: Money::converter(...))]
+public Money $total;
+```
+
+A class name is built with `new`, so the class has to be instantiable and its
+constructor has to take no required arguments. A converter that needs arguments
+is what the closure is for:
+
+```php
+final class Money
+{
+    public static function converter(): TypeConverter
+    {
+        return new MoneyConverter(currency: 'EUR');
+    }
+}
+```
+
+Both are built once, while the entity is mapped, and belong to that property
+alone: two properties naming the same class get two converters, and nothing is
+added to the registry.
+
+:::caution
+The closure has to be written with first-class callable syntax,
+`Money::converter(...)`. A literal closure such as `fn() => new MoneyConverter()`
+is not a constant expression, and PHP rejects it in an attribute before any of
+this package's code runs.
+:::
+
+| What the option names | Result |
+| --- | --- |
+| A registry key | The registered converter. |
+| A converter class with no required constructor arguments | Built for this property. |
+| A converter class that cannot be instantiated, or needs arguments | `MappingException` naming the property. |
+| A closure answering a converter | That converter, for this property. |
+| A closure answering anything else | `MappingException` naming the property. |
+| A name that is none of these | `TypeConversionException`: unsupported type. |
 
 ## Null
 

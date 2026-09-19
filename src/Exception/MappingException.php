@@ -101,6 +101,47 @@ final class MappingException extends EntityException
 
     /**
      * @param class-string $entity
+     * @param class-string $converter
+     */
+    public static function unconstructableConverter(
+        string $entity,
+        string $property,
+        string $converter,
+        string $reason,
+    ): self {
+        return new self(sprintf(
+            'Converter "%s" for property "%s" in entity "%s" cannot be built because %s',
+            $converter,
+            $property,
+            $entity,
+            $reason,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'converter' => $converter,
+            'reason' => $reason,
+        ]);
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    public static function invalidConverterFactory(string $entity, string $property, string $returned): self
+    {
+        return new self(sprintf(
+            'Converter factory for property "%s" in entity "%s" answered "%s", expected a converter',
+            $property,
+            $entity,
+            $returned,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'returned' => $returned,
+        ]);
+    }
+
+    /**
+     * @param class-string $entity
      */
     public static function unknownProperty(string $entity, string $property): self
     {

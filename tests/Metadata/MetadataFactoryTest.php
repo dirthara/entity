@@ -9,6 +9,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\Entities\Plain;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Tests\Entities\Ticket;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Profile;
 use Dirthara\Entity\Tests\Entities\Replica;
@@ -18,8 +19,10 @@ use Dirthara\Entity\Tests\Entities\Membership;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Tests\Entities\Invalid\Contract;
+use Dirthara\Entity\Tests\Doubles\UppercaseConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\Behaviour;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Tests\Doubles\ConfiguredConverter;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\MixedProperty;
 use Dirthara\Entity\Tests\Entities\Invalid\AbstractEntity;
@@ -30,6 +33,9 @@ use Dirthara\Entity\Tests\Entities\Invalid\UntypedProperty;
 use Dirthara\Entity\Tests\Entities\Invalid\WithoutIdentifier;
 use Dirthara\Entity\Tests\Entities\Invalid\UnionTypedProperty;
 use Dirthara\Entity\Tests\Entities\Invalid\ConflictingAttributes;
+use Dirthara\Entity\Tests\Entities\Invalid\ConverterFactoryReturn;
+use Dirthara\Entity\Tests\Entities\Invalid\UninstantiableConverter;
+use Dirthara\Entity\Tests\Entities\Invalid\ConverterNeedingArguments;
 
 final class MetadataFactoryTest extends EntityTestCase
 {
@@ -136,6 +142,70 @@ final class MetadataFactoryTest extends EntityTestCase
 
         self::assertSame('array', $metadata->property('payload')->propertyType);
         self::assertInstanceOf(JsonArrayConverter::class, $metadata->property('payload')->converter);
+    }
+
+    #[Test]
+    public function it_builds_a_converter_named_by_class_without_registering_it(): void
+    {
+        $metadata = $this->metadata(Ticket::class);
+        $converter = $metadata->property('code')->converter;
+
+        self::assertInstanceOf(UppercaseConverter::class, $converter);
+        self::assertSame('ABC', $converter->toDatabase('abc'));
+        self::assertFalse($this->types()->has('uppercase'));
+    }
+
+    #[Test]
+    public function it_asks_a_closure_for_a_converter(): void
+    {
+        $metadata = $this->metadata(Ticket::class);
+
+        self::assertInstanceOf(UppercaseConverter::class, $metadata->property('label')->converter);
+    }
+
+    #[Test]
+    public function it_takes_a_converter_a_closure_built_with_arguments(): void
+    {
+        $metadata = $this->metadata(Ticket::class);
+        $converter = $metadata->property('reference')->converter;
+
+        self::assertInstanceOf(ConfiguredConverter::class, $converter);
+        self::assertSame('p-1', $converter->toDatabase('1'));
+    }
+
+    #[Test]
+    public function it_gives_each_property_its_own_named_converter(): void
+    {
+        $metadata = $this->metadata(Ticket::class);
+
+        self::assertNotSame($metadata->property('code')->converter, $metadata->property('label')->converter);
+    }
+
+    #[Test]
+    public function it_reports_a_converter_whose_constructor_needs_arguments(): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('its constructor requires arguments');
+
+        $this->metadata(ConverterNeedingArguments::class);
+    }
+
+    #[Test]
+    public function it_reports_a_converter_that_cannot_be_instantiated(): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('it cannot be instantiated');
+
+        $this->metadata(UninstantiableConverter::class);
+    }
+
+    #[Test]
+    public function it_reports_a_closure_that_does_not_answer_a_converter(): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('answered "string", expected a converter');
+
+        $this->metadata(ConverterFactoryReturn::class);
     }
 
     #[Test]

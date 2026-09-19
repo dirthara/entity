@@ -57,9 +57,11 @@ final class TypeRegistry
 
     public function has(string $type): bool
     {
-        return isset($this->converters[$type])
+        return (
+            isset($this->converters[$type])
             || isset(self::ALIASES[$type])
-            || is_subclass_of($type, BackedEnum::class);
+            || is_subclass_of($type, BackedEnum::class)
+        );
     }
 
     /**

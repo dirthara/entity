@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Metadata;
 
+use Closure;
 use ReflectionType;
 use ReflectionClass;
 use ReflectionProperty;
@@ -14,6 +15,7 @@ use Dirthara\Entity\Attribute\Column;
 use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Ignore;
 use Dirthara\Entity\Type\TypeRegistry;
+use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Naming\NamingStrategy;
 use Dirthara\Entity\Exception\MappingException;
@@ -179,7 +181,12 @@ final readonly class MetadataFactory
 
         $mapping = $id ?? $column;
 
-        $converter = $this->types->resolve(propertyType: $type->getName(), converterType: $mapping?->converter);
+        $converter = $this->converter(
+            entity: $entity,
+            property: $property,
+            converter: $mapping?->converter,
+            propertyType: $type->getName(),
+        );
 
         return new PropertyMetadata(
             property: $property->getName(),
@@ -190,6 +197,86 @@ final readonly class MetadataFactory
             identifier: $id !== null,
             generated: $generated,
         );
+    }
+
+    /**
+     * A converter named on the mapping wins over the property's type. A class
+     * name is built for this property alone and a closure is asked for one, so
+     * neither has to be registered; the registry keeps the per-type defaults.
+     *
+     * @param class-string $entity
+     *
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    private function converter(
+        string $entity,
+        ReflectionProperty $property,
+        string|Closure|null $converter,
+        string $propertyType,
+    ): TypeConverter {
+        if ($converter instanceof Closure) {
+            return $this->convertedBy(entity: $entity, property: $property, factory: $converter);
+        }
+
+        if ($converter !== null && is_a($converter, TypeConverter::class, allow_string: true)) {
+            return $this->buildConverter(entity: $entity, property: $property, converter: $converter);
+        }
+
+        return $this->types->resolve(propertyType: $propertyType, converterType: $converter);
+    }
+
+    /**
+     * @param class-string $entity
+     * @param class-string<TypeConverter> $converter
+     *
+     * @throws MappingException
+     */
+    private function buildConverter(string $entity, ReflectionProperty $property, string $converter): TypeConverter
+    {
+        $reflection = new ReflectionClass($converter);
+
+        if (!$reflection->isInstantiable()) {
+            throw MappingException::unconstructableConverter(
+                entity: $entity,
+                property: $property->getName(),
+                converter: $converter,
+                reason: 'it cannot be instantiated',
+            );
+        }
+
+        $constructor = $reflection->getConstructor();
+
+        if ($constructor !== null && $constructor->getNumberOfRequiredParameters() > 0) {
+            throw MappingException::unconstructableConverter(
+                entity: $entity,
+                property: $property->getName(),
+                converter: $converter,
+                reason: 'its constructor requires arguments',
+            );
+        }
+
+        return $reflection->newInstance();
+    }
+
+    /**
+     * @param class-string $entity
+     *
+     * @throws MappingException
+     */
+    private function convertedBy(string $entity, ReflectionProperty $property, Closure $factory): TypeConverter
+    {
+        $converter = $factory();
+
+        if (!$converter instanceof TypeConverter) {
+            throw MappingException::invalidConverterFactory(
+                entity: $entity,
+                property: $property->getName(),
+                returned: get_debug_type($converter),
+            );
+        }
+
+        return $converter;
     }
 
     /**

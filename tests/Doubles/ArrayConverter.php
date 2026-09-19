@@ -19,7 +19,7 @@ final readonly class ArrayConverter implements TypeConverter
 
     public function toDatabase(mixed $value): string
     {
-        return implode(',', (array) $value);
+        return implode(',', array_map(strval(...), (array) $value));
     }
 
     public function fromDatabase(mixed $value): array

@@ -65,7 +65,7 @@ Optional. Renames the column or names the converter.
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `column` | `?string` | `null` | The column name. `null` derives it from the property name. |
-| `converter` | `?string` | `null` | The converter to use. `null` looks one up by the property's type. |
+| `converter` | `string\|Closure\|null` | `null` | A registry key, a converter class name, or a closure answering a converter. `null` looks one up by the property's type. |
 
 ```php
 #[Column(column: 'display_name')]
@@ -73,9 +73,17 @@ public string $displayName;
 
 #[Column(converter: 'serialized')]
 public array $meta;
+
+#[Column(converter: MoneyConverter::class)]
+public Money $price;
+
+#[Column(converter: Money::converter(...))]
+public Money $total;
 ```
 
-The `converter` option is a registry key, not a class name. See
+The `converter` option takes a registry key, the class name of a converter to
+build for this property alone, or a closure answering one. Only the key reaches
+the registry; the other two are per-property and need no registration. See
 [Converters](../types/converters.md).
 
 :::caution
