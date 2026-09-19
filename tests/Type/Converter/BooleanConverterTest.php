@@ -13,10 +13,6 @@ use Dirthara\Entity\Exception\TypeConversionException;
 final class BooleanConverterTest extends TestCase
 {
     /**
-     * Every representation the supported drivers report for a boolean column:
-     * PostgreSQL answers with a bool, MySQL and SQLite with an int, and SQL Server
-     * with a string.
-     *
      * @return iterable<string, array{mixed, bool}>
      */
     public static function columnValues(): iterable

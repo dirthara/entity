@@ -22,6 +22,10 @@ reporting `true`.
 | `bool` | `bool` | the boolean | `true`, `1`, `'1'`, `false`, `0` or `'0'` |
 | `json` | `array` | `json_encode` | `json_decode` to an array |
 | `serialized` | `array` | `serialize` | `unserialize`, with classes disallowed |
+| `date` | a date and time | `Y-m-d` | that day at midnight |
+| `time` | a date and time | `H:i:s` | that time on 1970-01-01 |
+| `datetime` | a date and time | `Y-m-d H:i:s` | that instant |
+| `timestamp` | a date and time | `Y-m-d H:i:s` | that instant |
 
 The read side is lenient because drivers differ about what they report for the
 same column. The write side is strict, because the property's own type already
@@ -63,8 +67,8 @@ gets.
 The name is looked up in the `TypeRegistry`. With nothing registered under it,
 the registry tries two more things: `array` falls back to the `json` converter,
 and a name that is a backed enum gets a converter built for it. Anything else
-throws `TypeConversionException` naming the type, which is what a
-`DateTimeImmutable` property does out of the box.
+throws `TypeConversionException` naming the type, which is what an
+`SplFileInfo` property does out of the box.
 
 ```php
 public array $meta;     // 'array', so the 'json' converter
@@ -121,6 +125,65 @@ this package's code runs.
 | A closure answering a converter | That converter, for this property. |
 | A closure answering anything else | `MappingException` naming the property. |
 | A name that is none of these | `TypeConversionException`: unsupported type. |
+
+## Dates and times
+
+`DateTimeInterface`, `DateTimeImmutable` and `DateTime` properties map with no
+attribute. Which class comes back is the property's own decision:
+
+```php
+public DateTimeInterface $createdAt;  // a DateTimeImmutable
+public DateTimeImmutable $publishedAt; // a DateTimeImmutable
+public DateTime $updatedAt;            // a DateTime
+```
+
+A property alone does not say how much of an instant the column holds, so the
+precision is named when it is not a full date and time:
+
+| Key | Writes | Column type it is meant for |
+| --- | --- | --- |
+| `date` | `Y-m-d` | `DATE` |
+| `time` | `H:i:s` | `TIME` |
+| `datetime` | `Y-m-d H:i:s` | `DATETIME`, `DATETIME2` |
+| `timestamp` | `Y-m-d H:i:s` | `TIMESTAMP` |
+
+```php
+#[Column(converter: 'date')]
+public DateTimeImmutable $bornOn;
+
+#[Column(converter: 'time')]
+public DateTime $opensAt;
+```
+
+The key names the precision and the property names the class, so the two are
+independent: `'date'` on a `DateTime` property reads back a mutable `DateTime`
+at midnight. `timestamp` writes exactly what `datetime` writes; the two differ
+only in the column type they are meant for.
+
+Reading is lenient, because this is where drivers differ most. SQL Server
+reports milliseconds and PostgreSQL can report an offset; whatever comes back is
+read and then held to the precision the column is mapped at, so a `date` never
+carries a time and a `datetime` never carries microseconds.
+
+### Timezones
+
+Values are converted to UTC before they are written and read back in UTC, so a
+row means the same instant whatever timezone the application runs in.
+
+```php
+new DateTimeImmutable('2026-03-04 10:15:30', new DateTimeZone('Europe/Amsterdam'));
+// the column holds '2026-03-04 09:15:30'
+```
+
+The value the property is given is never modified: a `DateTime` handed to
+`toDatabase()` keeps its own timezone.
+
+:::caution
+UTC is applied at every precision, including `date` and `time`. A value at
+`2026-03-04 00:30` in `Europe/Amsterdam` is `2026-03-03 23:30` in UTC, so a
+`date` column stores `2026-03-03`. Build the value in UTC when the column means
+a calendar day rather than an instant.
+:::
 
 ## Null
 

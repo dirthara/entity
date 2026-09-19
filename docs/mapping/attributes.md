@@ -16,8 +16,8 @@ identifier, because everything else has a convention behind it.
 | Attribute | Target | Options |
 | --- | --- | --- |
 | `#[Entity]` | class | `table`, `connection` |
-| `#[Id]` | property | `column`, `converter` |
-| `#[Column]` | property | `column`, `converter` |
+| `#[Id]` | property | `name`, `converter` |
+| `#[Column]` | property | `name`, `converter` |
 | `#[Generated]` | property | none |
 | `#[Ignore]` | property | none |
 
@@ -51,7 +51,7 @@ so an identifier does not need both attributes.
 #[Id]
 public int $id;
 
-#[Id(column: 'user_uuid')]
+#[Id(name: 'user_uuid')]
 public string $uuid;
 ```
 
@@ -64,11 +64,11 @@ Optional. Renames the column or names the converter.
 
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `column` | `?string` | `null` | The column name. `null` derives it from the property name. |
+| `name` | `?string` | `null` | The column name. `null` derives it from the property name. |
 | `converter` | `string\|Closure\|null` | `null` | A registry key, a converter class name, or a closure answering a converter. `null` looks one up by the property's type. |
 
 ```php
-#[Column(column: 'display_name')]
+#[Column(name: 'display_name')]
 public string $displayName;
 
 #[Column(converter: 'serialized')]
@@ -138,11 +138,12 @@ property does not.
 | --- | --- |
 | A single type with a converter, such as `string` or `?int` | Mapped. |
 | A bare `array` | Mapped with the `json` converter, without naming one. |
+| `DateTimeInterface`, `DateTimeImmutable` or `DateTime` | Mapped as a full date and time, in UTC. |
 | A backed enum | Mapped; a converter is built for it without registration. |
 | No type at all | `MappingException`: missing property type. |
 | A union or intersection type, such as `string\|int` | `MappingException`: unsupported property type. |
 | `mixed` | `MappingException`: unsupported property type. |
-| A single type with no converter, such as `DateTimeImmutable` or an enum with no backing type | `TypeConversionException`: unsupported type. |
+| A single type with no converter, such as `SplFileInfo` or an enum with no backing type | `TypeConversionException`: unsupported type. |
 
 A nullable type is recorded as nullable, which is what lets a `NULL` column read
 back as `null`. See [Converters](../types/converters.md#null).

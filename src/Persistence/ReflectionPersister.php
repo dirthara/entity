@@ -75,10 +75,6 @@ final class ReflectionPersister implements EntityPersister
         );
     }
 
-    /**
-     * The database only reports one generated key, so only a single-property
-     * identifier can be read back from the insert.
-     */
     private function generatedIdentifier(EntityMetadata $metadata): ?PropertyMetadata
     {
         if (!$metadata->identifier->isSingle()) {

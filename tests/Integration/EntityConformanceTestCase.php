@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Tests\Integration;
 
 use PDO;
+use DateTime;
+use DateTimeZone;
+use DateTimeImmutable;
 use Dirthara\Database\Database;
 use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\EntityStore;
@@ -35,15 +38,6 @@ use function getenv;
 use function sprintf;
 use function in_array;
 
-/**
- * What an entity owes its caller, run against a real database.
- *
- * Mapping is decided in PHP, but everything the mapping promises is settled by a
- * server: which value a driver reports for a boolean, whether a generated key
- * comes back from `RETURNING` or from `lastInsertId()`, and what a column hands
- * back for a float. Each subclass supplies a connection and the dialect of its
- * schema; the tests here are the same for all of them.
- */
 abstract class EntityConformanceTestCase extends TestCase
 {
     protected Database $database;
@@ -56,14 +50,8 @@ abstract class EntityConformanceTestCase extends TestCase
 
     abstract protected function config(): ConnectionConfig;
 
-    /**
-     * Every column the `Record` entity maps, in this database's dialect.
-     */
     abstract protected function recordsTable(): string;
 
-    /**
-     * A table keyed by two columns, for a composite identifier.
-     */
     abstract protected function membershipsTable(): string;
 
     protected function transactions(): TransactionGrammar
@@ -128,6 +116,16 @@ abstract class EntityConformanceTestCase extends TestCase
         self::assertSame(4.5, $found->score);
         self::assertSame(['tier' => 'gold'], $found->meta);
         self::assertSame(Role::Admin, $found->role);
+
+        self::assertSame('2026-03-04 10:15:30', $found->createdAt->format('Y-m-d H:i:s'));
+        self::assertSame('1943-12-09', $found->bornOn->format('Y-m-d'));
+        self::assertSame('09:30:00', $found->opensAt->format('H:i:s'));
+        self::assertSame('2026-03-04 10:15:30', $found->updatedAt->format('Y-m-d H:i:s'));
+
+        self::assertInstanceOf(DateTimeImmutable::class, $found->createdAt);
+        self::assertInstanceOf(DateTime::class, $found->updatedAt);
+
+        self::assertSame('UTC', $found->createdAt->getTimezone()->getName());
 
         self::assertNull($found->note);
     }
@@ -293,6 +291,10 @@ abstract class EntityConformanceTestCase extends TestCase
         $record->score = $score;
         $record->meta = $meta;
         $record->role = $role;
+        $record->createdAt = new DateTimeImmutable('2026-03-04 10:15:30', new DateTimeZone('UTC'));
+        $record->bornOn = new DateTimeImmutable('1943-12-09 00:00:00', new DateTimeZone('UTC'));
+        $record->opensAt = new DateTimeImmutable('1970-01-01 09:30:00', new DateTimeZone('UTC'));
+        $record->updatedAt = new DateTime('2026-03-04 10:15:30', new DateTimeZone('UTC'));
         $record->note = $note;
 
         return $record;

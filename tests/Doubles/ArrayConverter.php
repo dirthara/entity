@@ -6,10 +6,6 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\TypeConverter;
 
-/**
- * Claims the `array` key itself, so the default that aliases `array` to `json`
- * has something to yield to.
- */
 final readonly class ArrayConverter implements TypeConverter
 {
     public function type(): string

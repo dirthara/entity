@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Entities;
 
+use DateTime;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Column;
 use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Generated;
 
-/**
- * One column of every kind the package converts, for the conformance suite.
- */
 #[Entity(table: 'conformance_records')]
 final class Record
 {
@@ -30,6 +30,16 @@ final class Record
     public array $meta;
 
     public Role $role;
+
+    public DateTimeInterface $createdAt;
+
+    #[Column(converter: 'date')]
+    public DateTimeImmutable $bornOn;
+
+    #[Column(converter: 'time')]
+    public DateTimeImmutable $opensAt;
+
+    public DateTime $updatedAt;
 
     public ?string $note;
 }

@@ -10,11 +10,6 @@ use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Ignore;
 use Dirthara\Entity\Attribute\Generated;
 
-/**
- * Every mapping feature at once: a renamed column, a named converter, an enum
- * resolved from its property type, a nullable column, an ignored property, and a
- * static property that is not a column at all.
- */
 #[Entity]
 final class Profile
 {

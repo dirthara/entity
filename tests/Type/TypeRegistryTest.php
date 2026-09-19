@@ -4,7 +4,10 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Type;
 
+use DateTime;
+use SplFileInfo;
 use DateTimeImmutable;
+use DateTimeInterface;
 use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
@@ -13,6 +16,7 @@ use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Tests\Entities\UnbackedRole;
 use Dirthara\Entity\Tests\Doubles\ArrayConverter;
 use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
@@ -30,6 +34,13 @@ final class TypeRegistryTest extends TestCase
         yield 'bool' => ['bool'];
         yield 'json' => ['json'];
         yield 'serialized' => ['serialized'];
+        yield 'date' => ['date'];
+        yield 'time' => ['time'];
+        yield 'datetime' => ['datetime'];
+        yield 'timestamp' => ['timestamp'];
+        yield 'DateTimeInterface' => [DateTimeInterface::class];
+        yield 'DateTimeImmutable' => [DateTimeImmutable::class];
+        yield 'DateTime' => [DateTime::class];
     }
 
     #[Test]
@@ -62,12 +73,12 @@ final class TypeRegistryTest extends TestCase
     {
         $registry = new TypeRegistry();
 
-        self::assertFalse($registry->has(DateTimeImmutable::class));
+        self::assertFalse($registry->has(SplFileInfo::class));
 
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage(sprintf('Unsupported type "%s"', DateTimeImmutable::class));
+        $this->expectExceptionMessage(sprintf('Unsupported type "%s"', SplFileInfo::class));
 
-        $registry->get(DateTimeImmutable::class);
+        $registry->get(SplFileInfo::class);
     }
 
     #[Test]
@@ -122,6 +133,73 @@ final class TypeRegistryTest extends TestCase
         $this->expectExceptionMessage('Unsupported type "csv"');
 
         new TypeRegistry()->resolve(propertyType: 'array', converterType: 'csv');
+    }
+
+    #[Test]
+    public function it_answers_an_immutable_date_time_for_the_interface(): void
+    {
+        $registry = new TypeRegistry();
+
+        $value = $registry->resolve(propertyType: DateTimeInterface::class)->fromDatabase('2026-03-04 10:15:30');
+
+        self::assertInstanceOf(DateTimeImmutable::class, $value);
+    }
+
+    #[Test]
+    public function it_answers_a_mutable_date_time_for_a_date_time_property(): void
+    {
+        $registry = new TypeRegistry();
+
+        $value = $registry->resolve(propertyType: DateTime::class)->fromDatabase('2026-03-04 10:15:30');
+
+        self::assertInstanceOf(DateTime::class, $value);
+    }
+
+    #[Test]
+    public function it_takes_the_precision_from_the_key_and_the_class_from_the_property(): void
+    {
+        $registry = new TypeRegistry();
+
+        $value = $registry->resolve(propertyType: DateTime::class, converterType: 'date')->fromDatabase('2026-03-04');
+
+        self::assertInstanceOf(DateTime::class, $value);
+        self::assertSame('2026-03-04 00:00:00', $value->format('Y-m-d H:i:s'));
+    }
+
+    #[Test]
+    public function it_leaves_a_precision_key_immutable_for_an_immutable_property(): void
+    {
+        $registry = new TypeRegistry();
+
+        $value = $registry
+            ->resolve(propertyType: DateTimeImmutable::class, converterType: 'time')
+            ->fromDatabase('10:15:30');
+
+        self::assertInstanceOf(DateTimeImmutable::class, $value);
+    }
+
+    #[Test]
+    public function it_leaves_a_converter_that_is_not_temporal_alone_for_a_date_time_property(): void
+    {
+        $registry = new TypeRegistry();
+
+        self::assertSame(
+            $registry->get('json'),
+            $registry->resolve(propertyType: DateTime::class, converterType: 'json'),
+        );
+    }
+
+    #[Test]
+    public function it_registers_the_four_precisions_under_their_own_keys(): void
+    {
+        $registry = new TypeRegistry();
+
+        foreach (['date', 'time', 'datetime', 'timestamp'] as $key) {
+            $converter = $registry->get($key);
+
+            self::assertInstanceOf(DateTimeConverter::class, $converter);
+            self::assertSame($key, $converter->type());
+        }
     }
 
     #[Test]

@@ -6,11 +6,6 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\TypeConverter;
 
-/**
- * Closure factories, reached from an attribute with first-class callable
- * syntax. A literal closure is not a constant expression, so it cannot be
- * written in an attribute at all.
- */
 final readonly class Converters
 {
     public static function uppercase(): TypeConverter

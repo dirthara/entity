@@ -12,9 +12,6 @@ use Dirthara\Database\Connection\Driver\PostgresSqlDriver;
 use Dirthara\Database\Query\Grammar\PostgresSqlQueryGrammar;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 
-/**
- * The only run where a generated identifier comes back through `RETURNING`.
- */
 #[Group('conformance')]
 #[Group('integration')]
 final class PostgresSqlEntityConformanceTest extends EntityConformanceTestCase
@@ -56,6 +53,10 @@ final class PostgresSqlEntityConformanceTest extends EntityConformanceTestCase
             score DOUBLE PRECISION NOT NULL,
             meta TEXT NOT NULL,
             role VARCHAR(32) NOT NULL,
+            created_at TIMESTAMP NOT NULL,
+            born_on DATE NOT NULL,
+            opens_at TIME NOT NULL,
+            updated_at TIMESTAMP NOT NULL,
             note VARCHAR(255)
         )';
     }

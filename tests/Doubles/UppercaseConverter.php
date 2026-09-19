@@ -6,9 +6,6 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\TypeConverter;
 
-/**
- * Registered nowhere: a property names it by class and the factory builds it.
- */
 final readonly class UppercaseConverter implements TypeConverter
 {
     public function type(): string

@@ -11,10 +11,6 @@ use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Doubles\Converters;
 use Dirthara\Entity\Tests\Doubles\UppercaseConverter;
 
-/**
- * Converters named on the property rather than registered: one by class name,
- * one by a closure that answers a built converter.
- */
 #[Entity(table: 'tickets')]
 final class Ticket
 {

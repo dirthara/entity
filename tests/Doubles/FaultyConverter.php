@@ -6,10 +6,6 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\TypeConverter;
 
-/**
- * Reports a value the property's type declaration will refuse, so assigning it
- * fails inside the hydrator rather than in the converter.
- */
 final readonly class FaultyConverter implements TypeConverter
 {
     public function type(): string

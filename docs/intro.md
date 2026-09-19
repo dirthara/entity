@@ -64,6 +64,6 @@ $articles->update($article);
   `EntityManager`.
 - [Getting started](getting-started.md) to map a class and write a row.
 - [Mapping attributes](mapping/attributes.md) for every attribute and option.
-- [Converters](types/converters.md) before you map an array, a date, or
-  anything else the built-in converters do not cover.
+- [Converters](types/converters.md) to pick the precision a date column holds,
+  or to map a type the built-in converters do not cover.
 - [Error handling](error-handling.md) for what each failure means.

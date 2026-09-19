@@ -96,4 +96,4 @@ $factory = new MetadataFactory(new SingularTableNaming(), $types);
 | `column(string $property)` | The property name. | The column name. |
 
 A strategy is only consulted where an attribute did not already answer, so
-`#[Column(column: 'display_name')]` wins over whatever `column()` would say.
+`#[Column(name: 'display_name')]` wins over whatever `column()` would say.

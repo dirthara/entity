@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Entities\Invalid;
 
-use DateTimeImmutable;
+use SplFileInfo;
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Entity;
 
@@ -14,5 +14,5 @@ final class UnsupportedType
     #[Id]
     public int $id;
 
-    public DateTimeImmutable $createdAt;
+    public SplFileInfo $file;
 }

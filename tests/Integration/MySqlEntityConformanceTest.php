@@ -53,6 +53,10 @@ final class MySqlEntityConformanceTest extends EntityConformanceTestCase
             score DOUBLE NOT NULL,
             meta TEXT NOT NULL,
             role VARCHAR(32) NOT NULL,
+            created_at DATETIME NOT NULL,
+            born_on DATE NOT NULL,
+            opens_at TIME NOT NULL,
+            updated_at TIMESTAMP NOT NULL,
             note VARCHAR(255)
         )';
     }

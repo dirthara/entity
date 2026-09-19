@@ -54,6 +54,8 @@ final class ReflectionHydrator implements Hydrator
      * @param array<string, mixed> $data
      *
      * @throws HydrationException
+     * @throws TypeConversionException
+     * @throws CreateEntityException
      */
     public function hydrate(EntityMetadata $metadata, object $entity, array $data): void
     {
@@ -84,6 +86,8 @@ final class ReflectionHydrator implements Hydrator
      * @param array<string, mixed> $data
      *
      * @throws HydrationException
+     * @throws TypeConversionException
+     * @throws CreateEntityException
      */
     private function hydrateProperty(
         object $entity,
@@ -103,8 +107,6 @@ final class ReflectionHydrator implements Hydrator
 
         $reflection = $this->reflectionProperty($metadata->entity, $property->property);
 
-        // A converter that answers with a value the property refuses fails here, and
-        // the property it failed on is what the caller needs to know.
         // @mago-expect analysis:avoid-catching-error
         try {
             $reflection->setValue($entity, $value);
@@ -118,11 +120,7 @@ final class ReflectionHydrator implements Hydrator
     }
 
     /**
-     * A column that is NULL is null on the entity, whatever the converter would
-     * have made of it. Only a property that cannot hold null is a failure.
-     *
      * @throws HydrationException
-     * @throws TypeConversionException
      */
     private function value(EntityMetadata $metadata, PropertyMetadata $property, mixed $value): mixed
     {

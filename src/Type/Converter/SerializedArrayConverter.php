@@ -35,7 +35,6 @@ final readonly class SerializedArrayConverter implements TypeConverter
             throw TypeConversionException::invalidColumnValue(expected: 'serialized string', actual: $value);
         }
 
-        // Malformed input warns and answers false; the check below reports it.
         // @mago-expect lint:no-error-control-operator
         $decoded = @unserialize($value, [
             'allowed_classes' => false,

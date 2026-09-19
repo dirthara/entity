@@ -4,11 +4,15 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Type;
 
+use DateTime;
 use BackedEnum;
+use DateTimeImmutable;
+use DateTimeInterface;
 use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
@@ -17,14 +21,11 @@ use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 final class TypeRegistry
 {
     /**
-     * Property types that fall back to a built-in converter registered under
-     * another name. An alias only applies when nothing is registered under the
-     * type itself, so registering under `array` still replaces the default.
-     *
      * @var array<string, string>
      */
     private const array ALIASES = [
         'array' => 'json',
+        DateTimeInterface::class => DateTimeImmutable::class,
     ];
 
     /**
@@ -37,13 +38,19 @@ final class TypeRegistry
      */
     public function __construct(iterable $converters = [])
     {
-        // We register our own converters first so that the user can override them.
         $this->register(new StringConverter());
         $this->register(new IntegerConverter());
         $this->register(new FloatConverter());
         $this->register(new BooleanConverter());
         $this->register(new SerializedArrayConverter());
         $this->register(new JsonArrayConverter());
+
+        $this->register(new DateTimeConverter(DateTimeImmutable::class));
+        $this->register(new DateTimeConverter(DateTime::class, mutable: true));
+
+        foreach (TemporalFormat::cases() as $temporal) {
+            $this->register(new DateTimeConverter($temporal->value, $temporal));
+        }
 
         foreach ($converters as $converter) {
             $this->register($converter);
@@ -81,7 +88,13 @@ final class TypeRegistry
      */
     public function resolve(string $propertyType, ?string $converterType = null): TypeConverter
     {
-        return $this->get($converterType ?? $propertyType);
+        $converter = $this->get($converterType ?? $propertyType);
+
+        if ($propertyType === DateTime::class && $converter instanceof DateTimeConverter) {
+            return $converter->mutable();
+        }
+
+        return $converter;
     }
 
     /**

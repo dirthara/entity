@@ -15,9 +15,6 @@ use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\TransactionGrammar;
 use Dirthara\Database\Connection\Transaction\SqlServerTransactionGrammar;
 
-/**
- * The only run that reads a `BIT` column back, which the driver reports as a string.
- */
 #[Group('conformance')]
 #[Group('integration')]
 final class SqlServerEntityConformanceTest extends EntityConformanceTestCase
@@ -52,8 +49,6 @@ final class SqlServerEntityConformanceTest extends EntityConformanceTestCase
             database: $this->env('DIRTHARA_SQLSRV_DATABASE', 'master'),
             username: $this->env('DIRTHARA_SQLSRV_USERNAME', 'sa'),
             password: $this->env('DIRTHARA_SQLSRV_PASSWORD', 'Dirthara!2026'),
-            // ODBC Driver 18 encrypts and verifies by default, and a development
-            // server presents a self-signed certificate. Never do this in production.
             dsn: ['TrustServerCertificate' => 'yes'],
         );
     }
@@ -67,6 +62,10 @@ final class SqlServerEntityConformanceTest extends EntityConformanceTestCase
             score FLOAT NOT NULL,
             meta NVARCHAR(MAX) NOT NULL,
             role NVARCHAR(32) NOT NULL,
+            created_at DATETIME2 NOT NULL,
+            born_on DATE NOT NULL,
+            opens_at TIME NOT NULL,
+            updated_at DATETIME2 NOT NULL,
             note NVARCHAR(255)
         )';
     }

@@ -6,9 +6,6 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\TypeConverter;
 
-/**
- * Needs a constructor argument, so naming it by class cannot build it.
- */
 final readonly class ConfiguredConverter implements TypeConverter
 {
     public function __construct(

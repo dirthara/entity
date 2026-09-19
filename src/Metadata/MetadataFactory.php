@@ -200,10 +200,6 @@ final readonly class MetadataFactory
     }
 
     /**
-     * A converter named on the mapping wins over the property's type. A class
-     * name is built for this property alone and a closure is asked for one, so
-     * neither has to be registered; the registry keeps the per-type defaults.
-     *
      * @param class-string $entity
      *
      * @throws MappingException

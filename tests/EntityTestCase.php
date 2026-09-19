@@ -29,11 +29,6 @@ use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
 
-/**
- * SQLite in memory stands in for a server wherever the behaviour under test is
- * the package's own. Behaviour that belongs to a driver lives in the conformance
- * suite in `tests/Integration`.
- */
 abstract class EntityTestCase extends TestCase
 {
     protected Connection $connection;
@@ -58,9 +53,6 @@ abstract class EntityTestCase extends TestCase
         return new ConnectedDatabase(connection: $connection ?? $this->connection, grammar: new SQLiteQueryGrammar());
     }
 
-    /**
-     * A `Database` over the named connections, the first of which is the default.
-     */
     protected function database(string ...$names): Database
     {
         $names = $names === [] ? ['default'] : $names;
@@ -145,9 +137,6 @@ abstract class EntityTestCase extends TestCase
         );
     }
 
-    /**
-     * The same table without a primary key, so one identifier can match several rows.
-     */
     protected function createAmbiguousArticles(?Connection $connection = null): void
     {
         $this->createTable(
@@ -188,9 +177,6 @@ abstract class EntityTestCase extends TestCase
     }
 
     /**
-     * The store answers with `object` because its template parameter never binds,
-     * so narrow here rather than asserting on a property of an unknown type.
-     *
      * @template T of object
      *
      * @param class-string<T> $expected

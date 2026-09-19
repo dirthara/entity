@@ -12,9 +12,6 @@ use Dirthara\Database\Connection\Driver\SQLiteDriver;
 use Dirthara\Database\Query\Grammar\SQLiteQueryGrammar;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 
-/**
- * SQLite needs no service, so this is the one conformance run that always happens.
- */
 #[Group('conformance')]
 final class SQLiteEntityConformanceTest extends EntityConformanceTestCase
 {
@@ -47,6 +44,10 @@ final class SQLiteEntityConformanceTest extends EntityConformanceTestCase
             score REAL NOT NULL,
             meta TEXT NOT NULL,
             role TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            born_on TEXT NOT NULL,
+            opens_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
             note TEXT
         )';
     }

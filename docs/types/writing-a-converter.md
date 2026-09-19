@@ -8,9 +8,9 @@ description: The TypeConverter interface, what each method has to promise, and a
 # Writing a converter
 
 A converter is the only place a value changes shape between PHP and a column, so
-a type the package does not handle needs one. `DateTimeImmutable` is the common
-case: there is no built-in converter for it, because the column type and format
-it should use are an application's decision.
+a type the package does not handle needs one. A value object such as `Money` is
+the common case: the package has no way to guess which columns it belongs in or
+what shape it should take.
 
 ## The interface
 
@@ -51,66 +51,63 @@ the `json` and `serialized` converters do.
 ## A worked example
 
 ```php
-use DateTimeImmutable;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\TypeConverter;
 
-final readonly class DateTimeConverter implements TypeConverter
+final readonly class MoneyConverter implements TypeConverter
 {
-    private const string FORMAT = 'Y-m-d H:i:s';
-
     public function type(): string
     {
-        return DateTimeImmutable::class;
+        return Money::class;
     }
 
-    public function toDatabase(mixed $value): string
+    public function toDatabase(mixed $value): int
     {
-        if (!$value instanceof DateTimeImmutable) {
+        if (!$value instanceof Money) {
             throw TypeConversionException::invalidValue(
-                expected: DateTimeImmutable::class,
+                expected: Money::class,
                 actual: $value,
             );
         }
 
-        return $value->format(self::FORMAT);
+        return $value->cents;
     }
 
-    public function fromDatabase(mixed $value): DateTimeImmutable
+    public function fromDatabase(mixed $value): Money
     {
-        if (!is_string($value)) {
+        if (!is_int($value) && !(is_string($value) && ctype_digit($value))) {
             throw TypeConversionException::invalidColumnValue(
-                expected: 'date-time string',
+                expected: 'a whole number of cents',
                 actual: $value,
             );
         }
 
-        return DateTimeImmutable::createFromFormat(self::FORMAT, $value)
-            ?: throw TypeConversionException::invalidColumnValue(
-                expected: self::FORMAT,
-                actual: $value,
-            );
+        return new Money((int) $value);
     }
 }
 ```
+
+`fromDatabase()` accepts a string as well as an `int` because that is the sort
+of thing drivers differ about: the same `BIGINT` comes back as an `int` from one
+and as a numeric string from another.
 
 Register it and the property maps with no attribute, because `type()` returns
 the class name the property is typed with:
 
 ```php
-$types = new TypeRegistry([new DateTimeConverter()]);
+$types = new TypeRegistry([new MoneyConverter()]);
 ```
 
 ```php
-public DateTimeImmutable $createdAt;
+public Money $price;
 ```
 
-Registering it makes it the default for `DateTimeImmutable` everywhere. For a
-single property, name the class on the mapping instead and skip the registry:
+Registering it makes it the default for `Money` everywhere. For a single
+property, name the class on the mapping instead and skip the registry:
 
 ```php
-#[Column(converter: DateTimeConverter::class)]
-public DateTimeImmutable $createdAt;
+#[Column(converter: MoneyConverter::class)]
+public Money $price;
 ```
 
 That builds it with `new`, so a converter meant to be used this way should take
@@ -134,12 +131,10 @@ property or out of your logs. See [Error handling](../error-handling.md).
 A converter is a pure function in both directions, so it needs no database:
 
 ```php
-$converter = new DateTimeConverter();
+$converter = new MoneyConverter();
 
-self::assertSame(
-    '2026-09-14 12:00:00',
-    $converter->toDatabase(new DateTimeImmutable('2026-09-14 12:00:00')),
-);
+self::assertSame(1250, $converter->toDatabase(new Money(1250)));
+self::assertEquals(new Money(1250), $converter->fromDatabase('1250'));
 ```
 
 What a real driver reports for a column is the part worth checking against a

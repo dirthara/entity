@@ -9,10 +9,6 @@ use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Connection\Transaction\TransactionManager;
 
-/**
- * A connection that runs every query for real but never reports a generated key,
- * which is how a driver behaves when the insert produced no identifier.
- */
 final readonly class NullIdentifierConnection implements Connection
 {
     public function __construct(

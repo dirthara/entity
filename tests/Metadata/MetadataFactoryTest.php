@@ -10,6 +10,7 @@ use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\Entities\Plain;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Ticket;
+use Dirthara\Entity\Tests\Entities\Account;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Profile;
 use Dirthara\Entity\Tests\Entities\Replica;
@@ -133,6 +134,16 @@ final class MetadataFactoryTest extends EntityTestCase
         self::assertSame('display_name', $metadata->property('displayName')->column);
         self::assertInstanceOf(JsonArrayConverter::class, $metadata->property('meta')->converter);
         self::assertSame('array', $metadata->property('meta')->propertyType);
+    }
+
+    #[Test]
+    public function it_renames_an_identifier_column(): void
+    {
+        $metadata = $this->metadata(Account::class);
+
+        self::assertSame('account_uuid', $metadata->property('uuid')->column);
+        self::assertSame('account_uuid', $metadata->identifier->single()->column);
+        self::assertSame('label', $metadata->property('label')->column);
     }
 
     #[Test]
@@ -272,7 +283,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_reports_a_property_type_no_converter_handles(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Unsupported type "DateTimeImmutable"');
+        $this->expectExceptionMessage('Unsupported type "SplFileInfo"');
 
         $this->metadata(UnsupportedType::class);
     }

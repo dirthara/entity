@@ -6,9 +6,6 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\TypeConverter;
 
-/**
- * Implements the interface but cannot be instantiated.
- */
 abstract readonly class AbstractConverter implements TypeConverter
 {
     public function type(): string

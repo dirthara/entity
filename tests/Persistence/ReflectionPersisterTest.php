@@ -308,8 +308,6 @@ final class ReflectionPersisterTest extends EntityTestCase
     }
 
     /**
-     * Metadata mapping a single property, for states the factory cannot produce.
-     *
      * @param class-string $entity
      */
     private function onlyProperty(string $entity, string $table, string $property): EntityMetadata

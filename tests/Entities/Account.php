@@ -8,10 +8,10 @@ use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Entity;
 
 #[Entity]
-final class Measurement
+final class Account
 {
-    #[Id]
-    public int $id;
+    #[Id(name: 'account_uuid')]
+    public string $uuid;
 
-    public ?int $celsius;
+    public string $label;
 }

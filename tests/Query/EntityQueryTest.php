@@ -29,7 +29,6 @@ final class EntityQueryTest extends EntityTestCase
         self::assertInstanceOf(Collection::class, $entities);
         self::assertCount(3, $entities);
         self::assertContainsOnlyInstancesOf(Article::class, $entities);
-        // The assertions above narrow `$entities` to the bare contract.
         // @mago-expect analysis:mixed-argument
         self::assertSame(
             ['First', 'Second', 'Third'],
@@ -166,10 +165,6 @@ final class EntityQueryTest extends EntityTestCase
         self::assertSame(1, $store->query()->where('title', ComparisonOperator::Equal, 'First')->count());
     }
 
-    /**
-     * Every clause mutates the builder it holds and answers with the same query, so
-     * a query is a builder rather than a value despite the `readonly` class.
-     */
     #[Test]
     public function it_answers_with_itself_so_clauses_can_be_chained(): void
     {

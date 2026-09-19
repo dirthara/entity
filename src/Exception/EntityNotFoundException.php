@@ -24,9 +24,6 @@ final class EntityNotFoundException extends EntityException
         ]);
     }
 
-    /**
-     * A composite identifier is an array, which `%s` cannot render.
-     */
     private static function describe(mixed $identifier): string
     {
         if (is_scalar($identifier)) {
