@@ -206,6 +206,7 @@ final class ReflectionHydratorTest extends EntityTestCase
             table: 'entities',
             identifier: new IdentifierMetadata([$identifier]),
             properties: $properties === [] ? $mapped : array_slice($mapped, offset: 1),
+            relations: [],
         );
     }
 

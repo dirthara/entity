@@ -7,8 +7,12 @@ namespace Dirthara\Entity\Exception;
 use ReflectionException;
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Column;
+use Dirthara\Entity\Attribute\HasOne;
 use Dirthara\Entity\Attribute\Ignore;
+use Dirthara\Entity\Attribute\HasMany;
 use Dirthara\Entity\Attribute\Generated;
+use Dirthara\Entity\Attribute\BelongsToOne;
+use Dirthara\Entity\Attribute\BelongsToMany;
 
 final class MappingException extends EntityException
 {
@@ -57,7 +61,7 @@ final class MappingException extends EntityException
     }
 
     /**
-     * @param list<class-string<Ignore|Id|Column|Generated|Column>> $attributes
+     * @param list<class-string<Id|Column|Generated|Ignore|HasOne|HasMany|BelongsToOne|BelongsToMany>> $attributes
      */
     public static function conflictingAttributes(string $entity, string $property, array $attributes): self
     {
@@ -241,15 +245,46 @@ final class MappingException extends EntityException
         ]);
     }
 
-    public static function compositeIdentifierNotSupportedForRelation(string $entity, ?string $relation = null): self
+    public static function compositeIdentifierNotSupportedForRelation(string $entity, string $relation): self
     {
         return new self(message: sprintf(
-            'Composite identifier not supported for relation %s in entity "%s"',
-            $relation ?? '',
+            'Entity "%s" has a composite identifier and cannot own the relation "%s"',
             $entity,
+            $relation,
         ))->addContext([
             'entity' => $entity,
             'relation' => $relation,
+        ]);
+    }
+
+    public static function compositeIdentifierNotSupportedForRelationTarget(
+        string $entity,
+        string $relation,
+        string $target,
+    ): self {
+        return new self(message: sprintf(
+            'Relation "%s" in entity "%s" points at "%s", which has a composite identifier',
+            $relation,
+            $entity,
+            $target,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+        ]);
+    }
+
+    public static function duplicateRelationForeignKey(string $entity, string $relation, string $foreignKey): self
+    {
+        return new self(message: sprintf(
+            'Relation "%s" in entity "%s" maps both of its foreign keys to column "%s"',
+            $relation,
+            $entity,
+            $foreignKey,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'foreignKey' => $foreignKey,
         ]);
     }
 

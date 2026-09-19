@@ -117,10 +117,10 @@ final readonly class MetadataFactory
             $relations[$relation->property] = $relation;
 
             /*
-             * HasOne stores its foreign key on this entity's table,
+             * BelongsToOne stores its foreign key on this entity's table,
              * so it participates in local column collision checking.
              */
-            if ($relation instanceof HasOneMetadata) {
+            if ($relation instanceof BelongsToOneMetadata) {
                 $this->registerColumn(
                     entity: $entity,
                     column: $relation->foreignKey,
@@ -234,7 +234,7 @@ final readonly class MetadataFactory
     }
 
     /**
-     * @return list<object>
+     * @return list<HasOne|HasMany|BelongsToOne|BelongsToMany>
      */
     private function relationAttributes(ReflectionProperty $property): array
     {
@@ -255,6 +255,7 @@ final readonly class MetadataFactory
      */
     private function attributes(ReflectionProperty $property, string $attribute): array
     {
+        /** @var list<T> */
         return array_map(
             static fn(ReflectionAttribute $attribute): object => $attribute->newInstance(),
             $property->getAttributes($attribute),
@@ -361,6 +362,7 @@ final readonly class MetadataFactory
         return match (true) {
             $attribute instanceof HasOne => $this->hasOneMetadata(
                 reflection: $reflection,
+                identifier: $identifier,
                 property: $property,
                 attribute: $attribute,
             ),
@@ -372,11 +374,10 @@ final readonly class MetadataFactory
             ),
             $attribute instanceof BelongsToOne => $this->belongsToOneMetadata(
                 reflection: $reflection,
-                identifier: $identifier,
                 property: $property,
                 attribute: $attribute,
             ),
-            $attribute instanceof BelongsToMany => $this->belongsToManyMetadata(
+            default => $this->belongsToManyMetadata(
                 reflection: $reflection,
                 identifier: $identifier,
                 property: $property,
@@ -387,12 +388,11 @@ final readonly class MetadataFactory
 
     /**
      * @throws MappingException
-     * @throws TypeConversionException
      * @throws InvalidIdentifierException
-     * @throws ReflectionException
      */
     private function hasOneMetadata(
         ReflectionClass $reflection,
+        IdentifierMetadata $identifier,
         ReflectionProperty $property,
         HasOne $attribute,
     ): HasOneMetadata {
@@ -405,11 +405,15 @@ final readonly class MetadataFactory
             target: $attribute->target,
         );
 
-        $targetIdentifier = $this->relationIdentifier($target);
+        $sourceIdentifier = $this->relationIdentifierProperty(
+            entity: $reflection->getName(),
+            identifier: $identifier,
+            relation: $property->getName(),
+        );
 
-        $foreignKey = $attribute->foreignKey ?? $this->naming->relationForeignKey(
-            property: $property->getName(),
-            identifierColumn: $targetIdentifier->column(),
+        $foreignKey = $attribute->foreignKey ?? $this->naming->entityForeignKey(
+            entityShortName: $reflection->getShortName(),
+            identifierColumn: $sourceIdentifier->column(),
         );
 
         return new HasOneMetadata(
@@ -431,6 +435,12 @@ final readonly class MetadataFactory
         ReflectionProperty $property,
         HasMany $attribute,
     ): HasManyMetadata {
+        /*
+         * A to-many property cannot be typed with its target, so the attribute
+         * is the only thing naming it. Reflect it to prove the class is there.
+         */
+        $this->reflection($attribute->target);
+
         $sourceIdentifier = $this->relationIdentifierProperty(
             entity: $reflection->getName(),
             identifier: $identifier,
@@ -452,11 +462,12 @@ final readonly class MetadataFactory
 
     /**
      * @throws MappingException
+     * @throws TypeConversionException
      * @throws InvalidIdentifierException
+     * @throws ReflectionException
      */
     private function belongsToOneMetadata(
         ReflectionClass $reflection,
-        IdentifierMetadata $identifier,
         ReflectionProperty $property,
         BelongsToOne $attribute,
     ): BelongsToOneMetadata {
@@ -469,15 +480,15 @@ final readonly class MetadataFactory
             target: $attribute->target,
         );
 
-        $sourceIdentifier = $this->relationIdentifierProperty(
+        $targetIdentifier = $this->relationIdentifier(
+            target: $this->reflection($target),
             entity: $reflection->getName(),
-            identifier: $identifier,
             relation: $property->getName(),
         );
 
-        $foreignKey = $attribute->foreignKey ?? $this->naming->entityForeignKey(
-            entityShortName: $reflection->getShortName(),
-            identifierColumn: $sourceIdentifier->column(),
+        $foreignKey = $attribute->foreignKey ?? $this->naming->relationForeignKey(
+            property: $property->getName(),
+            identifierColumn: $targetIdentifier->column(),
         );
 
         return new BelongsToOneMetadata(
@@ -509,7 +520,33 @@ final readonly class MetadataFactory
 
         $targetReflection = $this->reflection($attribute->target);
 
-        $targetIdentifier = $this->relationIdentifier($attribute->target);
+        $targetIdentifier = $this->relationIdentifier(
+            target: $targetReflection,
+            entity: $reflection->getName(),
+            relation: $property->getName(),
+        );
+
+        $foreignKey = $attribute->foreignKey ?? $this->naming->entityForeignKey(
+            entityShortName: $reflection->getShortName(),
+            identifierColumn: $sourceIdentifier->column(),
+        );
+
+        $relatedForeignKey = $attribute->relatedForeignKey ?? $this->naming->entityForeignKey(
+            entityShortName: $targetReflection->getShortName(),
+            identifierColumn: $targetIdentifier->column(),
+        );
+
+        /*
+         * Both keys are columns of the same join table, so they cannot share a name.
+         * Pointing an entity at itself derives the same name twice and has to be told apart.
+         */
+        if ($foreignKey === $relatedForeignKey) {
+            throw MappingException::duplicateRelationForeignKey(
+                entity: $reflection->getName(),
+                relation: $property->getName(),
+                foreignKey: $foreignKey,
+            );
+        }
 
         return new BelongsToManyMetadata(
             property: $property->getName(),
@@ -519,18 +556,13 @@ final readonly class MetadataFactory
                 entityShortName: $reflection->getShortName(),
                 relatedEntityShortName: $targetReflection->getShortName(),
             ),
-            foreignKey: $attribute->foreignKey ?? $this->naming->entityForeignKey(
-                entityShortName: $reflection->getShortName(),
-                identifierColumn: $sourceIdentifier->column(),
-            ),
-            relatedForeignKey: $attribute->relatedForeignKey ?? $this->naming->entityForeignKey(
-                entityShortName: $targetReflection->getShortName(),
-                identifierColumn: $targetIdentifier->column(),
-            ),
+            foreignKey: $foreignKey,
+            relatedForeignKey: $relatedForeignKey,
         );
     }
 
     /**
+     * @param ReflectionClass<object> $target
      * @param class-string $entity
      *
      * @throws MappingException
@@ -538,33 +570,41 @@ final readonly class MetadataFactory
      * @throws InvalidIdentifierException
      * @throws ReflectionException
      */
-    private function relationIdentifier(string $entity): PropertyMetadata
+    private function relationIdentifier(ReflectionClass $target, string $entity, string $relation): PropertyMetadata
     {
-        $reflection = $this->reflection($entity);
+        $name = $target->getName();
 
+        /** @var list<ReflectionProperty> $identifiers */
         $identifiers = [];
 
-        foreach ($this->properties($reflection) as $property) {
+        foreach ($this->properties($target) as $property) {
             if (!$this->hasAttribute($property, Id::class)) {
                 continue;
             }
 
-            $metadata = $this->propertyMetadata(entity: $entity, property: $property);
-
-            if ($metadata !== null) {
-                $identifiers[] = $metadata;
-            }
+            $identifiers[] = $property;
         }
 
         if ($identifiers === []) {
-            throw MappingException::missingIdentifier($entity);
+            throw MappingException::missingIdentifier($name);
         }
 
         if (count($identifiers) > 1) {
-            throw MappingException::compositeIdentifierNotSupportedForRelation(entity: $entity);
+            throw MappingException::compositeIdentifierNotSupportedForRelationTarget(
+                entity: $entity,
+                relation: $relation,
+                target: $name,
+            );
         }
 
-        return $identifiers[0];
+        $metadata = $this->propertyMetadata(entity: $name, property: $identifiers[0]);
+
+        assert(
+            $metadata !== null,
+            description: 'A property carrying both #[Id] and #[Ignore] is refused before it answers null',
+        );
+
+        return $metadata;
     }
 
     /**
@@ -773,7 +813,8 @@ final readonly class MetadataFactory
      */
     private function buildConverter(string $entity, ReflectionProperty $property, string $converter): TypeConverter
     {
-        $reflection = $this->reflection($entity);
+        /** @var ReflectionClass<TypeConverter> $reflection */
+        $reflection = $this->reflection($converter);
 
         if (!$reflection->isInstantiable()) {
             throw MappingException::unconstructableConverter(

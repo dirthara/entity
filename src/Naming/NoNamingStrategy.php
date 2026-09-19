@@ -28,6 +28,13 @@ final readonly class NoNamingStrategy implements NamingStrategy
 
     public function joinTable(string $entityShortName, string $relatedEntityShortName): string
     {
-        return sprintf('%s_%s', $this->table($entityShortName), $this->table($relatedEntityShortName));
+        $entities = [
+            $this->table($entityShortName),
+            $this->table($relatedEntityShortName),
+        ];
+
+        sort($entities);
+
+        return implode('_', $entities);
     }
 }

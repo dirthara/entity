@@ -12,6 +12,18 @@ use Dirthara\Entity\Naming\DefaultNamingStrategy;
 final class DefaultNamingStrategyTest extends TestCase
 {
     /**
+     * @return iterable<string, array{string, string, string}>
+     */
+    public static function entityForeignKeys(): iterable
+    {
+        yield 'an identifier that says nothing about the entity' => ['Post', 'id', 'post_id'];
+        yield 'studly caps' => ['SalesPerson', 'id', 'sales_person_id'];
+        yield 'an identifier already prefixed with the entity' => ['Account', 'account_uuid', 'account_uuid'];
+        yield 'an identifier named after the entity' => ['Country', 'country', 'country'];
+        yield 'an identifier that merely starts with the same letters' => ['Post', 'postage', 'post_postage'];
+    }
+
+    /**
      * @return iterable<string, array{string, string}>
      */
     public static function tables(): iterable
@@ -47,5 +59,41 @@ final class DefaultNamingStrategyTest extends TestCase
         self::assertSame('id', $naming->column('id'));
         self::assertSame('display_name', $naming->column('displayName'));
         self::assertSame('http_status', $naming->column('HTTPStatus'));
+    }
+
+    #[Test]
+    public function it_names_a_foreign_key_after_the_property_and_the_identifier_it_points_at(): void
+    {
+        $naming = new DefaultNamingStrategy();
+
+        self::assertSame('country_code', $naming->relationForeignKey('country', 'code'));
+        self::assertSame('billing_address_id', $naming->relationForeignKey('billingAddress', 'id'));
+        self::assertSame('owner_account_uuid', $naming->relationForeignKey('owner', 'account_uuid'));
+    }
+
+    #[Test]
+    #[DataProvider('entityForeignKeys')]
+    public function it_names_a_foreign_key_after_the_entity_it_points_back_at(
+        string $entity,
+        string $identifier,
+        string $expected,
+    ): void {
+        self::assertSame($expected, new DefaultNamingStrategy()->entityForeignKey($entity, $identifier));
+    }
+
+    #[Test]
+    public function it_names_a_join_table_the_same_from_either_side(): void
+    {
+        $naming = new DefaultNamingStrategy();
+
+        self::assertSame('post_tag', $naming->joinTable('Post', 'Tag'));
+        self::assertSame('post_tag', $naming->joinTable('Tag', 'Post'));
+        self::assertSame('account_user_profile', $naming->joinTable('UserProfile', 'Account'));
+    }
+
+    #[Test]
+    public function it_leaves_a_join_table_singular(): void
+    {
+        self::assertSame('person_team', new DefaultNamingStrategy()->joinTable('Person', 'Team'));
     }
 }
