@@ -17,8 +17,12 @@ final readonly class IntegerConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): int
+    public function toDatabase(mixed $value): ?int
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_int($value)) {
             throw TypeConversionException::invalidValue(expected: 'integer', actual: $value);
         }
@@ -29,8 +33,12 @@ final readonly class IntegerConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function fromDatabase(mixed $value): int
+    public function fromDatabase(mixed $value): ?int
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (is_int($value)) {
             return $value;
         }

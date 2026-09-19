@@ -17,8 +17,12 @@ final readonly class StringConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): string
+    public function toDatabase(mixed $value): ?string
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_string($value)) {
             throw TypeConversionException::invalidValue(expected: 'string', actual: $value);
         }
@@ -26,8 +30,12 @@ final readonly class StringConverter implements TypeConverter
         return $value;
     }
 
-    public function fromDatabase(mixed $value): string
+    public function fromDatabase(mixed $value): ?string
     {
+        if ($value === null) {
+            return null;
+        }
+
         return (string) $value;
     }
 }

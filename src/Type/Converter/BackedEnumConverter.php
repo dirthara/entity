@@ -36,8 +36,12 @@ final readonly class BackedEnumConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): string|int
+    public function toDatabase(mixed $value): string|int|null
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!$value instanceof $this->enum) {
             throw TypeConversionException::invalidValue(expected: $this->enum, actual: $value);
         }
@@ -48,8 +52,12 @@ final readonly class BackedEnumConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function fromDatabase(mixed $value): BackedEnum
+    public function fromDatabase(mixed $value): ?BackedEnum
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_string($value) && !is_int($value)) {
             throw TypeConversionException::invalidColumnValue(
                 expected: sprintf('backing value for %s', $this->enum),

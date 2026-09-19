@@ -97,8 +97,8 @@ final class DateTimeConverterTest extends TestCase
     #[Test]
     public function it_zeroes_what_the_precision_does_not_name(): void
     {
-        $date = new DateTimeConverter('date', TemporalFormat::Date)->fromDatabase('2026-03-04');
-        $time = new DateTimeConverter('time', TemporalFormat::Time)->fromDatabase('10:15:30');
+        $date = self::read(new DateTimeConverter('date', TemporalFormat::Date), '2026-03-04');
+        $time = self::read(new DateTimeConverter('time', TemporalFormat::Time), '10:15:30');
 
         self::assertSame('2026-03-04 00:00:00', $date->format('Y-m-d H:i:s'));
         self::assertSame('1970-01-01 10:15:30', $time->format('Y-m-d H:i:s'));
@@ -108,7 +108,7 @@ final class DateTimeConverterTest extends TestCase
     #[DataProvider('reported')]
     public function it_reads_what_a_driver_reports(string $reported): void
     {
-        $value = new DateTimeConverter('datetime')->fromDatabase($reported);
+        $value = self::read(new DateTimeConverter('datetime'), $reported);
 
         self::assertSame('2026-03-04 10:15:30', $value->format('Y-m-d H:i:s'));
     }
@@ -116,8 +116,8 @@ final class DateTimeConverterTest extends TestCase
     #[Test]
     public function it_holds_a_reported_value_to_the_precision_of_its_column(): void
     {
-        $date = new DateTimeConverter('date', TemporalFormat::Date)->fromDatabase('2026-03-04 10:15:30');
-        $time = new DateTimeConverter('time', TemporalFormat::Time)->fromDatabase('2026-03-04 10:15:30');
+        $date = self::read(new DateTimeConverter('date', TemporalFormat::Date), '2026-03-04 10:15:30');
+        $time = self::read(new DateTimeConverter('time', TemporalFormat::Time), '2026-03-04 10:15:30');
 
         self::assertSame('2026-03-04 00:00:00', $date->format('Y-m-d H:i:s'));
         self::assertSame('1970-01-01 10:15:30', $time->format('Y-m-d H:i:s'));
@@ -126,7 +126,8 @@ final class DateTimeConverterTest extends TestCase
     #[Test]
     public function it_drops_microseconds_a_driver_reports(): void
     {
-        $value = new DateTimeConverter('timestamp', TemporalFormat::Timestamp)->fromDatabase(
+        $value = self::read(
+            new DateTimeConverter('timestamp', TemporalFormat::Timestamp),
             '2026-03-04 10:15:30.123456',
         );
 
@@ -194,5 +195,14 @@ final class DateTimeConverterTest extends TestCase
         $this->expectExceptionMessage('Conversion failed for type "datetime"');
 
         new DateTimeConverter('datetime')->fromDatabase('not a date at all');
+    }
+
+    private static function read(DateTimeConverter $converter, string $value): DateTimeInterface
+    {
+        $read = $converter->fromDatabase($value);
+
+        self::assertInstanceOf(DateTimeInterface::class, $read);
+
+        return $read;
     }
 }

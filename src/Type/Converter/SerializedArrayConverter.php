@@ -17,8 +17,12 @@ final readonly class SerializedArrayConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): string
+    public function toDatabase(mixed $value): ?string
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_array($value)) {
             throw TypeConversionException::invalidValue(expected: 'array', actual: $value);
         }
@@ -29,8 +33,12 @@ final readonly class SerializedArrayConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function fromDatabase(mixed $value): array
+    public function fromDatabase(mixed $value): ?array
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_string($value)) {
             throw TypeConversionException::invalidColumnValue(expected: 'serialized string', actual: $value);
         }

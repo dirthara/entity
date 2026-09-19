@@ -16,6 +16,7 @@ use Dirthara\Database\Query\Sql\OrderDirection;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\EntityDatabaseException;
+use Dirthara\Entity\Exception\TypeConversionException;
 
 use function iterator_to_array;
 
@@ -94,6 +95,36 @@ final class EntityQueryTest extends EntityTestCase
 
         self::assertSame(['First', 'Third'], $this->titles($store->query()->whereIn('title', ['First', 'Third'])));
         self::assertSame(['Second'], $this->titles($store->query()->whereNotIn('title', ['First', 'Third'])));
+    }
+
+    #[Test]
+    public function it_refuses_null_among_the_values_a_set_matches(): void
+    {
+        $this->expectException(TypeConversionException::class);
+        $this->expectExceptionMessage('a value IN can match');
+
+        $this->seeded()->query()->whereIn('title', ['First', null]);
+    }
+
+    #[Test]
+    public function it_refuses_null_among_the_values_a_set_excludes(): void
+    {
+        $this->expectException(TypeConversionException::class);
+        $this->expectExceptionMessage('a value IN can match');
+
+        $this->seeded()->query()->whereNotIn('title', [null]);
+    }
+
+    #[Test]
+    public function it_binds_null_rather_than_converting_it_in_a_comparison(): void
+    {
+        $store = $this->seeded();
+
+        self::assertSame([], $this->titles($store->query()->where('title', ComparisonOperator::Equal, null)));
+        self::assertSame(
+            ['First', 'Second', 'Third'],
+            $this->titles($store->query()->whereNotNull('title')->orderBy('id')),
+        );
     }
 
     #[Test]

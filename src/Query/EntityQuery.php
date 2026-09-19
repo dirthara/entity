@@ -329,7 +329,13 @@ final readonly class EntityQuery
         $converted = [];
 
         foreach ($values as $value) {
-            $converted[] = $property->converter->toDatabase($value);
+            $bound = $property->converter->toDatabase($value);
+
+            if ($bound === null) {
+                throw TypeConversionException::invalidValue(expected: 'a value IN can match', actual: $value);
+            }
+
+            $converted[] = $bound;
         }
 
         return $converted;

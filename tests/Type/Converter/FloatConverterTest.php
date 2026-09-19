@@ -48,8 +48,8 @@ final class FloatConverterTest extends TestCase
     public function it_refuses_a_column_value_that_is_not_numeric(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "null", expected "float"');
+        $this->expectExceptionMessage('Invalid column value of type "string", expected "float"');
 
-        new FloatConverter()->fromDatabase(null);
+        new FloatConverter()->fromDatabase('not a number');
     }
 }

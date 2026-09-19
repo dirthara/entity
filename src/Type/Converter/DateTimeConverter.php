@@ -38,8 +38,12 @@ final readonly class DateTimeConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): string
+    public function toDatabase(mixed $value): ?string
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!$value instanceof DateTimeInterface) {
             throw TypeConversionException::invalidValue(expected: DateTimeInterface::class, actual: $value);
         }
@@ -52,8 +56,12 @@ final readonly class DateTimeConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function fromDatabase(mixed $value): DateTimeInterface
+    public function fromDatabase(mixed $value): ?DateTimeInterface
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_string($value)) {
             throw TypeConversionException::invalidColumnValue(expected: $this->temporal->format(), actual: $value);
         }

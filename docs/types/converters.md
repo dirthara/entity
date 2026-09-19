@@ -187,7 +187,8 @@ a calendar day rather than an instant.
 
 ## Null
 
-A converter never sees `null`. The package handles it around them:
+Whether `null` is allowed is the property's decision, and it is settled before a
+converter is reached:
 
 | Situation | Result |
 | --- | --- |
@@ -196,8 +197,26 @@ A converter never sees `null`. The package handles it around them:
 | Property is `null`, property is nullable | `NULL` is written. |
 | Property is `null`, property is not nullable | `PersistenceException`, naming the property. |
 
-So a converter you write only ever receives a value, and never has to answer for
-`null`.
+Only the property knows whether it accepts `null`, so only the hydrator and the
+persister can answer for it; a converter is never asked to.
+
+Every built-in converter passes `null` through in both directions anyway, so one
+used on its own answers `null` with `null` rather than throwing:
+
+```php
+$types->get('int')->toDatabase(null);     // null
+$types->get('datetime')->fromDatabase(null); // null
+```
+
+That makes a converter safe to call directly on a value that may be absent. It
+does not make the column nullable: a `null` reaching a property that refuses it
+still fails, with the exception named in the table above.
+
+:::caution
+`whereIn()` and `whereNotIn()` are the exception. `IN` cannot match `NULL`, so
+they refuse a `null` among their values with `TypeConversionException` rather
+than binding one that could never match.
+:::
 
 ## Backed enums
 

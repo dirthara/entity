@@ -17,8 +17,12 @@ final readonly class FloatConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): float
+    public function toDatabase(mixed $value): ?float
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (is_float($value)) {
             return $value;
         }
@@ -33,8 +37,12 @@ final readonly class FloatConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function fromDatabase(mixed $value): float
+    public function fromDatabase(mixed $value): ?float
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (is_float($value)) {
             return $value;
         }

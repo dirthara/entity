@@ -17,8 +17,12 @@ final readonly class BooleanConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function toDatabase(mixed $value): bool
+    public function toDatabase(mixed $value): ?bool
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_bool($value)) {
             throw TypeConversionException::invalidValue(expected: 'bool', actual: $value);
         }
@@ -29,8 +33,12 @@ final readonly class BooleanConverter implements TypeConverter
     /**
      * @throws TypeConversionException
      */
-    public function fromDatabase(mixed $value): bool
+    public function fromDatabase(mixed $value): ?bool
     {
+        if ($value === null) {
+            return null;
+        }
+
         return match ($value) {
             true, 1, '1' => true,
             false, 0, '0' => false,

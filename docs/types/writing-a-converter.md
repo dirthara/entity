@@ -24,7 +24,7 @@ interface TypeConverter
      */
     public function type(): string;
 
-    public function toDatabase(mixed $value): string|int|float|bool;
+    public function toDatabase(mixed $value): string|int|float|bool|null;
 
     public function fromDatabase(mixed $value): mixed;
 }
@@ -33,13 +33,15 @@ interface TypeConverter
 | Method | Has to promise |
 | --- | --- |
 | `type()` | The registry key. Return the class name to have a property of that type resolve to it automatically, or a short name such as `'money'` to be named with `#[Column(converter: ...)]`. |
-| `toDatabase()` | A single bindable scalar. Never `null`, and never an array or object. |
+| `toDatabase()` | A single bindable scalar, or `null`. Never an array or object. |
 | `fromDatabase()` | The property's type. Whatever the driver reported is the input, so accept every shape a driver might use. |
 
 Both directions receive `mixed` and must refuse what they cannot handle by
-throwing `TypeConversionException`. Neither is ever given `null`; the package
-handles that around them, as described under
-[null](converters.md#null).
+throwing `TypeConversionException`. Whether a property accepts `null` is settled
+before a converter is reached, as described under [null](converters.md#null), so
+a converter is never relied on to enforce it. The built-in converters still pass
+`null` through in both directions, which is worth copying: it makes a converter
+safe to call on a value that may be absent.
 
 :::caution
 `toDatabase()` returning anything but a scalar will not type-check. The query
@@ -61,8 +63,12 @@ final readonly class MoneyConverter implements TypeConverter
         return Money::class;
     }
 
-    public function toDatabase(mixed $value): int
+    public function toDatabase(mixed $value): ?int
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!$value instanceof Money) {
             throw TypeConversionException::invalidValue(
                 expected: Money::class,
@@ -73,8 +79,12 @@ final readonly class MoneyConverter implements TypeConverter
         return $value->cents;
     }
 
-    public function fromDatabase(mixed $value): Money
+    public function fromDatabase(mixed $value): ?Money
     {
+        if ($value === null) {
+            return null;
+        }
+
         if (!is_int($value) && !(is_string($value) && ctype_digit($value))) {
             throw TypeConversionException::invalidColumnValue(
                 expected: 'a whole number of cents',

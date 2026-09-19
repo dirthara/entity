@@ -39,6 +39,6 @@ final class StringConverterTest extends TestCase
 
         self::assertSame('Ada', $converter->fromDatabase('Ada'));
         self::assertSame('1', $converter->fromDatabase(1));
-        self::assertSame('', $converter->fromDatabase(null));
+        self::assertNull($converter->fromDatabase(null));
     }
 }
