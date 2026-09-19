@@ -10,8 +10,11 @@ use Attribute;
 #[Attribute(Attribute::TARGET_PROPERTY)]
 final readonly class Column
 {
+    /**
+     * @param string|array<string, string>|null $name
+     */
     public function __construct(
-        public ?string $name = null,
+        public string|array|null $name = null,
         public string|Closure|null $converter = null,
     ) {}
 }

@@ -64,7 +64,7 @@ Optional. Renames the column or names the converter.
 
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
-| `name` | `?string` | `null` | The column name. `null` derives it from the property name. |
+| `name` | `string\|array\|null` | `null` | The column name. `null` derives it from the property name. An array names a column per part, for a converter that maps more than one; see [writing a converter](../types/writing-a-converter.md#the-interface). |
 | `converter` | `string\|Closure\|null` | `null` | A registry key, a converter class name, or a closure answering a converter. `null` looks one up by the property's type. |
 
 ```php

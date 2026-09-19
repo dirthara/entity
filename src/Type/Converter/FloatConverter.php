@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Type\Converter;
 
-use Dirthara\Entity\Type\TypeConverter;
+use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
-final readonly class FloatConverter implements TypeConverter
+final readonly class FloatConverter implements ColumnConverter
 {
     public function type(): string
     {

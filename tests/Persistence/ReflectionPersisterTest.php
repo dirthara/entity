@@ -314,7 +314,7 @@ final class ReflectionPersisterTest extends EntityTestCase
     {
         $metadata = new PropertyMetadata(
             property: $property,
-            column: $property,
+            columns: [$property => $property],
             propertyType: 'string',
             converter: new StringConverter(),
             nullable: false,

@@ -121,5 +121,6 @@ rules = [
     { on = "Dirthara\\Entity\\**", not-on = "Dirthara\\Entity\\Exception\\EntityException", target = "class", must-be-final = true, reason = "Extend the package through its interfaces; EntityException is the only open class." },
     { on = "Dirthara\\Entity\\Exception\\**", not-on = "Dirthara\\Entity\\Exception\\EntityException", target = "class", must-extend = "Dirthara\\Entity\\Exception\\EntityException", reason = "Catching EntityException catches everything this package throws." },
     { on = "Dirthara\\Entity\\Attribute\\**", target = "class", must-be-readonly = true, must-use-attribute = "Attribute", reason = "An attribute is read-only data PHP builds from the entity's declaration." },
-    { on = "Dirthara\\Entity\\Type\\Converter\\**", target = "class", must-be-readonly = true, must-implement = "Dirthara\\Entity\\Type\\TypeConverter", reason = "A converter is stateless and is reached through the interface the registry stores." },
+    { on = "Dirthara\\Entity\\Type\\Converter\\**", not-on = "Dirthara\\Entity\\Type\\Converter\\Composite\\**", target = "class", must-be-readonly = true, must-implement = "Dirthara\\Entity\\Type\\ColumnConverter", reason = "A converter is stateless and is reached through the interface the registry stores; one outside Composite maps a single column." },
+    { on = "Dirthara\\Entity\\Type\\Converter\\Composite\\**", target = "class", must-be-readonly = true, must-implement = "Dirthara\\Entity\\Type\\CompositeConverter", reason = "A converter under Composite maps a property to more than one column." },
 ]

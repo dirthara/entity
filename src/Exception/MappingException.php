@@ -141,6 +141,84 @@ final class MappingException extends EntityException
     }
 
     /**
+     * @param list<string> $columns
+     */
+    public static function propertyIsComposite(string $property, array $columns): self
+    {
+        return new self(sprintf(
+            'Property "%s" maps to more than one column (%s) and cannot be used as a single column here',
+            $property,
+            implode(', ', $columns),
+        ))->addContext([
+            'property' => $property,
+            'columns' => $columns,
+        ]);
+    }
+
+    public static function propertyIsNotComposite(string $property): self
+    {
+        return new self(sprintf('Property "%s" maps to a single column', $property))->addContext([
+            'property' => $property,
+        ]);
+    }
+
+    /**
+     * @param class-string $entity
+     * @param list<string> $parts
+     * @param list<string> $given
+     */
+    public static function columnsDoNotMatchParts(string $entity, string $property, array $parts, array $given): self
+    {
+        return new self(sprintf(
+            'Columns named for property "%s" in entity "%s" are %s, expected one for each of %s',
+            $property,
+            $entity,
+            $given === [] ? 'empty' : implode(', ', $given),
+            implode(', ', $parts),
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'parts' => $parts,
+            'given' => $given,
+        ]);
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    public static function compositeConverterNotAllowed(string $entity, string $property, string $because): self
+    {
+        return new self(sprintf(
+            'Property "%s" in entity "%s" cannot map to more than one column because %s',
+            $property,
+            $entity,
+            $because,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'because' => $because,
+        ]);
+    }
+
+    /**
+     * @param class-string $entity
+     * @param list<string> $parts
+     */
+    public static function invalidConverterParts(string $entity, string $property, array $parts): self
+    {
+        return new self(sprintf(
+            'Converter for property "%s" in entity "%s" names the columns %s, which are not distinct and non-empty',
+            $property,
+            $entity,
+            $parts === [] ? '(none)' : implode(', ', $parts),
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'parts' => $parts,
+        ]);
+    }
+
+    /**
      * @param class-string $entity
      */
     public static function unknownProperty(string $entity, string $property): self

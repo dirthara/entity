@@ -95,15 +95,17 @@ final class ReflectionHydrator implements Hydrator
         PropertyMetadata $property,
         array $data,
     ): void {
-        if (!array_key_exists($property->column, $data)) {
+        $column = $property->column();
+
+        if (!array_key_exists($column, $data)) {
             throw HydrationException::missingColumn(
                 entity: $metadata->entity,
                 property: $property->property,
-                column: $property->column,
+                column: $column,
             );
         }
 
-        $value = $this->value(metadata: $metadata, property: $property, value: $data[$property->column]);
+        $value = $this->value(metadata: $metadata, property: $property, value: $data[$column]);
 
         $reflection = $this->reflectionProperty($metadata->entity, $property->property);
 
@@ -125,7 +127,7 @@ final class ReflectionHydrator implements Hydrator
     private function value(EntityMetadata $metadata, PropertyMetadata $property, mixed $value): mixed
     {
         if ($value !== null) {
-            return $property->converter->fromDatabase($value);
+            return $property->single()->fromDatabase($value);
         }
 
         if ($property->nullable) {
@@ -135,7 +137,7 @@ final class ReflectionHydrator implements Hydrator
         throw HydrationException::nullNotAllowed(
             entity: $metadata->entity,
             property: $property->property,
-            column: $property->column,
+            column: $property->column(),
         );
     }
 

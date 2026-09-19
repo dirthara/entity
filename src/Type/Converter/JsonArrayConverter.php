@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Type\Converter;
 
 use JsonException;
-use Dirthara\Entity\Type\TypeConverter;
+use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
-final readonly class JsonArrayConverter implements TypeConverter
+final readonly class JsonArrayConverter implements ColumnConverter
 {
     public function type(): string
     {

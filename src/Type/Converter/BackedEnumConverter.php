@@ -6,13 +6,13 @@ namespace Dirthara\Entity\Type\Converter;
 
 use BackedEnum;
 use ValueError;
-use Dirthara\Entity\Type\TypeConverter;
+use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
 /**
  * @template T of BackedEnum
  */
-final readonly class BackedEnumConverter implements TypeConverter
+final readonly class BackedEnumConverter implements ColumnConverter
 {
     /**
      * @param class-string<T> $enum

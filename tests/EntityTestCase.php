@@ -9,8 +9,8 @@ use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\EntityStore;
 use Dirthara\Entity\EntityManager;
 use Dirthara\Entity\Type\TypeRegistry;
-use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Database\ConnectedDatabase;
+use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\MetadataFactory;
@@ -75,7 +75,7 @@ abstract class EntityTestCase extends TestCase
         );
     }
 
-    protected function types(TypeConverter ...$converters): TypeRegistry
+    protected function types(ColumnConverter ...$converters): TypeRegistry
     {
         return new TypeRegistry($converters);
     }

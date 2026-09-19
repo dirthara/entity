@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Doubles;
 
-use Dirthara\Entity\Type\TypeConverter;
+use Dirthara\Entity\Type\ColumnConverter;
 
-final readonly class FaultyConverter implements TypeConverter
+final readonly class FaultyConverter implements ColumnConverter
 {
     public function type(): string
     {

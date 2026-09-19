@@ -74,7 +74,7 @@ final class MetadataFactoryTest extends EntityTestCase
         self::assertSame('articles', $metadata->table);
         self::assertNull($metadata->connection);
         self::assertSame(['id', 'title', 'published'], array_keys($metadata->properties));
-        self::assertSame('title', $metadata->property('title')->column);
+        self::assertSame('title', $metadata->property('title')->column());
         self::assertSame('string', $metadata->property('title')->propertyType);
     }
 
@@ -104,7 +104,7 @@ final class MetadataFactoryTest extends EntityTestCase
                 $metadata->identifier->properties,
             ),
         );
-        self::assertSame('team_id', $metadata->property('teamId')->column);
+        self::assertSame('team_id', $metadata->property('teamId')->column());
     }
 
     #[Test]
@@ -131,7 +131,7 @@ final class MetadataFactoryTest extends EntityTestCase
     {
         $metadata = $this->metadata(Profile::class);
 
-        self::assertSame('display_name', $metadata->property('displayName')->column);
+        self::assertSame('display_name', $metadata->property('displayName')->column());
         self::assertInstanceOf(JsonArrayConverter::class, $metadata->property('meta')->converter);
         self::assertSame('array', $metadata->property('meta')->propertyType);
     }
@@ -141,9 +141,9 @@ final class MetadataFactoryTest extends EntityTestCase
     {
         $metadata = $this->metadata(Account::class);
 
-        self::assertSame('account_uuid', $metadata->property('uuid')->column);
-        self::assertSame('account_uuid', $metadata->identifier->single()->column);
-        self::assertSame('label', $metadata->property('label')->column);
+        self::assertSame('account_uuid', $metadata->property('uuid')->column());
+        self::assertSame('account_uuid', $metadata->identifier->single()->column());
+        self::assertSame('label', $metadata->property('label')->column());
     }
 
     #[Test]
@@ -159,7 +159,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_builds_a_converter_named_by_class_without_registering_it(): void
     {
         $metadata = $this->metadata(Ticket::class);
-        $converter = $metadata->property('code')->converter;
+        $converter = $metadata->property('code')->single();
 
         self::assertInstanceOf(UppercaseConverter::class, $converter);
         self::assertSame('ABC', $converter->toDatabase('abc'));
@@ -178,7 +178,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_takes_a_converter_a_closure_built_with_arguments(): void
     {
         $metadata = $this->metadata(Ticket::class);
-        $converter = $metadata->property('reference')->converter;
+        $converter = $metadata->property('reference')->single();
 
         self::assertInstanceOf(ConfiguredConverter::class, $converter);
         self::assertSame('p-1', $converter->toDatabase('1'));
@@ -225,7 +225,7 @@ final class MetadataFactoryTest extends EntityTestCase
         $metadata = $this->metadata(Profile::class);
 
         self::assertSame(Role::class, $metadata->property('role')->propertyType);
-        self::assertSame(Role::Admin, $metadata->property('role')->converter->fromDatabase('admin'));
+        self::assertSame(Role::Admin, $metadata->property('role')->single()->fromDatabase('admin'));
     }
 
     #[Test]

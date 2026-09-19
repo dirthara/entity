@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Doubles;
 
-use Dirthara\Entity\Type\TypeConverter;
+use Dirthara\Entity\Type\ColumnConverter;
 
 final readonly class Converters
 {
-    public static function uppercase(): TypeConverter
+    public static function uppercase(): ColumnConverter
     {
         return new UppercaseConverter();
     }
 
-    public static function configured(): TypeConverter
+    public static function configured(): ColumnConverter
     {
         return new ConfiguredConverter(prefix: 'p-');
     }

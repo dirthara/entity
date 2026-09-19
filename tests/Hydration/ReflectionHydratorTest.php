@@ -215,7 +215,7 @@ final class ReflectionHydratorTest extends EntityTestCase
     ): PropertyMetadata {
         return new PropertyMetadata(
             property: $name,
-            column: $name,
+            columns: [$name => $name],
             propertyType: 'string',
             converter: $converter,
             nullable: false,

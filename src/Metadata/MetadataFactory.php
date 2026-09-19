@@ -18,6 +18,7 @@ use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Naming\NamingStrategy;
+use Dirthara\Entity\Type\CompositeConverter;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\TypeConversionException;
 
@@ -70,17 +71,20 @@ final readonly class MetadataFactory
                 continue;
             }
 
-            if (isset($columns[$metadata->column])) {
-                throw MappingException::duplicateColumn(
-                    entity: $entity,
-                    column: $metadata->column,
-                    firstProperty: $columns[$metadata->column],
-                    secondProperty: $metadata->property,
-                );
+            foreach ($metadata->columns as $column) {
+                if (isset($columns[$column])) {
+                    throw MappingException::duplicateColumn(
+                        entity: $entity,
+                        column: $column,
+                        firstProperty: $columns[$column],
+                        secondProperty: $metadata->property,
+                    );
+                }
+
+                $columns[$column] = $metadata->property;
             }
 
             $properties[$metadata->property] = $metadata;
-            $columns[$metadata->column] = $metadata->property;
 
             if ($metadata->identifier) {
                 $identifiers[] = $metadata;
@@ -188,15 +192,136 @@ final readonly class MetadataFactory
             propertyType: $type->getName(),
         );
 
+        if ($converter instanceof CompositeConverter) {
+            $this->assertCompositeAllowed(
+                entity: $entity,
+                property: $property->getName(),
+                identifier: $id !== null,
+                generated: $generated,
+            );
+        }
+
         return new PropertyMetadata(
             property: $property->getName(),
-            column: $mapping?->name ?? $this->naming->column($property->getName()),
+            columns: $this->columns(
+                entity: $entity,
+                property: $property->getName(),
+                converter: $converter,
+                name: $mapping?->name,
+            ),
             propertyType: $type->getName(),
             converter: $converter,
             nullable: $type->allowsNull(),
             identifier: $id !== null,
             generated: $generated,
         );
+    }
+
+    /**
+     * @param class-string $entity
+     * @param string|array<string, string>|null $name
+     *
+     * @return non-empty-array<string, string>
+     *
+     * @throws MappingException
+     */
+    private function columns(string $entity, string $property, TypeConverter $converter, string|array|null $name): array
+    {
+        if (!$converter instanceof CompositeConverter) {
+            if (is_array($name)) {
+                throw MappingException::compositeConverterNotAllowed(
+                    entity: $entity,
+                    property: $property,
+                    because: 'its converter answers a single column',
+                );
+            }
+
+            return [$property => $name ?? $this->naming->column($property)];
+        }
+
+        $parts = $converter->parts();
+
+        if ($parts === [] || count(array_unique($parts)) !== count($parts) || in_array('', $parts, strict: true)) {
+            throw MappingException::invalidConverterParts(entity: $entity, property: $property, parts: $parts);
+        }
+
+        if (is_array($name)) {
+            return $this->namedColumns(entity: $entity, property: $property, parts: $parts, name: $name);
+        }
+
+        $prefix = $name ?? $property;
+
+        return array_combine($parts, array_map(fn(string $part): string => $this->naming->column(
+            $prefix . ucfirst($part),
+        ), $parts));
+    }
+
+    /**
+     * @param class-string $entity
+     * @param non-empty-list<string> $parts
+     * @param array<string, string> $name
+     *
+     * @return non-empty-array<string, string>
+     *
+     * @throws MappingException
+     */
+    private function namedColumns(string $entity, string $property, array $parts, array $name): array
+    {
+        if (!$this->namesEveryPart(parts: $parts, name: $name)) {
+            throw MappingException::columnsDoNotMatchParts(
+                entity: $entity,
+                property: $property,
+                parts: $parts,
+                given: array_keys($name),
+            );
+        }
+
+        return array_combine($parts, array_map(static fn(string $part): string => $name[$part], $parts));
+    }
+
+    /**
+     * @param non-empty-list<string> $parts
+     * @param array<string, string> $name
+     */
+    private function namesEveryPart(array $parts, array $name): bool
+    {
+        if (count($name) !== count($parts)) {
+            return false;
+        }
+
+        foreach ($parts as $part) {
+            $column = $name[$part] ?? null;
+
+            if (!is_string($column) || $column === '') {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * @param class-string $entity
+     *
+     * @throws MappingException
+     */
+    private function assertCompositeAllowed(string $entity, string $property, bool $identifier, bool $generated): void
+    {
+        if ($identifier) {
+            throw MappingException::compositeConverterNotAllowed(
+                entity: $entity,
+                property: $property,
+                because: 'it is an identifier',
+            );
+        }
+
+        if ($generated) {
+            throw MappingException::compositeConverterNotAllowed(
+                entity: $entity,
+                property: $property,
+                because: 'the database generates it',
+            );
+        }
     }
 
     /**

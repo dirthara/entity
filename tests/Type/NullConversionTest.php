@@ -9,15 +9,15 @@ use Throwable;
 use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
-use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Entity\Tests\Entities\Role;
+use Dirthara\Entity\Type\ColumnConverter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 
 final class NullConversionTest extends TestCase
 {
     /**
-     * @return iterable<string, array{TypeConverter}>
+     * @return iterable<string, array{ColumnConverter}>
      */
     public static function builtIn(): iterable
     {
@@ -43,21 +43,21 @@ final class NullConversionTest extends TestCase
 
     #[Test]
     #[DataProvider('builtIn')]
-    public function it_writes_null_as_null(TypeConverter $converter): void
+    public function it_writes_null_as_null(ColumnConverter $converter): void
     {
         self::assertNull($converter->toDatabase(null));
     }
 
     #[Test]
     #[DataProvider('builtIn')]
-    public function it_reads_null_back_as_null(TypeConverter $converter): void
+    public function it_reads_null_back_as_null(ColumnConverter $converter): void
     {
         self::assertNull($converter->fromDatabase(null));
     }
 
     #[Test]
     #[DataProvider('builtIn')]
-    public function it_still_refuses_a_value_it_cannot_convert(TypeConverter $converter): void
+    public function it_still_refuses_a_value_it_cannot_convert(ColumnConverter $converter): void
     {
         $refused = false;
 

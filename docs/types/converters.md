@@ -53,7 +53,7 @@ turn it on.
 
 1. The `converter` option on `#[Id]` or `#[Column]`, if given:
    - a **closure** is called once and has to answer a converter;
-   - a **class name** implementing `TypeConverter` is built for this property
+   - a **class name** implementing `ColumnConverter` is built for this property
      alone;
    - anything else is a **registry key**.
 2. Otherwise the property's type name: `string`, `int`, `float`, `bool`, or a
@@ -99,7 +99,7 @@ is what the closure is for:
 ```php
 final class Money
 {
-    public static function converter(): TypeConverter
+    public static function converter(): ColumnConverter
     {
         return new MoneyConverter(currency: 'EUR');
     }
@@ -264,15 +264,15 @@ $types = new TypeRegistry();
 $types->register(new MoneyConverter());
 
 $types->has('money');       // bool
-$types->get('money');       // TypeConverter, or TypeConversionException
+$types->get('money');       // ColumnConverter, or TypeConversionException
 ```
 
 | Method | Returns | Notes |
 | --- | --- | --- |
-| `register(TypeConverter $converter)` | `void` | Keyed by the converter's own `type()`. |
+| `register(ColumnConverter $converter)` | `void` | Keyed by the converter's own `type()`. |
 | `has(string $type)` | `bool` | True for a registered type, for an aliased one, and for any backed enum. |
-| `get(string $type)` | `TypeConverter` | Follows an alias, builds one for a backed enum; throws for anything else unregistered. |
-| `resolve(string $propertyType, ?string $converterType = null)` | `TypeConverter` | The named converter, falling back to the property type, answering a mutable one for a `DateTime` property. |
+| `get(string $type)` | `ColumnConverter` | Follows an alias, builds one for a backed enum; throws for anything else unregistered. |
+| `resolve(string $propertyType, ?string $converterType = null)` | `ColumnConverter` | The named converter, falling back to the property type, answering a mutable one for a `DateTime` property. |
 
 Two names are aliases rather than registrations: `array` resolves to `json`, and
 `DateTimeInterface` to `DateTimeImmutable`. An alias only applies when nothing is

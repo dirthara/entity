@@ -2,7 +2,7 @@
 id: writing-a-converter
 title: Writing a converter
 sidebar_position: 2
-description: The TypeConverter interface, what each method has to promise, and a worked example.
+description: The ColumnConverter interface, what each method has to promise, and a worked example.
 ---
 
 # Writing a converter
@@ -14,6 +14,10 @@ what shape it should take.
 
 ## The interface
 
+`TypeConverter` is the parent every converter answers to; it carries the
+registry key and nothing else. Implement one of its two children, never the
+parent itself:
+
 ```php
 namespace Dirthara\Entity\Type;
 
@@ -23,12 +27,26 @@ interface TypeConverter
      * @return class-string|non-empty-string
      */
     public function type(): string;
+}
 
+interface ColumnConverter extends TypeConverter
+{
     public function toDatabase(mixed $value): string|int|float|bool|null;
 
     public function fromDatabase(mixed $value): mixed;
 }
 ```
+
+`ColumnConverter` is the one to write: a property, a column, a value that
+crosses between them. Everything below is about it.
+
+:::note
+The other child, `CompositeConverter`, is for a property that spans more than
+one column. Its mapping is read, so a column is derived for each part and a name
+can be given for each, but reading, writing and querying one is not finished
+yet: a property mapped with it throws `MappingException` rather than working.
+Do not reach for it in an application.
+:::
 
 | Method | Has to promise |
 | --- | --- |
@@ -54,9 +72,9 @@ the `json` and `serialized` converters do.
 
 ```php
 use Dirthara\Entity\Exception\TypeConversionException;
-use Dirthara\Entity\Type\TypeConverter;
+use Dirthara\Entity\Type\ColumnConverter;
 
-final readonly class MoneyConverter implements TypeConverter
+final readonly class MoneyConverter implements ColumnConverter
 {
     public function type(): string
     {

@@ -42,7 +42,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->where($metadata->column, $operator, $this->toDatabase($metadata, $value));
+        $this->builder->where($metadata->column(), $operator, $this->toDatabase($metadata, $value));
 
         return $this;
     }
@@ -55,7 +55,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->orWhere($metadata->column, $operator, $this->toDatabase($metadata, $value));
+        $this->builder->orWhere($metadata->column(), $operator, $this->toDatabase($metadata, $value));
 
         return $this;
     }
@@ -67,7 +67,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->whereNull($metadata->column);
+        $this->builder->whereNull($metadata->column());
 
         return $this;
     }
@@ -79,7 +79,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->whereNotNull($metadata->column);
+        $this->builder->whereNotNull($metadata->column());
 
         return $this;
     }
@@ -94,7 +94,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->whereIn($metadata->column, $this->convertValues($metadata, $values));
+        $this->builder->whereIn($metadata->column(), $this->convertValues($metadata, $values));
 
         return $this;
     }
@@ -109,7 +109,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->whereNotIn($metadata->column, $this->convertValues($metadata, $values));
+        $this->builder->whereNotIn($metadata->column(), $this->convertValues($metadata, $values));
 
         return $this;
     }
@@ -123,7 +123,7 @@ final readonly class EntityQuery
         $metadata = $this->property($property);
 
         $this->builder->whereBetween(
-            $metadata->column,
+            $metadata->column(),
             $this->toDatabase($metadata, $from),
             $this->toDatabase($metadata, $to),
         );
@@ -149,7 +149,7 @@ final readonly class EntityQuery
     {
         $metadata = $this->property($property);
 
-        $this->builder->orderBy($metadata->column, $direction);
+        $this->builder->orderBy($metadata->column(), $direction);
 
         return $this;
     }
@@ -314,7 +314,7 @@ final readonly class EntityQuery
             return null;
         }
 
-        return $property->converter->toDatabase($value);
+        return $property->single()->toDatabase($value);
     }
 
     /**
@@ -329,7 +329,7 @@ final readonly class EntityQuery
         $converted = [];
 
         foreach ($values as $value) {
-            $bound = $property->converter->toDatabase($value);
+            $bound = $property->single()->toDatabase($value);
 
             if ($bound === null) {
                 throw TypeConversionException::invalidValue(expected: 'a value IN can match', actual: $value);

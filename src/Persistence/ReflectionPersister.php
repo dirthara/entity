@@ -41,7 +41,7 @@ final class ReflectionPersister implements EntityPersister
                 continue;
             }
 
-            $values[$property->column] = $this->databaseValue(
+            $values[$property->column()] = $this->databaseValue(
                 entity: $entity,
                 metadata: $metadata,
                 property: $property,
@@ -57,7 +57,7 @@ final class ReflectionPersister implements EntityPersister
                 return;
             }
 
-            $identifier = $database->table($metadata->table)->insertGetId($values, $generated->column);
+            $identifier = $database->table($metadata->table)->insertGetId($values, $generated->column());
         } catch (DatabaseException $exception) {
             throw PersistenceException::insertFailed(entity: $metadata->entity, previous: $exception);
         }
@@ -71,7 +71,7 @@ final class ReflectionPersister implements EntityPersister
 
         $this->property(entity: $metadata->entity, property: $generated->property)->setRawValue(
             $entity,
-            $generated->converter->fromDatabase($identifier),
+            $generated->single()->fromDatabase($identifier),
         );
     }
 
@@ -105,7 +105,7 @@ final class ReflectionPersister implements EntityPersister
                 continue;
             }
 
-            $values[$property->column] = $this->databaseValue(
+            $values[$property->column()] = $this->databaseValue(
                 entity: $entity,
                 metadata: $metadata,
                 property: $property,
@@ -120,7 +120,7 @@ final class ReflectionPersister implements EntityPersister
 
         foreach ($metadata->identifier->properties as $property) {
             $query->where(
-                $property->column,
+                $property->column(),
                 ComparisonOperator::Equal,
                 $this->databaseValue(entity: $entity, metadata: $metadata, property: $property),
             );
@@ -160,7 +160,7 @@ final class ReflectionPersister implements EntityPersister
 
         foreach ($metadata->identifier->properties as $property) {
             $query->where(
-                $property->column,
+                $property->column(),
                 ComparisonOperator::Equal,
                 $this->databaseValue(entity: $entity, metadata: $metadata, property: $property),
             );
@@ -209,7 +209,7 @@ final class ReflectionPersister implements EntityPersister
             return null;
         }
 
-        return $property->converter->toDatabase($value);
+        return $property->single()->toDatabase($value);
     }
 
     /**

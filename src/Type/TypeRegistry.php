@@ -29,12 +29,12 @@ final class TypeRegistry
     ];
 
     /**
-     * @var array<string, TypeConverter>
+     * @var array<string, ColumnConverter>
      */
     private array $converters = [];
 
     /**
-     * @param iterable<TypeConverter> $converters
+     * @param iterable<ColumnConverter> $converters
      */
     public function __construct(iterable $converters = [])
     {
@@ -57,7 +57,7 @@ final class TypeRegistry
         }
     }
 
-    public function register(TypeConverter $converter): void
+    public function register(ColumnConverter $converter): void
     {
         $this->converters[$converter->type()] = $converter;
     }
@@ -74,7 +74,7 @@ final class TypeRegistry
     /**
      * @throws TypeConversionException
      */
-    public function get(string $type): TypeConverter
+    public function get(string $type): ColumnConverter
     {
         if (!isset($this->converters[$type]) && isset(self::ALIASES[$type])) {
             $type = self::ALIASES[$type];
@@ -86,7 +86,7 @@ final class TypeRegistry
     /**
      * @throws TypeConversionException
      */
-    public function resolve(string $propertyType, ?string $converterType = null): TypeConverter
+    public function resolve(string $propertyType, ?string $converterType = null): ColumnConverter
     {
         $converter = $this->get($converterType ?? $propertyType);
 
@@ -100,7 +100,7 @@ final class TypeRegistry
     /**
      * @throws TypeConversionException
      */
-    private function build(string $type): TypeConverter
+    private function build(string $type): ColumnConverter
     {
         if (!is_subclass_of($type, BackedEnum::class)) {
             throw TypeConversionException::unsupportedType($type);

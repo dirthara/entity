@@ -52,7 +52,7 @@ final class EntityMetadataTest extends TestCase
     {
         return new PropertyMetadata(
             property: $name,
-            column: $name,
+            columns: [$name => $name],
             propertyType: 'int',
             converter: new IntegerConverter(),
             nullable: false,

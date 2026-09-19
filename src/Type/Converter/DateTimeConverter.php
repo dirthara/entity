@@ -9,11 +9,11 @@ use Exception;
 use DateTimeZone;
 use DateTimeImmutable;
 use DateTimeInterface;
-use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Entity\Type\TemporalFormat;
+use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
-final readonly class DateTimeConverter implements TypeConverter
+final readonly class DateTimeConverter implements ColumnConverter
 {
     public function __construct(
         private string $type,
