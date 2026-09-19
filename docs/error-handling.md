@@ -27,7 +27,7 @@ EntityException
 
 | Exception | Thrown when |
 | --- | --- |
-| `MappingException` | A class cannot be mapped: no identifier, contradictory attributes, an untyped or unsupported property, two properties on one column. |
+| `MappingException` | A class cannot be mapped: no identifier, contradictory attributes, an untyped or unsupported property, two properties on one column, a converter that cannot be built. |
 | `TypeConversionException` | No converter handles a type, or a value cannot cross the boundary in either direction. |
 | `CreateEntityException` | An entity could not be instantiated to hydrate into. |
 | `HydrationException` | A row cannot fill an entity: a column missing, a `NULL` in a property that refuses it, a value the property's type rejects. |
@@ -79,6 +79,8 @@ throw $exception->addContext(['request' => $requestId]);
 | A duplicate column | `entity`, `column`, `firstProperty`, `secondProperty` |
 | Contradictory attributes | `entity`, `property`, `attributes` |
 | An unsupported property type | `entity`, `property`, `type` |
+| A converter that cannot be built | `entity`, `property`, `converter`, `reason` |
+| A closure that did not answer a converter | `entity`, `property`, `returned` |
 | A failed read or connection | `entity`, `operation` |
 | Too many rows affected | `entity`, `operation`, `expectedMaximum`, `actual` |
 | The wrong class | `expected`, `actual` |

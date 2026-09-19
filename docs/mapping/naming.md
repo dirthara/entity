@@ -7,9 +7,12 @@ description: How table and column names are derived, and how to replace the conv
 
 # Naming
 
+Two strategies ship: `DefaultNamingStrategy`, which is the one in use unless you
+say otherwise, and `NoNamingStrategy`, which derives nothing.
+
 `DefaultNamingStrategy` derives a table name from the class's short name and a
 column name from the property name. Either can be overridden per class with
-`#[Entity(table: ...)]` or per property with `#[Column(column: ...)]`.
+`#[Entity(table: ...)]` or per property with `#[Column(name: ...)]`.
 
 ## Columns
 
@@ -65,6 +68,25 @@ cases, and a name the strategy gets wrong is better fixed with
 `#[Entity(table: 'people')]` on that one class than by growing a dictionary
 every application pays for.
 :::
+
+## Taking the convention away
+
+`NoNamingStrategy` derives nothing. A table is the class's short name and a
+column is the property name, both exactly as they are written:
+
+```php
+use Dirthara\Entity\Naming\NoNamingStrategy;
+
+$factory = new MetadataFactory(new NoNamingStrategy(), $types);
+```
+
+| Class or property | Table or column |
+| --- | --- |
+| `UserProfile` | `UserProfile` |
+| `displayName` | `displayName` |
+
+It is the strategy for a schema that already matches the classes, or one where
+every name is given by an attribute and a convention would only get in the way.
 
 ## Replacing the convention
 

@@ -2,7 +2,7 @@
 id: converters
 title: Converters
 sidebar_position: 1
-description: The built-in converters, how one is chosen, nullable columns, and mapping a backed enum.
+description: The built-in converters, how one is chosen, dates and times, nullable columns, and mapping a backed enum.
 ---
 
 # Converters
@@ -251,9 +251,13 @@ $types->get('money');       // TypeConverter, or TypeConversionException
 | Method | Returns | Notes |
 | --- | --- | --- |
 | `register(TypeConverter $converter)` | `void` | Keyed by the converter's own `type()`. |
-| `has(string $type)` | `bool` | True for a registered type, for `array`, and for any backed enum. |
-| `get(string $type)` | `TypeConverter` | Resolves `array` to `json`, builds one for a backed enum; throws for anything else unregistered. |
-| `resolve(string $propertyType, ?string $converterType = null)` | `TypeConverter` | The named converter, falling back to the property type. |
+| `has(string $type)` | `bool` | True for a registered type, for an aliased one, and for any backed enum. |
+| `get(string $type)` | `TypeConverter` | Follows an alias, builds one for a backed enum; throws for anything else unregistered. |
+| `resolve(string $propertyType, ?string $converterType = null)` | `TypeConverter` | The named converter, falling back to the property type, answering a mutable one for a `DateTime` property. |
+
+Two names are aliases rather than registrations: `array` resolves to `json`, and
+`DateTimeInterface` to `DateTimeImmutable`. An alias only applies when nothing is
+registered under the name itself.
 
 The constructor registers the built-in converters first and the ones you pass
 after, so registering under a built-in key replaces it. That is the way to

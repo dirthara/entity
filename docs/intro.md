@@ -38,7 +38,8 @@ $articles->update($article);
   convention cannot guess.
 - **Values cross the boundary through a converter.** Every property has one, so
   a `bool` is written the way the database wants it and read back as a `bool`
-  whatever the driver reports. Scalars and backed enums need no setting up.
+  whatever the driver reports. Scalars, arrays, dates and backed enums need no
+  setting up.
 - **The store is typed.** `of(Article::class)` returns a store whose `find()`,
   `all()` and `first()` are `Article`, so a static analyzer follows the entity
   through your code.

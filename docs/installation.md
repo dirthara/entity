@@ -72,8 +72,9 @@ application code. Nothing here opens a connection, and metadata is read the
 first time a class is asked for, so building it early costs nothing.
 :::
 
-A `TypeRegistry` with nothing passed to it already handles every scalar, plus
-any backed enum you map. Registering is for your own types and for replacing a
-built-in; see [Converters](types/converters.md).
+A `TypeRegistry` with nothing passed to it already handles every scalar, an
+`array`, a date and time at four precisions, and any backed enum you map.
+Registering is for your own types and for replacing a built-in; see
+[Converters](types/converters.md).
 
 Next: [Getting started](getting-started.md).

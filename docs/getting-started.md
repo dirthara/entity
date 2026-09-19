@@ -131,5 +131,5 @@ and the aggregates.
 - [Mapping attributes](mapping/attributes.md) to rename a column, ignore a
   property or name a converter.
 - [Identifiers](mapping/identifiers.md) for composite and assigned keys.
-- [Converters](types/converters.md) to map an enum, an array or a type no
-  converter handles yet.
+- [Converters](types/converters.md) to pick what a date column holds, or to map
+  a type no converter handles yet.
