@@ -8,6 +8,7 @@ use Dirthara\Entity\EntityStore;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\Entities\Plain;
+use Dirthara\Entity\Tests\Entities\Plate;
 use Dirthara\Entity\Tests\Entities\Topic;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Jacket;
@@ -145,6 +146,72 @@ final class RelationHandleTest extends EntityTestCase
 
         self::assertSame($book->id, $this->column('jackets', 'book_id', 1));
         self::assertSame($jacket, $book->jacket);
+    }
+
+    #[Test]
+    public function it_replaces_the_target_a_has_one_already_had(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->hasOne($book, 'plate')->associate($this->plate(2));
+
+        self::assertNull($this->column('plates', 'book_id', 1));
+        self::assertSame($book->id, $this->column('plates', 'book_id', 2));
+        self::assertSame(2, $book->plate?->id);
+    }
+
+    #[Test]
+    public function it_releases_the_target_it_replaces_before_claiming_the_new_one(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->connection->execute('CREATE UNIQUE INDEX one_plate_per_book ON plates (book_id)');
+
+        $this->hasOne($book, 'plate')->associate($this->plate(2));
+
+        self::assertNull($this->column('plates', 'book_id', 1));
+        self::assertSame($book->id, $this->column('plates', 'book_id', 2));
+    }
+
+    #[Test]
+    public function it_puts_the_target_it_released_back_when_claiming_the_new_one_fails(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->connection->execute(
+            'CREATE TRIGGER refuse_plate BEFORE UPDATE ON plates FOR EACH ROW '
+            . "WHEN NEW.id = 2 AND NEW.book_id IS NOT NULL BEGIN SELECT RAISE(ABORT, 'refused'); END",
+        );
+
+        try {
+            $this->hasOne($book, 'plate')->associate($this->plate(2));
+
+            self::fail('Expected the association to be refused.');
+        } catch (PersistenceException) {
+            self::assertSame($book->id, $this->column('plates', 'book_id', 1));
+            self::assertNull($this->column('plates', 'book_id', 2));
+        }
+    }
+
+    #[Test]
+    public function it_leaves_a_has_one_alone_when_it_is_associated_with_what_it_already_has(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->hasOne($book, 'plate')->associate($this->plate(1));
+
+        self::assertSame($book->id, $this->column('plates', 'book_id', 1));
+        self::assertNull($this->column('plates', 'book_id', 2));
+    }
+
+    #[Test]
+    public function it_takes_a_target_a_has_one_of_another_owner_was_holding(): void
+    {
+        $other = $this->book('Discworld');
+
+        $this->hasOne($other, 'plate')->associate($this->plate(1));
+
+        self::assertSame($other->id, $this->column('plates', 'book_id', 1));
     }
 
     #[Test]
@@ -409,6 +476,15 @@ final class RelationHandleTest extends EntityTestCase
         return $handle;
     }
 
+    private function hasOne(Book $book, string $relation): HasOneHandle
+    {
+        $handle = $this->store(Book::class)->relation($book, $relation);
+
+        self::assertInstanceOf(HasOneHandle::class, $handle);
+
+        return $handle;
+    }
+
     private function hasMany(Book $book, string $relation): HasManyHandle
     {
         $handle = $this->store(Book::class)->relation($book, $relation);
@@ -509,6 +585,11 @@ final class RelationHandleTest extends EntityTestCase
     private function chapter(int $id): Chapter
     {
         return self::entity(Chapter::class, $this->store(Chapter::class)->find($id));
+    }
+
+    private function plate(int $id): Plate
+    {
+        return self::entity(Plate::class, $this->store(Plate::class)->find($id));
     }
 
     private function topic(int $id): Topic

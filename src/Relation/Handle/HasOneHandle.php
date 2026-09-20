@@ -53,7 +53,16 @@ final readonly class HasOneHandle implements RelationHandle
             relation: $this->relation->property,
         );
 
-        $this->write(foreignKey: $owner, column: $this->target->identifier->single()->column(), value: $identifier);
+        $column = $this->target->identifier->single()->column();
+
+        $this->run(fn(): mixed => $this->database->transaction(function () use ($owner, $identifier, $column): void {
+            $this->releaseOthers(owner: $owner, column: $column, keep: $identifier);
+
+            $this->database
+                ->table($this->target->table)
+                ->where($column, ComparisonOperator::Equal, $identifier)
+                ->update([$this->relation->foreignKey => $owner]);
+        }));
 
         $this->remember($related);
     }
@@ -75,21 +84,41 @@ final readonly class HasOneHandle implements RelationHandle
 
         $owner = $this->identity->owner(metadata: $this->metadata, entity: $this->entity);
 
-        $this->write(foreignKey: null, column: $this->relation->foreignKey, value: $owner);
+        $this->run(fn(): int => $this->releaseAll($owner));
 
         $this->remember(null);
     }
 
+    private function releaseAll(string|int|float|bool $owner): int
+    {
+        return $this->database
+            ->table($this->target->table)
+            ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
+            ->update([$this->relation->foreignKey => null]);
+    }
+
+    private function releaseOthers(string|int|float|bool $owner, string $column, mixed $keep): void
+    {
+        $this->database
+            ->table($this->target->table)
+            ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
+            ->where($column, ComparisonOperator::NotEqual, $keep)
+            ->update([$this->relation->foreignKey => null]);
+    }
+
     /**
+     * @template TResult
+     *
+     * @param callable(): TResult $operation
+     *
+     * @return TResult
+     *
      * @throws PersistenceException
      */
-    private function write(string|int|float|bool|null $foreignKey, string $column, mixed $value): void
+    private function run(callable $operation): mixed
     {
         try {
-            $this->database
-                ->table($this->target->table)
-                ->where($column, ComparisonOperator::Equal, $value)
-                ->update([$this->relation->foreignKey => $foreignKey]);
+            return $operation();
         } catch (DatabaseException $exception) {
             throw PersistenceException::relationWriteFailed(
                 entity: $this->metadata->entity,

@@ -31,6 +31,9 @@ final class Book
     #[HasOne]
     public ?Jacket $jacket;
 
+    #[HasOne]
+    public ?Plate $plate;
+
     /**
      * @var Collection<int, Chapter>
      */

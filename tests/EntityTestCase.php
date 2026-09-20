@@ -207,6 +207,7 @@ abstract class EntityTestCase extends TestCase
             'CREATE TABLE books (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, writer_id INTEGER, editor_id INTEGER)',
             'CREATE TABLE jackets (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, colour TEXT NOT NULL)',
             'CREATE TABLE chapters (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, heading TEXT NOT NULL)',
+            'CREATE TABLE plates (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER UNIQUE, name TEXT NOT NULL)',
             'CREATE TABLE topics (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
             'CREATE TABLE book_topic (book_id INTEGER NOT NULL, topic_id INTEGER)',
             'CREATE TABLE reviews (id INTEGER PRIMARY KEY AUTOINCREMENT, body TEXT NOT NULL, book_id INTEGER NOT NULL)',
@@ -224,6 +225,7 @@ abstract class EntityTestCase extends TestCase
         . "('Earthsea', 1, 2), ('Discworld', 2, NULL), ('Lathe', 1, 2)");
         $connection->execute("INSERT INTO jackets (book_id, colour) VALUES (1, 'blue')");
         $connection->execute("INSERT INTO chapters (book_id, heading) VALUES (1, 'One'), (1, 'Two'), (2, 'Alpha')");
+        $connection->execute("INSERT INTO plates (book_id, name) VALUES (1, 'front'), (NULL, 'back')");
         $connection->execute("INSERT INTO topics (name) VALUES ('fantasy'), ('scifi')");
         $connection->execute('INSERT INTO book_topic (book_id, topic_id) VALUES (1, 1), (1, 2), (2, 1)');
     }
