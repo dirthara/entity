@@ -56,6 +56,8 @@ final readonly class HasOneHandle implements RelationHandle
         $column = $this->target->identifier->single()->column();
 
         $this->run(fn(): mixed => $this->database->transaction(function () use ($owner, $identifier, $column): void {
+            $this->assertFree(owner: $owner, column: $column, identifier: $identifier);
+
             $this->releaseOthers(owner: $owner, column: $column, keep: $identifier);
 
             $this->database
@@ -84,26 +86,79 @@ final readonly class HasOneHandle implements RelationHandle
 
         $owner = $this->identity->owner(metadata: $this->metadata, entity: $this->entity);
 
-        $this->run(fn(): int => $this->releaseAll($owner));
+        $this->run(fn(): mixed => $this->database->transaction(function () use ($owner): void {
+            $this->releaseAll($owner);
+        }));
 
         $this->remember(null);
     }
 
-    private function releaseAll(string|int|float|bool $owner): int
+    /**
+     * @throws PersistenceException
+     */
+    private function assertFree(string|int|float|bool $owner, string $column, string|int|float|bool $identifier): void
     {
-        return $this->database
+        $row = $this->database
             ->table($this->target->table)
-            ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
-            ->update([$this->relation->foreignKey => null]);
+            ->where($column, ComparisonOperator::Equal, $identifier)
+            ->first();
+
+        $held = is_array($row) ? $row[$this->relation->foreignKey] ?? null : null;
+
+        if (!is_scalar($held) || (string) $held === (string) $owner) {
+            return;
+        }
+
+        throw PersistenceException::relationTaken(
+            entity: $this->metadata->entity,
+            relation: $this->relation->property,
+            target: $this->target->entity,
+            owner: $held,
+        );
     }
 
+    /**
+     * @throws PersistenceException
+     */
+    private function releaseAll(string|int|float|bool $owner): void
+    {
+        $this->assertReleasedOne(
+            $this->database
+                ->table($this->target->table)
+                ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
+                ->update([$this->relation->foreignKey => null]),
+        );
+    }
+
+    /**
+     * @throws PersistenceException
+     */
     private function releaseOthers(string|int|float|bool $owner, string $column, mixed $keep): void
     {
-        $this->database
-            ->table($this->target->table)
-            ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
-            ->where($column, ComparisonOperator::NotEqual, $keep)
-            ->update([$this->relation->foreignKey => null]);
+        $this->assertReleasedOne(
+            $this->database
+                ->table($this->target->table)
+                ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
+                ->where($column, ComparisonOperator::NotEqual, $keep)
+                ->update([$this->relation->foreignKey => null]),
+        );
+    }
+
+    /**
+     * @throws PersistenceException
+     */
+    private function assertReleasedOne(int $affected): void
+    {
+        if ($affected <= 1) {
+            return;
+        }
+
+        throw PersistenceException::unexpectedRelatedRows(
+            entity: $this->metadata->entity,
+            relation: $this->relation->property,
+            expectedMaximum: 1,
+            actual: $affected,
+        );
     }
 
     /**

@@ -77,6 +77,45 @@ final class PersistenceException extends EntityException
         ]);
     }
 
+    public static function unexpectedRelatedRows(
+        string $entity,
+        string $relation,
+        int $expectedMaximum,
+        int $actual,
+    ): self {
+        return new self(sprintf(
+            'Unexpected related rows "%s" for relation "%s" on entity "%s"',
+            $actual,
+            $relation,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'expectedMaximum' => $expectedMaximum,
+            'actual' => $actual,
+        ]);
+    }
+
+    public static function relationTaken(
+        string $entity,
+        string $relation,
+        string $target,
+        string|int|float|bool $owner,
+    ): self {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" cannot take a "%s" that already belongs to "%s"',
+            $relation,
+            $entity,
+            $target,
+            $owner,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+            'owner' => $owner,
+        ]);
+    }
+
     public static function relationNotNullable(string $entity, string $relation): self
     {
         return new self(sprintf('Relation "%s" of entity "%s" does not accept null', $relation, $entity))->addContext([

@@ -137,11 +137,11 @@ final class RelationHandleTest extends EntityTestCase
     public function it_associates_a_has_one_by_writing_the_key_the_target_holds(): void
     {
         $book = $this->book('Discworld');
-        $jacket = self::entity(Jacket::class, $this->store(Jacket::class)->find(1));
+        $jacket = self::entity(Jacket::class, $this->store(Jacket::class)->find(2));
 
         $this->hasOne($book, 'jacket')->associate($jacket);
 
-        self::assertSame($book->id, $this->column('jackets', 'book_id', 1));
+        self::assertSame($book->id, $this->column('jackets', 'book_id', 2));
         self::assertSame($jacket, $book->jacket);
     }
 
@@ -202,13 +202,97 @@ final class RelationHandleTest extends EntityTestCase
     }
 
     #[Test]
-    public function it_takes_a_target_a_has_one_of_another_owner_was_holding(): void
+    public function it_refuses_to_associate_a_has_one_whose_owner_already_holds_more_than_one(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->connection->execute("INSERT INTO plates (book_id, name) VALUES (1, 'extra')");
+
+        $this->expectException(PersistenceException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Unexpected related rows "2" for relation "plate" on entity "%s"',
+            Book::class,
+        ));
+
+        $this->hasOne($book, 'plate')->associate($this->plate(2));
+    }
+
+    #[Test]
+    public function it_leaves_every_row_alone_when_a_has_one_already_holds_more_than_one(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->connection->execute("INSERT INTO plates (book_id, name) VALUES (1, 'extra')");
+
+        try {
+            $this->hasOne($book, 'plate')->associate($this->plate(2));
+
+            self::fail('Expected the association to be refused.');
+        } catch (PersistenceException) {
+            self::assertSame(1, $this->column('plates', 'book_id', 1));
+            self::assertSame(1, $this->column('plates', 'book_id', 3));
+            self::assertNull($this->column('plates', 'book_id', 2));
+        }
+    }
+
+    #[Test]
+    public function it_refuses_to_dissociate_a_has_one_whose_owner_holds_more_than_one(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->connection->execute("INSERT INTO plates (book_id, name) VALUES (1, 'extra')");
+
+        try {
+            $this->hasOne($book, 'plate')->dissociate();
+
+            self::fail('Expected the dissociation to be refused.');
+        } catch (PersistenceException $exception) {
+            self::assertStringContainsString('Unexpected related rows "2"', $exception->getMessage());
+            self::assertSame(1, $this->column('plates', 'book_id', 1));
+            self::assertSame(1, $this->column('plates', 'book_id', 3));
+        }
+    }
+
+    #[Test]
+    public function it_refuses_a_has_one_target_that_belongs_to_another_owner(): void
     {
         $other = $this->book('Discworld');
 
-        $this->hasOne($other, 'plate')->associate($this->plate(1));
+        $this->expectException(PersistenceException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "plate" of entity "%s" cannot take a "%s" that already belongs to "1"',
+            Book::class,
+            Plate::class,
+        ));
 
-        self::assertSame($other->id, $this->column('plates', 'book_id', 1));
+        $this->hasOne($other, 'plate')->associate($this->plate(1));
+    }
+
+    #[Test]
+    public function it_leaves_the_owner_it_refused_to_take_from_untouched(): void
+    {
+        $other = $this->book('Discworld');
+
+        try {
+            $this->hasOne($other, 'plate')->associate($this->plate(1));
+
+            self::fail('Expected the association to be refused.');
+        } catch (PersistenceException) {
+            self::assertSame(1, $this->column('plates', 'book_id', 1));
+        }
+    }
+
+    #[Test]
+    public function it_writes_nothing_when_the_row_a_has_one_points_at_is_gone(): void
+    {
+        $book = $this->book('Discworld');
+        $plate = $this->plate(2);
+
+        $this->connection->execute('DELETE FROM plates WHERE id = 2');
+
+        $this->hasOne($book, 'plate')->associate($plate);
+
+        self::assertSame(1, $this->column('plates', 'book_id', 1));
     }
 
     #[Test]
