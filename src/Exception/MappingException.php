@@ -335,6 +335,16 @@ final class MappingException extends EntityException
         ]);
     }
 
+    public static function invalidRelationPath(string $path): self
+    {
+        return new self(message: sprintf(
+            'Invalid relation path "%s": every segment between dots has to name a relation',
+            $path,
+        ))->addContext([
+            'path' => $path,
+        ]);
+    }
+
     public static function unknownRelation(string $entity, string $relation): self
     {
         return new self(message: sprintf('Unknown relation "%s" in entity "%s"', $relation, $entity))->addContext([

@@ -178,6 +178,33 @@ final class NestedRelationLoadingTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_refuses_a_malformed_path_where_the_query_was_given_it(): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('Invalid relation path ".books"');
+
+        $this->store(Book::class)->query()->with('.books');
+    }
+
+    #[Test]
+    public function it_refuses_a_malformed_path_where_load_was_given_it(): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('Invalid relation path "writer."');
+
+        $this->store(Book::class)->load($this->book('Earthsea'), ['writer.']);
+    }
+
+    #[Test]
+    public function it_refuses_a_malformed_path_where_without_was_given_it(): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('Invalid relation path "writer..books"');
+
+        $this->store(Book::class)->query()->without('writer..books');
+    }
+
+    #[Test]
     public function it_still_refuses_to_stream_a_nested_relation(): void
     {
         $this->expectException(RelationLoadingException::class);

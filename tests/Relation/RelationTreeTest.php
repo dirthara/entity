@@ -7,6 +7,8 @@ namespace Dirthara\Entity\Tests\Relation;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Relation\RelationTree;
+use PHPUnit\Framework\Attributes\DataProvider;
+use Dirthara\Entity\Exception\MappingException;
 
 final class RelationTreeTest extends TestCase
 {
@@ -85,10 +87,41 @@ final class RelationTreeTest extends TestCase
         self::assertSame([], RelationTree::fromPaths([])->relations());
     }
 
-    #[Test]
-    public function it_ignores_an_empty_segment(): void
+    /**
+     * @return iterable<string, array{string}>
+     */
+    public static function malformed(): iterable
     {
-        self::assertSame(['writer'], RelationTree::fromPaths(['', 'writer.', '.books'])->relations());
-        self::assertTrue(RelationTree::fromPaths(['writer.'])->nestedFor('writer')->isEmpty());
+        yield 'an empty string' => [''];
+        yield 'a leading dot' => ['.books'];
+        yield 'a trailing dot' => ['writer.'];
+        yield 'a double dot' => ['writer..books'];
+        yield 'a lone dot' => ['.'];
+        yield 'a double dot deeper in' => ['writer.books..chapters'];
+    }
+
+    #[Test]
+    #[DataProvider('malformed')]
+    public function it_refuses_a_path_with_an_empty_segment(string $path): void
+    {
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Invalid relation path "%s": every segment between dots has to name a relation',
+            $path,
+        ));
+
+        RelationTree::fromPaths([$path]);
+    }
+
+    #[Test]
+    public function it_names_the_whole_path_it_refused(): void
+    {
+        try {
+            RelationTree::fromPaths(['writer..books']);
+
+            self::fail('Expected the path to be refused.');
+        } catch (MappingException $exception) {
+            self::assertSame('writer..books', $exception->getContext()['path']);
+        }
     }
 }

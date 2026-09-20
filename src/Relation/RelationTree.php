@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Relation;
 
+use Dirthara\Entity\Exception\MappingException;
+
 final readonly class RelationTree
 {
     /**
@@ -15,6 +17,8 @@ final readonly class RelationTree
 
     /**
      * @param list<string> $paths
+     *
+     * @throws MappingException
      */
     public static function fromPaths(array $paths): self
     {
@@ -22,16 +26,21 @@ final readonly class RelationTree
         $branches = [];
 
         foreach ($paths as $path) {
-            [$relation, $rest] = array_pad(explode('.', $path, limit: 2), 2, null);
+            $segments = explode('.', $path);
 
-            if ($relation === '' || $relation === null) {
-                continue;
+            foreach ($segments as $segment) {
+                if ($segment === '') {
+                    throw MappingException::invalidRelationPath($path);
+                }
             }
+
+            $relation = $segments[0];
+            $rest = array_slice($segments, 1);
 
             $branches[$relation] ??= [];
 
-            if ($rest !== null && $rest !== '') {
-                $branches[$relation][] = $rest;
+            if ($rest !== []) {
+                $branches[$relation][] = implode('.', $rest);
             }
         }
 
