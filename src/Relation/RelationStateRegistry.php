@@ -62,6 +62,9 @@ final class RelationStateRegistry
         return $this->state(entity: $entity, relation: $relation)->hasForeignKey();
     }
 
+    /**
+     * @throws RelationLoadingException
+     */
     public function foreignKey(object $entity, string $relation): mixed
     {
         return $this->state(entity: $entity, relation: $relation)->foreignKey();
@@ -75,7 +78,7 @@ final class RelationStateRegistry
             return $relations[$relation];
         }
 
-        $state = new RelationState();
+        $state = new RelationState(entity: $entity::class, relation: $relation);
 
         $relations[$relation] = $state;
         $this->states[$entity] = $relations;

@@ -8,8 +8,10 @@ use TypeError;
 use ReflectionClass;
 use ReflectionProperty;
 use ReflectionException;
+use ReflectionNamedType;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
+use Dirthara\Collection\Contract\Collection;
 use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\HasOneMetadata;
@@ -61,8 +63,10 @@ final class DefaultRelationLoader implements RelationLoader
         }
 
         foreach ($entities as $entity) {
+            $actual = $entity::class;
+
             if (!$entity instanceof $metadata->entity) {
-                throw RelationLoadingException::invalidEntity(expected: $metadata->entity, actual: $entity::class);
+                throw RelationLoadingException::invalidEntity(expected: $metadata->entity, actual: $actual);
             }
         }
 
@@ -94,6 +98,8 @@ final class DefaultRelationLoader implements RelationLoader
      * @param list<object> $entities
      *
      * @throws RelationLoadingException
+     * @throws MappingException
+     * @throws TypeConversionException
      */
     private function loadRelation(
         ConnectedDatabase $database,
@@ -145,12 +151,12 @@ final class DefaultRelationLoader implements RelationLoader
         $targetIdentifier = $this->singleIdentifier($targetMetadata);
 
         /**
-         * @var array<string, mixed> $foreignKeys
+         * @var array<array-key, string|int|float|bool> $foreignKeys
          */
         $foreignKeys = [];
 
         /**
-         * @var array<string, list<object>> $entitiesByForeignKey
+         * @var array<array-key, list<object>> $entitiesByForeignKey
          */
         $entitiesByForeignKey = [];
 
@@ -181,7 +187,7 @@ final class DefaultRelationLoader implements RelationLoader
 
             $key = $this->key($foreignKey);
 
-            $foreignKeys[$key] = $foreignKey;
+            $foreignKeys[$key] = $this->scalar($foreignKey);
             $entitiesByForeignKey[$key][] = $entity;
         }
 
@@ -210,7 +216,7 @@ final class DefaultRelationLoader implements RelationLoader
                 throw RelationLoadingException::relatedEntityNotFound(
                     entity: $relation->target,
                     relation: $relation->property,
-                    identifier: $foreignKeys[$key],
+                    identifier: $key,
                 );
             }
 
@@ -258,7 +264,7 @@ final class DefaultRelationLoader implements RelationLoader
                 throw RelationLoadingException::multipleRelatedEntities(
                     entity: $metadata->entity,
                     relation: $relation->property,
-                    identifier: $foreignKey,
+                    identifier: $key,
                 );
             }
 
@@ -272,7 +278,7 @@ final class DefaultRelationLoader implements RelationLoader
                 throw RelationLoadingException::relatedEntityNotFound(
                     entity: $relation->target,
                     relation: $relation->property,
-                    identifier: $identifiers[$key],
+                    identifier: $key,
                 );
             }
 
@@ -302,7 +308,7 @@ final class DefaultRelationLoader implements RelationLoader
         [$identifiers, $entitiesByIdentifier] = $this->groupByIdentifier(metadata: $metadata, entities: $entities);
 
         /**
-         * @var array<string, list<object>> $related
+         * @var array<array-key, list<object>> $related
          */
         $related = [];
 
@@ -350,12 +356,12 @@ final class DefaultRelationLoader implements RelationLoader
         [$identifiers, $entitiesByIdentifier] = $this->groupByIdentifier(metadata: $metadata, entities: $entities);
 
         /**
-         * @var array<string, list<string>> $relatedKeysByOwner
+         * @var array<array-key, list<array-key>> $relatedKeysByOwner
          */
         $relatedKeysByOwner = [];
 
         /**
-         * @var array<string, mixed> $relatedIdentifiers
+         * @var array<array-key, string|int|float|bool> $relatedIdentifiers
          */
         $relatedIdentifiers = [];
 
@@ -381,11 +387,11 @@ final class DefaultRelationLoader implements RelationLoader
             $relatedKey = $this->key($relatedIdentifier);
 
             $relatedKeysByOwner[$ownerKey][] = $relatedKey;
-            $relatedIdentifiers[$relatedKey] = $relatedIdentifier;
+            $relatedIdentifiers[$relatedKey] = $this->scalar($relatedIdentifier);
         }
 
         /**
-         * @var array<string, object> $related
+         * @var array<array-key, object> $related
          */
         $related = [];
 
@@ -413,7 +419,7 @@ final class DefaultRelationLoader implements RelationLoader
                     throw RelationLoadingException::relatedEntityNotFound(
                         entity: $relation->target,
                         relation: $relation->property,
-                        identifier: $relatedIdentifiers[$relatedKey],
+                        identifier: $relatedKey,
                     );
                 }
 
@@ -434,8 +440,8 @@ final class DefaultRelationLoader implements RelationLoader
      * @param list<object> $entities
      *
      * @return array{
-     *     0: array<string, mixed>,
-     *     1: array<string, list<object>>
+     *     0: array<array-key, string|int|float|bool>,
+     *     1: array<array-key, list<object>>
      * }
      */
     private function groupByIdentifier(EntityMetadata $metadata, array $entities): array
@@ -459,7 +465,7 @@ final class DefaultRelationLoader implements RelationLoader
      * @throws MappingException
      * @throws RelationLoadingException
      */
-    private function identifierValue(EntityMetadata $metadata, object $entity): mixed
+    private function identifierValue(EntityMetadata $metadata, object $entity): string|int|float|bool
     {
         $identifier = $this->singleIdentifier($metadata);
 
@@ -478,7 +484,7 @@ final class DefaultRelationLoader implements RelationLoader
             throw RelationLoadingException::nullIdentifier(entity: $metadata->entity, property: $identifier->property);
         }
 
-        return $identifier->single()->toDatabase($value);
+        return $this->scalar($identifier->single()->toDatabase($value));
     }
 
     /**
@@ -527,7 +533,7 @@ final class DefaultRelationLoader implements RelationLoader
         $property = $this->property(entity: $entity::class, property: $relation->property);
 
         try {
-            $property->setRawValue(object: $entity, value: $value);
+            $property->setRawValue(object: $entity, value: $this->writable(property: $property, value: $value));
         } catch (TypeError $exception) {
             throw RelationLoadingException::assignmentFailed(
                 entity: $entity::class,
@@ -535,6 +541,25 @@ final class DefaultRelationLoader implements RelationLoader
                 previous: $exception,
             );
         }
+    }
+
+    /**
+     * A to-many relation answers a collection, but a property that asks for a
+     * plain array takes the items out of it.
+     */
+    private function writable(ReflectionProperty $property, mixed $value): mixed
+    {
+        if (!$value instanceof Collection) {
+            return $value;
+        }
+
+        $type = $property->getType();
+
+        if ($type instanceof ReflectionNamedType && $type->getName() === 'array') {
+            return $value->toArray();
+        }
+
+        return $value;
     }
 
     /**
@@ -549,29 +574,11 @@ final class DefaultRelationLoader implements RelationLoader
         }
 
         try {
-            return $this->properties[$entity][$property] = $this->reflection($entity)->getProperty($property);
+            $reflection = $this->classes[$entity] ??= new ReflectionClass($entity);
+
+            return $this->properties[$entity][$property] = $reflection->getProperty($property);
         } catch (ReflectionException $exception) {
             throw RelationLoadingException::unknownProperty(entity: $entity, property: $property, previous: $exception);
-        }
-    }
-
-    /**
-     * @param class-string $entity
-     *
-     * @return ReflectionClass<object>
-     *
-     * @throws RelationLoadingException
-     */
-    private function reflection(string $entity): ReflectionClass
-    {
-        if (isset($this->classes[$entity])) {
-            return $this->classes[$entity];
-        }
-
-        try {
-            return $this->classes[$entity] = new ReflectionClass($entity);
-        } catch (ReflectionException $exception) {
-            throw RelationLoadingException::reflectionFailed(entity: $entity, previous: $exception);
         }
     }
 
@@ -598,8 +605,16 @@ final class DefaultRelationLoader implements RelationLoader
      */
     private function key(mixed $value): string
     {
+        return (string) $this->scalar($value);
+    }
+
+    /**
+     * @throws RelationLoadingException
+     */
+    private function scalar(mixed $value): string|int|float|bool
+    {
         if (is_string($value) || is_int($value) || is_float($value) || is_bool($value)) {
-            return (string) $value;
+            return $value;
         }
 
         throw RelationLoadingException::invalidIdentifierValue(value: $value);

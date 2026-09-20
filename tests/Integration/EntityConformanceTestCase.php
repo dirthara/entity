@@ -27,6 +27,8 @@ use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
@@ -256,12 +258,20 @@ abstract class EntityConformanceTestCase extends TestCase
     protected function manager(): EntityManager
     {
         $types = new TypeRegistry();
+        $registry = new MetadataRegistry(new MetadataFactory(new DefaultNamingStrategy(), $types));
+        $states = new RelationStateRegistry();
 
         return new EntityManager(
             database: $this->database,
-            metadata: new MetadataRegistry(new MetadataFactory(new DefaultNamingStrategy(), $types)),
+            metadata: $registry,
             hydrator: new ReflectionHydrator(),
             persister: new ReflectionPersister(),
+            relationLoader: new DefaultRelationLoader(
+                metadata: $registry,
+                hydrator: new ReflectionHydrator(),
+                states: $states,
+            ),
+            relationStates: $states,
         );
     }
 

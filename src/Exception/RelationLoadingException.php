@@ -45,6 +45,7 @@ final class RelationLoadingException extends EntityException
             $entity,
         ))->addContext([
             'entity' => $entity,
+            'relation' => $relation,
         ]);
     }
 
@@ -56,10 +57,11 @@ final class RelationLoadingException extends EntityException
             $entity,
         ))->addContext([
             'entity' => $entity,
+            'relation' => $relation,
         ]);
     }
 
-    public static function relatedEntityNotFound(string $entity, string $relation, string $identifier): self
+    public static function relatedEntityNotFound(string $entity, string $relation, string|int $identifier): self
     {
         return new self(sprintf(
             'Related entity "%s" not found for relation "%s" with identifier "%s"',
@@ -73,11 +75,12 @@ final class RelationLoadingException extends EntityException
         ]);
     }
 
-    public static function multipleRelatedEntities(string $entity, string $relation, string $identifier): self
+    public static function multipleRelatedEntities(string $entity, string $relation, string|int $identifier): self
     {
         return new self(sprintf(
-            'Multiple related entities found for relation "%s" with identifier "%s"',
+            'Multiple related entities found for relation "%s" in entity "%s" with identifier "%s"',
             $relation,
+            $entity,
             $identifier,
         ))->addContext([
             'entity' => $entity,
@@ -88,7 +91,7 @@ final class RelationLoadingException extends EntityException
 
     public static function uninitializedIdentifier(string $entity, string $property): self
     {
-        return new self(sprintf('Identifier for "%s" is not initialized', $entity))->addContext([
+        return new self(sprintf('Identifier "%s" for entity "%s" is not initialized', $property, $entity))->addContext([
             'entity' => $entity,
             'property' => $property,
         ]);
@@ -96,7 +99,7 @@ final class RelationLoadingException extends EntityException
 
     public static function nullIdentifier(string $entity, string $property): self
     {
-        return new self(sprintf('Identifier for "%s" is null', $entity))->addContext([
+        return new self(sprintf('Identifier "%s" for entity "%s" is null', $property, $entity))->addContext([
             'entity' => $entity,
             'property' => $property,
         ]);
@@ -131,16 +134,9 @@ final class RelationLoadingException extends EntityException
         ]);
     }
 
-    public static function reflectionFailed(string $entity, Throwable $previous): self
-    {
-        return new self(sprintf('Failed to reflect entity "%s"', $entity), previous: $previous)->addContext([
-            'entity' => $entity,
-        ]);
-    }
-
     public static function invalidIdentifierValue(mixed $value): self
     {
-        return new self(sprintf('Invalid identifier value: %s', $value))->addContext([
+        return new self(sprintf('Invalid identifier value of type "%s"', get_debug_type($value)))->addContext([
             'value' => $value,
         ]);
     }

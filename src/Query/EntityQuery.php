@@ -225,9 +225,9 @@ final class EntityQuery
                 $this->hydrator->hydrate($this->metadata, $entity, $row);
 
                 $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
-
-                $this->loadRelations($entities);
             }
+
+            $this->loadRelations($entities);
         } catch (DatabaseException $exception) {
             throw EntityDatabaseException::fromDatabaseException(
                 exception: $exception,

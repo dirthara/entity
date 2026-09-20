@@ -22,6 +22,7 @@ use Dirthara\Entity\Exception\InvalidEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\EntityNotFoundException;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
 /**
@@ -113,6 +114,9 @@ final readonly class EntityStore
      * @param T $entity
      *
      * @throws InvalidEntityException
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
+     * @throws MappingException
      */
     public function load(object $entity, string ...$relations): void
     {
@@ -122,7 +126,7 @@ final readonly class EntityStore
             database: $this->database,
             metadata: $this->metadata,
             entities: [$entity],
-            relations: $relations,
+            relations: array_values($relations),
         );
     }
 

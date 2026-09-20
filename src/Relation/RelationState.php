@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Relation;
 
-use LogicException;
+use Dirthara\Entity\Exception\RelationLoadingException;
 
 final class RelationState
 {
@@ -13,6 +13,14 @@ final class RelationState
     private bool $foreignKeyCaptured = false;
 
     private mixed $foreignKey = null;
+
+    /**
+     * @param class-string $entity
+     */
+    public function __construct(
+        private readonly string $entity,
+        private readonly string $relation,
+    ) {}
 
     public function isLoaded(): bool
     {
@@ -35,10 +43,13 @@ final class RelationState
         $this->foreignKeyCaptured = true;
     }
 
+    /**
+     * @throws RelationLoadingException
+     */
     public function foreignKey(): mixed
     {
         if (!$this->foreignKeyCaptured) {
-            throw new LogicException('No foreign key has been captured for this relation.');
+            throw RelationLoadingException::foreignKeyNotCaptured(entity: $this->entity, relation: $this->relation);
         }
 
         return $this->foreignKey;
