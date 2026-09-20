@@ -7,6 +7,7 @@ namespace Dirthara\Entity\Tests\Doubles;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Relation\RelationLoader;
+use Dirthara\Entity\Relation\RelationLoading;
 
 final class RecordingRelationLoader implements RelationLoader
 {
@@ -21,6 +22,19 @@ final class RecordingRelationLoader implements RelationLoader
     public array $relations = [];
 
     public function assertLoadable(EntityMetadata $metadata, array $relations): void {}
+
+    public function wouldLoad(EntityMetadata $metadata, array $relations, array $without = []): array
+    {
+        foreach ($metadata->relations as $relation) {
+            if ($relation->loading !== RelationLoading::Eager) {
+                continue;
+            }
+
+            $relations[] = $relation->property;
+        }
+
+        return $relations;
+    }
 
     public function load(
         ConnectedDatabase $database,

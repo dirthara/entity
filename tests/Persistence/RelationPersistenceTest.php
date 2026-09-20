@@ -176,7 +176,7 @@ final class RelationPersistenceTest extends EntityTestCase
             Book::class,
         ));
 
-        new ReflectionPersister()->insert($this->connected(), $this->requiredEditor(), $book);
+        new ReflectionPersister($this->registry())->insert($this->connected(), $this->requiredEditor(), $book);
     }
 
     #[Test]
@@ -193,7 +193,7 @@ final class RelationPersistenceTest extends EntityTestCase
             Writer::class,
         ));
 
-        new ReflectionPersister()->insert($this->connected(), $this->editorOfAnotherKind(), $book);
+        new ReflectionPersister($this->registry())->insert($this->connected(), $this->editorOfAnotherKind(), $book);
     }
 
     /**
@@ -251,7 +251,6 @@ final class RelationPersistenceTest extends EntityTestCase
                     loading: RelationLoading::Explicit,
                     foreignKey: 'editor_id',
                     nullable: $nullable,
-                    targetIdentifier: $id,
                 ),
             ],
         );

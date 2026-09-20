@@ -49,7 +49,7 @@ final class RelationStateRegistry
 
     public function isLoaded(object $entity, string $relation): bool
     {
-        return $this->state(entity: $entity, relation: $relation)->isLoaded();
+        return $this->stored(entity: $entity, relation: $relation)?->isLoaded() ?? false;
     }
 
     public function markLoaded(object $entity, string $relation): void
@@ -64,7 +64,7 @@ final class RelationStateRegistry
 
     public function hasForeignKey(object $entity, string $relation): bool
     {
-        return $this->state(entity: $entity, relation: $relation)->hasForeignKey();
+        return $this->stored(entity: $entity, relation: $relation)?->hasForeignKey() ?? false;
     }
 
     /**
@@ -72,7 +72,20 @@ final class RelationStateRegistry
      */
     public function foreignKey(object $entity, string $relation): mixed
     {
-        return $this->state(entity: $entity, relation: $relation)->foreignKey();
+        $state = $this->stored(entity: $entity, relation: $relation);
+
+        if ($state === null) {
+            throw RelationLoadingException::foreignKeyNotCaptured(entity: $entity::class, relation: $relation);
+        }
+
+        return $state->foreignKey();
+    }
+
+    private function stored(object $entity, string $relation): ?RelationState
+    {
+        $relations = $this->states[$entity] ?? [];
+
+        return $relations[$relation] ?? null;
     }
 
     private function state(object $entity, string $relation): RelationState

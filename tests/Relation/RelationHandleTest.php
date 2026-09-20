@@ -734,10 +734,8 @@ final class RelationHandleTest extends EntityTestCase
                 ],
             ),
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: $this->relationLoader(),
-            relationStates: $this->relationStates,
-            relationHandles: $this->relationHandles(),
+            persister: new ReflectionPersister($this->registry()),
+            relations: $this->relations(),
         );
     }
 

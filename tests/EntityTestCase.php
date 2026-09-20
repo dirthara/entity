@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\EntityStore;
 use Dirthara\Entity\EntityManager;
 use Dirthara\Entity\Type\TypeRegistry;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Database\Connection\Connection;
@@ -24,7 +25,6 @@ use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Entity\Relation\DefaultRelationLoader;
-use Dirthara\Entity\Relation\RelationHandleFactory;
 use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
@@ -114,14 +114,18 @@ abstract class EntityTestCase extends TestCase
         );
     }
 
-    protected function relationHandles(?MetadataRegistry $registry = null): RelationHandleFactory
+    protected function relations(?MetadataRegistry $registry = null): Relations
     {
         $registry ??= $this->registry();
 
-        return new DefaultRelationHandleFactory(
-            metadata: $registry,
-            states: $this->relationStates,
+        return new Relations(
             loader: $this->relationLoader($registry),
+            handles: new DefaultRelationHandleFactory(
+                metadata: $registry,
+                states: $this->relationStates,
+                loader: $this->relationLoader($registry),
+            ),
+            states: $this->relationStates,
         );
     }
 
@@ -142,10 +146,8 @@ abstract class EntityTestCase extends TestCase
             database: $this->connected($connection),
             metadata: $this->metadata($entity),
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: $this->relationLoader(),
-            relationStates: $this->relationStates,
-            relationHandles: $this->relationHandles(),
+            persister: new ReflectionPersister($this->registry()),
+            relations: $this->relations(),
         );
     }
 
@@ -157,10 +159,8 @@ abstract class EntityTestCase extends TestCase
             database: $database,
             metadata: $registry,
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: $this->relationLoader($registry),
-            relationStates: $this->relationStates,
-            relationHandles: $this->relationHandles($registry),
+            persister: new ReflectionPersister($this->registry()),
+            relations: $this->relations($registry),
         );
     }
 

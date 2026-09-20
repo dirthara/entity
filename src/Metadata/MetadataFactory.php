@@ -492,7 +492,6 @@ final readonly class MetadataFactory
             loading: $attribute->loading,
             foreignKey: $foreignKey,
             nullable: $type->allowsNull(),
-            targetIdentifier: $targetIdentifier,
         );
     }
 

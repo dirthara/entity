@@ -21,6 +21,17 @@ interface RelationLoader
     public function assertLoadable(EntityMetadata $metadata, array $relations): void;
 
     /**
+     * @param list<string> $relations
+     * @param list<string> $without
+     *
+     * @return list<string>
+     *
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    public function wouldLoad(EntityMetadata $metadata, array $relations, array $without = []): array;
+
+    /**
      * @param list<object> $entities
      * @param list<string> $relations
      * @param list<string> $without

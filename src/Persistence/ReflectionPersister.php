@@ -9,6 +9,7 @@ use ReflectionProperty;
 use ReflectionException;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Database\Exceptions\DatabaseException;
@@ -22,6 +23,10 @@ final class ReflectionPersister implements EntityPersister
      * @var array<class-string, array<string, ReflectionProperty>>
      */
     private array $properties = [];
+
+    public function __construct(
+        private readonly MetadataRegistry $metadata,
+    ) {}
 
     /**
      * @template T of object
@@ -278,7 +283,7 @@ final class ReflectionPersister implements EntityPersister
             );
         }
 
-        $identifier = $relation->targetIdentifier;
+        $identifier = $this->metadata->for($relation->target)->identifier->single();
 
         $reflection = $this->property(entity: $relation->target, property: $identifier->property);
 
