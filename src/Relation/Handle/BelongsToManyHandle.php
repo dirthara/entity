@@ -44,16 +44,19 @@ final readonly class BelongsToManyHandle implements RelationHandle
         $owner = $this->identity->owner(metadata: $this->metadata, entity: $this->entity);
         $identifier = $this->identifierOf($related);
 
-        if (in_array($identifier, $this->attached($owner), strict: true)) {
+        $attached = $this->run(function () use ($owner, $identifier): bool {
+            if (in_array($identifier, $this->attached($owner), strict: true)) {
+                return false;
+            }
+
+            $this->insert($owner, [$identifier]);
+
+            return true;
+        });
+
+        if (!$attached) {
             return;
         }
-
-        $this->run(fn(): int => $this->database
-            ->table($this->relation->table)
-            ->insert([
-                $this->relation->foreignKey => $owner,
-                $this->relation->relatedForeignKey => $identifier,
-            ]));
 
         $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
     }
@@ -69,13 +72,9 @@ final readonly class BelongsToManyHandle implements RelationHandle
         $owner = $this->identity->owner(metadata: $this->metadata, entity: $this->entity);
         $identifier = $this->identifierOf($related);
 
-        $this->run(
-            fn(): int => $this->database
-                ->table($this->relation->table)
-                ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
-                ->where($this->relation->relatedForeignKey, ComparisonOperator::Equal, $identifier)
-                ->delete(),
-        );
+        $this->run(function () use ($owner, $identifier): void {
+            $this->delete($owner, [$identifier]);
+        });
 
         $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
     }
@@ -98,41 +97,36 @@ final readonly class BelongsToManyHandle implements RelationHandle
             $wanted[] = $this->identifierOf($item);
         }
 
-        $current = $this->attached($owner);
+        $this->run(fn(): mixed => $this->database->transaction(function () use ($owner, $wanted): void {
+            $current = $this->attached($owner);
 
-        $this->detachAll($owner, array_values(array_diff($current, $wanted)));
-
-        $this->attachAll($owner, array_values(array_diff($wanted, $current)));
+            $this->delete($owner, array_values(array_diff($current, $wanted)));
+            $this->insert($owner, array_values(array_diff($wanted, $current)));
+        }));
 
         $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
     }
 
     /**
      * @param list<string|int|float|bool> $identifiers
-     *
-     * @throws PersistenceException
      */
-    private function detachAll(string|int|float|bool $owner, array $identifiers): void
+    private function delete(string|int|float|bool $owner, array $identifiers): void
     {
         if ($identifiers === []) {
             return;
         }
 
-        $this->run(
-            fn(): int => $this->database
-                ->table($this->relation->table)
-                ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
-                ->whereIn($this->relation->relatedForeignKey, $identifiers)
-                ->delete(),
-        );
+        $this->database
+            ->table($this->relation->table)
+            ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
+            ->whereIn($this->relation->relatedForeignKey, $identifiers)
+            ->delete();
     }
 
     /**
      * @param list<string|int|float|bool> $identifiers
-     *
-     * @throws PersistenceException
      */
-    private function attachAll(string|int|float|bool $owner, array $identifiers): void
+    private function insert(string|int|float|bool $owner, array $identifiers): void
     {
         if ($identifiers === []) {
             return;
@@ -143,22 +137,18 @@ final readonly class BelongsToManyHandle implements RelationHandle
             $this->relation->relatedForeignKey => $identifier,
         ], $identifiers);
 
-        $this->run(fn(): int => $this->database->table($this->relation->table)->insert($rows));
+        $this->database->table($this->relation->table)->insert($rows);
     }
 
     /**
      * @return list<string|int|float|bool>
-     *
-     * @throws PersistenceException
      */
     private function attached(string|int|float|bool $owner): array
     {
-        $rows = $this->run(
-            fn(): array => $this->database
-                ->table($this->relation->table)
-                ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
-                ->get(),
-        );
+        $rows = $this->database
+            ->table($this->relation->table)
+            ->where($this->relation->foreignKey, ComparisonOperator::Equal, $owner)
+            ->get();
 
         $identifiers = [];
 

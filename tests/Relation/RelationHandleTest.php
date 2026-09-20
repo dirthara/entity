@@ -417,6 +417,26 @@ final class RelationHandleTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_leaves_the_join_table_alone_when_part_of_a_sync_fails(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->connection->execute("INSERT INTO topics (name) VALUES ('horror')");
+        $this->connection->execute(
+            'CREATE TRIGGER refuse_topic BEFORE INSERT ON book_topic FOR EACH ROW '
+            . "WHEN NEW.topic_id = 3 BEGIN SELECT RAISE(ABORT, 'refused'); END",
+        );
+
+        try {
+            $this->belongsToMany($book, 'topics')->sync([$this->topic(3)]);
+
+            self::fail('Expected the sync to be refused.');
+        } catch (PersistenceException) {
+            self::assertSame([1, 2], $this->attached($book->id));
+        }
+    }
+
+    #[Test]
     public function it_reports_a_relation_the_entity_does_not_map(): void
     {
         $this->expectException(MappingException::class);
