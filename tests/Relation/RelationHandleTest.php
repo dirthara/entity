@@ -458,6 +458,20 @@ final class RelationHandleTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_does_not_reload_what_was_nested_under_a_relation_it_refreshed(): void
+    {
+        $books = $this->store(Book::class)->query()->with('topics.books')->get();
+        $book = self::entity(Book::class, $books->get(2));
+
+        $this->belongsToMany($book, 'topics')->attach($this->topic(1));
+
+        $topic = self::entity(Topic::class, $book->topics->get(0));
+
+        self::assertSame('fantasy', $topic->name);
+        self::assertFalse(new ReflectionProperty($topic, 'books')->isInitialized($topic));
+    }
+
+    #[Test]
     public function it_does_not_load_a_belongs_to_many_it_was_never_asked_to_load(): void
     {
         $book = $this->book('Lathe');

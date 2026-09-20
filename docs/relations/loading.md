@@ -40,6 +40,13 @@ $books->load($book, ['writer', 'topics']);
 A relation already loaded is left alone, so calling `load()` twice costs one
 round of queries, not two.
 
+Naming none still loads the entity's eager relations, because those load
+wherever the entity does:
+
+```php
+$books->load($book);   // nothing named, eager relations still load
+```
+
 ## Loading without asking
 
 `RelationLoading::Eager` on the attribute loads a relation whenever its entity

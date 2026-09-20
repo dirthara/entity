@@ -6,6 +6,7 @@ namespace Dirthara\Entity\Tests\Relation;
 
 use ReflectionProperty;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Folder;
 use Dirthara\Entity\Tests\Entities\EagerBook;
@@ -299,6 +300,30 @@ final class EagerRelationLoadingTest extends EntityTestCase
         $review = self::entity(PlainReview::class, $reviews->get(0));
 
         self::assertFalse(new ReflectionProperty($review->book, 'writer')->isInitialized($review->book));
+    }
+
+    #[Test]
+    public function it_loads_the_eager_relations_of_an_entity_when_load_names_none(): void
+    {
+        $store = $this->store(Folder::class);
+        $folder = self::entity(Folder::class, $store->find(3));
+
+        new ReflectionProperty($folder, 'parent')->setRawValue($folder, null);
+        $this->relationStates->markUnloaded($folder, 'parent');
+
+        $store->load($folder);
+
+        self::assertSame('child', $folder->parent?->name);
+    }
+
+    #[Test]
+    public function it_asks_for_nothing_when_the_head_of_a_named_path_is_left_out(): void
+    {
+        $connection = $this->counting();
+
+        $this->store(Book::class, $connection)->query()->with('writer.books')->without('writer')->get();
+
+        self::assertCount(1, $connection->selects());
     }
 
     #[Test]

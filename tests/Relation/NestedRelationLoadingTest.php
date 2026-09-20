@@ -256,6 +256,18 @@ final class NestedRelationLoadingTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_descends_only_through_the_rows_that_have_a_nullable_to_one(): void
+    {
+        $books = $this->store(Book::class)->query()->with('editor.books')->get();
+
+        $earthsea = self::entity(Book::class, $books->get(0));
+        $discworld = self::entity(Book::class, $books->get(1));
+
+        self::assertNull($discworld->editor);
+        self::assertSame(['Discworld'], self::names($earthsea->editor?->books, 'title'));
+    }
+
+    #[Test]
     public function it_stops_at_a_to_one_that_was_already_loaded_as_null(): void
     {
         $store = $this->store(Book::class);

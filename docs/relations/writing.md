@@ -166,6 +166,14 @@ $book->chapters;                        // still uninitialised
 Nothing is loaded just because it changed, and nothing you were holding is left
 stale.
 
+:::caution
+Reloading goes one level deep. If you had loaded `topics.books` and then attach
+a topic, the topics are read again but their `books` are not — the entities on
+that second level are new objects with nothing beneath them. Eager relations of
+the reloaded targets still load, because those load wherever their entity does.
+Name the path again if you need the deeper level back.
+:::
+
 ## What is refused, and why
 
 | Situation | Result |
