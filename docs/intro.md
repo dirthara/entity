@@ -45,8 +45,8 @@ $articles->update($article);
   through your code.
 - **Relations are declared and loaded on request.** Four attributes say which
   side holds the foreign key. Nothing loads until you name it, and a page of
-  entities loads each relation — however deeply nested — in one query per level
-  rather than one per row.
+  entities loads each relation — however deeply nested — in a fixed number of
+  batched queries rather than one per row.
 - **Failures name the entity and the property.** Every exception carries the
   class, the property and the operation as context, ready for a log.
 

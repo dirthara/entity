@@ -51,7 +51,8 @@ public Book $book;
 ```
 
 So a query for reviews loads each review's book, and if `Book` marks its writer
-`Eager`, those writers come too. Each level is still one query.
+`Eager`, those writers come too. Every level is batched the same way as the
+first.
 
 Use it for a relation the entity is not really usable without. Everything else
 is better named at the call site, where the cost is visible.
@@ -116,11 +117,18 @@ Dropping the last relation an entity would load makes a cursor legal again:
 $reviews->query()->without('book')->cursor();   // fine
 ```
 
-## One query per relation, not per row
+## Batched per relation, not per row
 
 `get()` reads its whole page first, then loads each relation for every entity in
-one go — one query per relation, whatever the page size. A `BelongsToMany` takes
-two: one for the join table and one for the targets.
+one go. What a relation costs depends on its kind, not on how many rows are on
+the page:
+
+| Relation | Queries |
+| --- | --- |
+| `BelongsToOne`, `HasOne`, `HasMany` | One, over every key on the page. |
+| `BelongsToMany` | Two: the join table, then the targets. |
+
+Either way it is a fixed number of batched queries, never one per parent.
 
 Owners sharing a foreign key get the same object back:
 
@@ -150,9 +158,11 @@ $books->get(0)->writer->books->get(0)->chapters;
 $books->load($book, ['writer.books']);
 ```
 
-Each level is still one query for the whole batch, not one per parent. The page
-above costs four: the books, their writers, those writers' books, and those
-books' chapters — whatever the page size.
+Every level is batched the same way: a fixed number of queries for the whole
+level, never one per parent. The page above costs four — the books, their
+writers, those writers' books, and those books' chapters — whatever the page
+size. Swap a level for a `BelongsToMany` and that level costs two rather than
+one, for the same reason it does at the top.
 
 Paths sharing a head are loaded once. `with('writer.books', 'writer')` reads the
 writers a single time and then their books.
@@ -183,7 +193,7 @@ load a relation afterwards, one entity at a time:
 
 ```php
 foreach ($books->query()->cursor() as $book) {
-    $books->load($book, ['writer']);   // fine, and one query per book
+    $books->load($book, ['writer']);   // works, but it queries once per book
 }
 ```
 
