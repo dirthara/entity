@@ -56,7 +56,7 @@ final readonly class HasOneHandle implements RelationHandle
         $column = $this->target->identifier->single()->column();
 
         $this->run(fn(): mixed => $this->database->transaction(function () use ($owner, $identifier, $column): void {
-            $this->assertFree(owner: $owner, column: $column, identifier: $identifier);
+            $this->assertAvailable(owner: $owner, column: $column, identifier: $identifier);
 
             $this->releaseOthers(owner: $owner, column: $column, keep: $identifier);
 
@@ -96,14 +96,26 @@ final readonly class HasOneHandle implements RelationHandle
     /**
      * @throws PersistenceException
      */
-    private function assertFree(string|int|float|bool $owner, string $column, string|int|float|bool $identifier): void
-    {
+    private function assertAvailable(
+        string|int|float|bool $owner,
+        string $column,
+        string|int|float|bool $identifier,
+    ): void {
         $row = $this->database
             ->table($this->target->table)
             ->where($column, ComparisonOperator::Equal, $identifier)
             ->first();
 
-        $held = is_array($row) ? $row[$this->relation->foreignKey] ?? null : null;
+        if (!is_array($row)) {
+            throw PersistenceException::relationTargetMissing(
+                entity: $this->metadata->entity,
+                relation: $this->relation->property,
+                target: $this->target->entity,
+                identifier: $identifier,
+            );
+        }
+
+        $held = $row[$this->relation->foreignKey] ?? null;
 
         if (!is_scalar($held) || (string) $held === (string) $owner) {
             return;

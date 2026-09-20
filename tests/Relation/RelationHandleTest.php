@@ -283,16 +283,38 @@ final class RelationHandleTest extends EntityTestCase
     }
 
     #[Test]
-    public function it_writes_nothing_when_the_row_a_has_one_points_at_is_gone(): void
+    public function it_refuses_a_has_one_target_whose_row_is_gone(): void
     {
         $book = $this->book('Discworld');
         $plate = $this->plate(2);
 
         $this->connection->execute('DELETE FROM plates WHERE id = 2');
 
-        $this->hasOne($book, 'plate')->associate($plate);
+        $this->expectException(PersistenceException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "plate" of entity "%s" points at a "%s" with identifier "2" that does not exist',
+            Book::class,
+            Plate::class,
+        ));
 
-        self::assertSame(1, $this->column('plates', 'book_id', 1));
+        $this->hasOne($book, 'plate')->associate($plate);
+    }
+
+    #[Test]
+    public function it_keeps_the_target_a_has_one_already_had_when_the_new_one_is_gone(): void
+    {
+        $book = $this->book('Earthsea');
+        $plate = $this->plate(2);
+
+        $this->connection->execute('DELETE FROM plates WHERE id = 2');
+
+        try {
+            $this->hasOne($book, 'plate')->associate($plate);
+
+            self::fail('Expected the association to be refused.');
+        } catch (PersistenceException) {
+            self::assertSame(1, $this->column('plates', 'book_id', 1));
+        }
     }
 
     #[Test]

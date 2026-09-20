@@ -96,6 +96,26 @@ final class PersistenceException extends EntityException
         ]);
     }
 
+    public static function relationTargetMissing(
+        string $entity,
+        string $relation,
+        string $target,
+        string|int|float|bool $identifier,
+    ): self {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" points at a "%s" with identifier "%s" that does not exist',
+            $relation,
+            $entity,
+            $target,
+            $identifier,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+            'identifier' => $identifier,
+        ]);
+    }
+
     public static function relationTaken(
         string $entity,
         string $relation,
