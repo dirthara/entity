@@ -7,6 +7,7 @@ namespace Dirthara\Entity\Tests\Relation;
 use ReflectionProperty;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Book;
+use Dirthara\Entity\Tests\Entities\Topic;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Writer;
 use Dirthara\Entity\Tests\Entities\Chapter;
@@ -128,6 +129,100 @@ final class NestedRelationLoadingTest extends EntityTestCase
         $store->load($owner, ['chapters.book']);
 
         self::assertSame('Earthsea', self::entity(Chapter::class, $owner->chapters[0])->book?->title);
+    }
+
+    #[Test]
+    public function it_loads_a_relation_of_a_has_one(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->store(Book::class)->load($book, ['jacket.book']);
+
+        self::assertSame('blue', $book->jacket?->colour);
+        self::assertSame('Earthsea', $book->jacket?->book?->title);
+    }
+
+    #[Test]
+    public function it_loads_a_has_one_and_its_relation_in_one_query_each(): void
+    {
+        $connection = $this->counting();
+
+        $this->store(Book::class, $connection)->query()->with('jacket.book')->get();
+
+        self::assertCount(3, $connection->selects());
+    }
+
+    #[Test]
+    public function it_descends_into_a_has_one_that_was_already_loaded(): void
+    {
+        $store = $this->store(Book::class);
+        $book = $this->book('Earthsea');
+
+        $store->load($book, ['jacket']);
+        $store->load($book, ['jacket.book']);
+
+        self::assertSame('Earthsea', $book->jacket?->book?->title);
+    }
+
+    #[Test]
+    public function it_stops_at_a_has_one_that_found_nothing(): void
+    {
+        $book = $this->book('Discworld');
+
+        $this->store(Book::class)->load($book, ['jacket.book']);
+
+        self::assertNull($book->jacket);
+    }
+
+    #[Test]
+    public function it_loads_a_relation_of_a_belongs_to_many(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->store(Book::class)->load($book, ['topics.books']);
+
+        self::assertSame(['fantasy', 'scifi'], self::names($book->topics, 'name'));
+
+        $fantasy = self::entity(Topic::class, $book->topics->get(0));
+        $scifi = self::entity(Topic::class, $book->topics->get(1));
+
+        self::assertSame(['Earthsea', 'Discworld'], self::names($fantasy->books, 'title'));
+        self::assertSame(['Earthsea'], self::names($scifi->books, 'title'));
+    }
+
+    #[Test]
+    public function it_walks_a_belongs_to_many_through_its_join_table_at_every_level(): void
+    {
+        $connection = $this->counting();
+
+        $this->store(Book::class, $connection)->query()->with('topics.books')->get();
+
+        self::assertCount(5, $connection->selects());
+    }
+
+    #[Test]
+    public function it_descends_into_a_belongs_to_many_that_was_already_loaded(): void
+    {
+        $store = $this->store(Book::class);
+        $book = $this->book('Earthsea');
+
+        $store->load($book, ['topics']);
+        $store->load($book, ['topics.books']);
+
+        self::assertSame(
+            ['Earthsea', 'Discworld'],
+            self::names(self::entity(Topic::class, $book->topics->get(0))->books, 'title'),
+        );
+    }
+
+    #[Test]
+    public function it_stops_at_a_belongs_to_many_that_is_empty(): void
+    {
+        $book = $this->book('Lathe');
+
+        $this->store(Book::class)->load($book, ['topics.books']);
+
+        self::assertSame([], self::names($book->topics, 'name'));
     }
 
     #[Test]
