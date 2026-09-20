@@ -241,6 +241,67 @@ final class EagerRelationLoadingTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_loads_every_level_of_a_path_that_nothing_prunes(): void
+    {
+        $connection = $this->counting();
+
+        $reviews = $this->store(PlainReview::class, $connection)->query()->with('book.writer.books')->get();
+        $review = self::entity(PlainReview::class, $reviews->get(0));
+
+        self::assertSame('Ursula', $review->book->writer->name);
+        self::assertSame(['Earthsea', 'Lathe'], self::names($review->book->writer->books, 'title'));
+        self::assertCount(4, $connection->selects());
+    }
+
+    #[Test]
+    public function it_prunes_a_path_from_the_middle_of_what_was_asked_for(): void
+    {
+        $connection = $this->counting();
+
+        $reviews = $this
+            ->store(PlainReview::class, $connection)
+            ->query()
+            ->with('book.writer.books')
+            ->without('book.writer')
+            ->get();
+
+        $review = self::entity(PlainReview::class, $reviews->get(0));
+
+        self::assertSame('Earthsea', $review->book->title);
+        self::assertFalse(new ReflectionProperty($review->book, 'writer')->isInitialized($review->book));
+        self::assertCount(2, $connection->selects());
+    }
+
+    #[Test]
+    public function it_prunes_only_the_tail_of_what_was_asked_for(): void
+    {
+        $connection = $this->counting();
+
+        $reviews = $this
+            ->store(PlainReview::class, $connection)
+            ->query()
+            ->with('book.writer.books')
+            ->without('book.writer.books')
+            ->get();
+
+        $review = self::entity(PlainReview::class, $reviews->get(0));
+
+        self::assertSame('Ursula', $review->book->writer->name);
+        self::assertFalse(new ReflectionProperty($review->book->writer, 'books')->isInitialized($review->book->writer));
+        self::assertCount(3, $connection->selects());
+    }
+
+    #[Test]
+    public function it_prunes_a_named_path_that_an_eager_relation_would_also_have_loaded(): void
+    {
+        $reviews = $this->store(PlainReview::class)->query()->with('book.writer')->without('book.writer')->get();
+
+        $review = self::entity(PlainReview::class, $reviews->get(0));
+
+        self::assertFalse(new ReflectionProperty($review->book, 'writer')->isInitialized($review->book));
+    }
+
+    #[Test]
     public function it_reports_a_relation_without_does_not_know(): void
     {
         $this->expectException(MappingException::class);
