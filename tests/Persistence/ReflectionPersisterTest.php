@@ -29,7 +29,11 @@ final class ReflectionPersisterTest extends EntityTestCase
 
         $article = $this->article('First', published: false);
 
-        new ReflectionPersister()->insert($this->connected(), $this->metadata(Article::class), $article);
+        new ReflectionPersister($this->registry())->insert(
+            $this->connected(),
+            $this->metadata(Article::class),
+            $article,
+        );
 
         self::assertSame([['id' => 1, 'title' => 'First', 'published' => 0]], $this->rows('articles'));
         self::assertSame(1, $article->id);
@@ -44,7 +48,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $country->code = 'NL';
         $country->name = 'Netherlands';
 
-        new ReflectionPersister()->insert($this->connected(), $this->metadata(Country::class), $country);
+        new ReflectionPersister($this->registry())->insert(
+            $this->connected(),
+            $this->metadata(Country::class),
+            $country,
+        );
 
         self::assertSame([['code' => 'NL', 'name' => 'Netherlands']], $this->rows('countries'));
         self::assertSame('NL', $country->code);
@@ -60,7 +68,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $membership->userId = 2;
         $membership->role = 'owner';
 
-        new ReflectionPersister()->insert($this->connected(), $this->metadata(Membership::class), $membership);
+        new ReflectionPersister($this->registry())->insert(
+            $this->connected(),
+            $this->metadata(Membership::class),
+            $membership,
+        );
 
         self::assertSame([['team_id' => 1, 'user_id' => 2, 'role' => 'owner']], $this->rows('memberships'));
     }
@@ -73,7 +85,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $connection = new NullIdentifierConnection($this->connection);
 
         try {
-            new ReflectionPersister()->insert(
+            new ReflectionPersister($this->registry())->insert(
                 $this->connected($connection),
                 $this->metadata(Article::class),
                 $this->article('First'),
@@ -92,7 +104,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage('Failed to insert entity');
 
-        new ReflectionPersister()->insert($this->connected(), $this->metadata(Article::class), $this->article('First'));
+        new ReflectionPersister($this->registry())->insert(
+            $this->connected(),
+            $this->metadata(Article::class),
+            $this->article('First'),
+        );
     }
 
     #[Test]
@@ -101,7 +117,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage('Invalid entity type');
 
-        new ReflectionPersister()->insert($this->connected(), $this->metadata(Article::class), new Country());
+        new ReflectionPersister($this->registry())->insert(
+            $this->connected(),
+            $this->metadata(Article::class),
+            new Country(),
+        );
     }
 
     #[Test]
@@ -113,7 +133,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article->title = 'First';
 
         try {
-            new ReflectionPersister()->insert($this->connected(), $this->metadata(Article::class), $article);
+            new ReflectionPersister($this->registry())->insert(
+                $this->connected(),
+                $this->metadata(Article::class),
+                $article,
+            );
 
             self::fail('Expected the insert to be reported.');
         } catch (PersistenceException $exception) {
@@ -131,7 +155,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage('Null value not allowed for property "bio"');
 
-        new ReflectionPersister()->insert(
+        new ReflectionPersister($this->registry())->insert(
             $this->connected(),
             $this->onlyProperty(Profile::class, 'profiles', 'bio'),
             $profile,
@@ -149,7 +173,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $profile->role = Role::Admin;
         $profile->bio = null;
 
-        new ReflectionPersister()->insert($this->connected(), $this->metadata(Profile::class), $profile);
+        new ReflectionPersister($this->registry())->insert(
+            $this->connected(),
+            $this->metadata(Profile::class),
+            $profile,
+        );
 
         self::assertSame(
             [['id' => 1, 'display_name' => 'Ada', 'meta' => '{"tier":"gold"}', 'role' => 'admin', 'bio' => null]],
@@ -163,7 +191,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage('Unknown property "missing"');
 
-        new ReflectionPersister()->insert(
+        new ReflectionPersister($this->registry())->insert(
             $this->connected(),
             $this->onlyProperty(Article::class, 'articles', 'missing'),
             new Article(),
@@ -179,7 +207,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article = $this->article('Second', published: false);
         $article->id = 1;
 
-        $affected = new ReflectionPersister()->update($this->connected(), $this->metadata(Article::class), $article);
+        $affected = new ReflectionPersister($this->registry())->update(
+            $this->connected(),
+            $this->metadata(Article::class),
+            $article,
+        );
 
         self::assertSame(1, $affected);
         self::assertSame([['id' => 1, 'title' => 'Second', 'published' => 0]], $this->rows('articles'));
@@ -194,7 +226,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $link->fromId = 1;
         $link->toId = 2;
 
-        self::assertSame(0, new ReflectionPersister()->update($this->connected(), $this->metadata(Link::class), $link));
+        self::assertSame(0, new ReflectionPersister($this->registry())->update(
+            $this->connected(),
+            $this->metadata(Link::class),
+            $link,
+        ));
     }
 
     #[Test]
@@ -210,7 +246,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article->id = 1;
 
         try {
-            new ReflectionPersister()->update($this->connected(), $this->metadata(Article::class), $article);
+            new ReflectionPersister($this->registry())->update(
+                $this->connected(),
+                $this->metadata(Article::class),
+                $article,
+            );
 
             self::fail('Expected the update to be reported.');
         } catch (PersistenceException $exception) {
@@ -229,7 +269,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage('Failed to update entity');
 
-        new ReflectionPersister()->update($this->connected(), $this->metadata(Article::class), $article);
+        new ReflectionPersister($this->registry())->update(
+            $this->connected(),
+            $this->metadata(Article::class),
+            $article,
+        );
     }
 
     #[Test]
@@ -241,7 +285,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article = $this->article('First');
         $article->id = 1;
 
-        self::assertSame(1, new ReflectionPersister()->delete(
+        self::assertSame(1, new ReflectionPersister($this->registry())->delete(
             $this->connected(),
             $this->metadata(Article::class),
             $article,
@@ -257,7 +301,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article = $this->article('First');
         $article->id = 404;
 
-        self::assertSame(0, new ReflectionPersister()->delete(
+        self::assertSame(0, new ReflectionPersister($this->registry())->delete(
             $this->connected(),
             $this->metadata(Article::class),
             $article,
@@ -277,7 +321,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article->id = 1;
 
         try {
-            new ReflectionPersister()->delete($this->connected(), $this->metadata(Article::class), $article);
+            new ReflectionPersister($this->registry())->delete(
+                $this->connected(),
+                $this->metadata(Article::class),
+                $article,
+            );
 
             self::fail('Expected the delete to be reported.');
         } catch (PersistenceException $exception) {
@@ -295,7 +343,11 @@ final class ReflectionPersisterTest extends EntityTestCase
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage('Failed to delete entity');
 
-        new ReflectionPersister()->delete($this->connected(), $this->metadata(Article::class), $article);
+        new ReflectionPersister($this->registry())->delete(
+            $this->connected(),
+            $this->metadata(Article::class),
+            $article,
+        );
     }
 
     private function article(string $title, bool $published = true): Article

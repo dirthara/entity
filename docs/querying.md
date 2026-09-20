@@ -68,6 +68,15 @@ you need both.
 | `limit(int $limit)` | |
 | `offset(int $offset)` | |
 
+## Relations
+
+| Method | Meaning |
+| --- | --- |
+| `with(string ...$relations)` | Load these relations with the rows. Takes paths, such as `writer.books`. |
+| `without(string ...$relations)` | Leave these out, including ones marked `Eager`. |
+
+Both are described in [loading relations](relations/loading.md).
+
 ## Running it
 
 | Method | Returns | Notes |

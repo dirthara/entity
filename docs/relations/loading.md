@@ -24,7 +24,8 @@ foreach ($books as $book) {
 ```
 
 A name the entity does not map throws `MappingException` from `with()` itself,
-so a typo fails where you wrote it.
+so a typo fails where you wrote it. Every segment of a path is checked, not just
+the first.
 
 ## Asking for one afterwards
 
@@ -33,30 +34,108 @@ so a typo fails where you wrote it.
 ```php
 $book = $books->findOrFail(1);
 
-$books->load($book, 'writer', 'topics');
+$books->load($book, ['writer', 'topics']);
 ```
 
 A relation already loaded is left alone, so calling `load()` twice costs one
 round of queries, not two.
 
+Naming none still loads the entity's eager relations, because those load
+wherever the entity does:
+
+```php
+$books->load($book);   // nothing named, eager relations still load
+```
+
 ## Loading without asking
 
-`RelationLoading::Eager` on the attribute loads a relation with every query for
-that entity.
+`RelationLoading::Eager` on the attribute loads a relation whenever its entity
+is loaded — as the thing you queried for, and as the target of another relation.
 
 ```php
 #[BelongsToOne(loading: RelationLoading::Eager)]
 public Book $book;
 ```
 
+So a query for reviews loads each review's book, and if `Book` marks its writer
+`Eager`, those writers come too. Every level is batched the same way as the
+first.
+
 Use it for a relation the entity is not really usable without. Everything else
 is better named at the call site, where the cost is visible.
 
-## One query per relation, not per row
+:::caution
+An eager relation is followed **at most once along a path**, which is what keeps
+a cycle from running forever.
+
+If `Book` eagerly loads its chapters and `Chapter` eagerly loads its book,
+loading a book gives you its chapters and each chapter's book, and stops: those
+books' chapters are left unloaded rather than going round again. Note that the
+book you get back on a chapter is a second object read from the row, not the one
+you started with — there is no identity map.
+
+The same rule lets a relation point at its own entity. A folder that eagerly
+loads its parent gives you one parent, not the whole chain:
+
+```php
+#[BelongsToOne(loading: RelationLoading::Eager)]
+public ?Folder $parent;
+```
+
+A path you write yourself is always followed, so name the relation as deep as
+you need it and the rule does not get in the way:
+
+```php
+$folders->load($folder, ['parent.parent']);   // two levels up
+```
+
+A path uses up that one hop, so an eager relation does not carry a path further
+than you wrote it.
+:::
+
+## Leaving one out
+
+`without()` drops a relation that would otherwise load, which is how you opt out
+of an eager one:
+
+```php
+$reviews->query()->without('book')->get();
+```
+
+It takes paths too, so you can keep a relation and drop something beneath it:
+
+```php
+$reviews->query()->without('book.writer')->get();   // the book, but not its writer
+```
+
+`load()` takes the same list as a third argument:
+
+```php
+$reviews->load($review, ['book'], without: ['book.writer']);
+```
+
+Naming a relation in both `with()` and `without()` leaves it out; `without()`
+is the more specific instruction, so it wins. A name that is not a relation
+throws `MappingException`, the same as `with()`.
+
+Dropping the last relation an entity would load makes a cursor legal again:
+
+```php
+$reviews->query()->without('book')->cursor();   // fine
+```
+
+## Batched per relation, not per row
 
 `get()` reads its whole page first, then loads each relation for every entity in
-one go — one query per relation, whatever the page size. A `BelongsToMany` takes
-two: one for the join table and one for the targets.
+one go. What a relation costs depends on its kind, not on how many rows are on
+the page:
+
+| Relation | Queries |
+| --- | --- |
+| `BelongsToOne`, `HasOne`, `HasMany` | One, over every key on the page. |
+| `BelongsToMany` | Two: the join table, then the targets. |
+
+Either way it is a fixed number of batched queries, never one per parent.
 
 Owners sharing a foreign key get the same object back:
 
@@ -69,6 +148,39 @@ $books->get(0)->writer === $books->get(2)->writer;   // true, same row
 That is a consequence of batching rather than an identity map. Two separate
 queries still give you two objects; see
 [what this package does not do](../intro.md#what-it-does-not-do).
+
+## Relations of relations
+
+A dot names a relation of the relation before it, to any depth:
+
+```php
+$books = $books->query()->with('writer.books.chapters')->get();
+
+$books->get(0)->writer->books->get(0)->chapters;
+```
+
+`load()` takes the same paths:
+
+```php
+$books->load($book, ['writer.books']);
+```
+
+Every level is batched the same way: a fixed number of queries for the whole
+level, never one per parent. The page above costs four — the books, their
+writers, those writers' books, and those books' chapters — whatever the page
+size. Swap a level for a `BelongsToMany` and that level costs two rather than
+one, for the same reason it does at the top.
+
+Paths sharing a head are loaded once. `with('writer.books', 'writer')` reads the
+writers a single time and then their books.
+
+A relation you already loaded is not read again, but a path still continues
+through it:
+
+```php
+$books->load($book, ['writer']);
+$books->load($book, ['writer.books']);   // the writer stays as it is; its books load
+```
 
 ## Cursors cannot load relations
 
@@ -88,7 +200,7 @@ load a relation afterwards, one entity at a time:
 
 ```php
 foreach ($books->query()->cursor() as $book) {
-    $books->load($book, 'writer');   // fine, and one query per book
+    $books->load($book, ['writer']);   // works, but it queries once per book
 }
 ```
 
@@ -129,6 +241,4 @@ missing from the table itself.
 
 ## Not yet supported
 
-- **Nested loading.** `with('writer.books')` is not a thing; load the second
-  level from the entities you got back.
 - **Conditions on a relation.** A relation loads whole; filter what you got.

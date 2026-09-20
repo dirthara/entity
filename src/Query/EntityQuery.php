@@ -7,20 +7,18 @@ namespace Dirthara\Entity\Query;
 use Closure;
 use Generator;
 use Dirthara\Entity\Hydration\Hydrator;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Database\Query\QueryBuilder;
 use Dirthara\Collection\Contract\Collection;
 use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
-use Dirthara\Entity\Relation\RelationLoader;
-use Dirthara\Entity\Relation\RelationLoading;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Query\Sql\OrderDirection;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
-use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
@@ -37,15 +35,19 @@ final class EntityQuery
     private array $with = [];
 
     /**
+     * @var array<string, true>
+     */
+    private array $without = [];
+
+    /**
      * @param EntityMetadata<T> $metadata
      */
     public function __construct(
         private readonly EntityMetadata $metadata,
         private readonly Hydrator $hydrator,
         private readonly QueryBuilder $builder,
-        private readonly RelationLoader $relationLoader,
         private readonly ConnectedDatabase $database,
-        private readonly RelationStateRegistry $relationStates,
+        private readonly Relations $relations,
     ) {}
 
     /**
@@ -145,9 +147,8 @@ final class EntityQuery
                 metadata: $this->metadata,
                 hydrator: $this->hydrator,
                 builder: $builder,
-                relationLoader: $this->relationLoader,
                 database: $this->database,
-                relationStates: $this->relationStates,
+                relations: $this->relations,
             );
 
             $callback($query);
@@ -192,13 +193,29 @@ final class EntityQuery
 
     /**
      * @throws MappingException
+     * @throws TypeConversionException
      */
     public function with(string ...$relations): self
     {
-        foreach ($relations as $relation) {
-            $this->metadata->relation($relation);
+        $this->relations->loader->assertLoadable(metadata: $this->metadata, relations: array_values($relations));
 
+        foreach ($relations as $relation) {
             $this->with[$relation] = true;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    public function without(string ...$relations): self
+    {
+        $this->relations->loader->assertLoadable(metadata: $this->metadata, relations: array_values($relations));
+
+        foreach ($relations as $relation) {
+            $this->without[$relation] = true;
         }
 
         return $this;
@@ -225,7 +242,7 @@ final class EntityQuery
 
                 $this->hydrator->hydrate($this->metadata, $entity, $row);
 
-                $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
+                $this->relations->states->capture(metadata: $this->metadata, entity: $entity, row: $row);
             }
 
             $this->loadRelations($entities);
@@ -269,7 +286,7 @@ final class EntityQuery
 
         $this->hydrator->hydrate($this->metadata, $entity, $row);
 
-        $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
+        $this->relations->states->capture(metadata: $this->metadata, entity: $entity, row: $row);
 
         $this->loadRelations([$entity]);
 
@@ -316,7 +333,7 @@ final class EntityQuery
 
                 $this->hydrator->hydrate($this->metadata, $entity, $row);
 
-                $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
+                $this->relations->states->capture(metadata: $this->metadata, entity: $entity, row: $row);
 
                 yield $entity;
             }
@@ -409,17 +426,11 @@ final class EntityQuery
      */
     private function relationsToLoad(): array
     {
-        $relations = $this->with;
-
-        foreach ($this->metadata->relations as $relation) {
-            if ($relation->loading !== RelationLoading::Eager) {
-                continue;
-            }
-
-            $relations[$relation->property] = true;
-        }
-
-        return array_keys($relations);
+        return $this->relations->loader->wouldLoad(
+            metadata: $this->metadata,
+            relations: array_keys($this->with),
+            without: array_keys($this->without),
+        );
     }
 
     /**
@@ -431,17 +442,16 @@ final class EntityQuery
             return;
         }
 
-        $relations = $this->relationsToLoad();
-
-        if ($relations === []) {
+        if ($this->relationsToLoad() === []) {
             return;
         }
 
-        $this->relationLoader->load(
+        $this->relations->loader->load(
             database: $this->database,
             metadata: $this->metadata,
             entities: $entities,
-            relations: $relations,
+            relations: array_keys($this->with),
+            without: array_keys($this->without),
         );
     }
 }

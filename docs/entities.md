@@ -47,7 +47,7 @@ converter throws `TypeConversionException`.
 | `insert(object $entity)` | `void` | Writes back a generated identifier. |
 | `update(object $entity)` | `int` | Rows the driver reports as affected. |
 | `delete(object $entity)` | `int` | Rows the identifier matched. |
-| `load(object $entity, string ...$relations)` | `void` | Fills relations on an entity you already have. |
+| `load(object $entity, array $relations = [], array $without = [])` | `void` | Fills relations on an entity you already have. |
 | `relation(object $entity, string $relation)` | `RelationHandle` | A handle for writing one relation. |
 | `belongsToOne()`, `hasOne()`, `hasMany()`, `belongsToMany()` | a typed handle | The same, narrowed to one relation kind. |
 

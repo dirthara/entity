@@ -8,16 +8,17 @@ use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Attribute\BelongsToOne;
+use Dirthara\Entity\Relation\RelationLoading;
 
 #[Entity]
-final class Chapter
+final class Folder
 {
     #[Id]
     #[Generated]
     public int $id;
 
-    public string $heading;
+    public string $name;
 
-    #[BelongsToOne]
-    public ?Book $book;
+    #[BelongsToOne(loading: RelationLoading::Eager)]
+    public ?Folder $parent;
 }

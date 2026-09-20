@@ -161,7 +161,6 @@ final class DefaultRelationLoaderTest extends EntityTestCase
                 loading: RelationLoading::Explicit,
                 foreignKey: 'writer_id',
                 nullable: false,
-                targetIdentifier: $this->identifier('id'),
             ),
         );
 

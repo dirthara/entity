@@ -10,6 +10,7 @@ use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\EntityStore;
 use Dirthara\Entity\EntityManager;
 use Dirthara\Entity\Type\TypeRegistry;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Database\Connection\Connection;
@@ -24,10 +25,10 @@ use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Entity\Relation\DefaultRelationLoader;
-use Dirthara\Entity\Relation\RelationHandleFactory;
 use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
+use Dirthara\Entity\Tests\Doubles\CountingConnection;
 use Dirthara\Database\Query\Grammar\SQLiteQueryGrammar;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
 use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
@@ -47,6 +48,11 @@ abstract class EntityTestCase extends TestCase
 
         $this->connection = $this->sqlite();
         $this->relationStates = new RelationStateRegistry();
+    }
+
+    protected function counting(?Connection $connection = null): CountingConnection
+    {
+        return new CountingConnection($connection ?? $this->connection);
     }
 
     protected function sqlite(string $database = ':memory:'): Connection
@@ -108,14 +114,18 @@ abstract class EntityTestCase extends TestCase
         );
     }
 
-    protected function relationHandles(?MetadataRegistry $registry = null): RelationHandleFactory
+    protected function relations(?MetadataRegistry $registry = null): Relations
     {
         $registry ??= $this->registry();
 
-        return new DefaultRelationHandleFactory(
-            metadata: $registry,
-            states: $this->relationStates,
+        return new Relations(
             loader: $this->relationLoader($registry),
+            handles: new DefaultRelationHandleFactory(
+                metadata: $registry,
+                states: $this->relationStates,
+                loader: $this->relationLoader($registry),
+            ),
+            states: $this->relationStates,
         );
     }
 
@@ -136,10 +146,8 @@ abstract class EntityTestCase extends TestCase
             database: $this->connected($connection),
             metadata: $this->metadata($entity),
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: $this->relationLoader(),
-            relationStates: $this->relationStates,
-            relationHandles: $this->relationHandles(),
+            persister: new ReflectionPersister($this->registry()),
+            relations: $this->relations(),
         );
     }
 
@@ -151,10 +159,8 @@ abstract class EntityTestCase extends TestCase
             database: $database,
             metadata: $registry,
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: $this->relationLoader($registry),
-            relationStates: $this->relationStates,
-            relationHandles: $this->relationHandles($registry),
+            persister: new ReflectionPersister($this->registry()),
+            relations: $this->relations($registry),
         );
     }
 
@@ -211,6 +217,7 @@ abstract class EntityTestCase extends TestCase
             'CREATE TABLE jackets (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, colour TEXT NOT NULL)',
             'CREATE TABLE chapters (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, heading TEXT NOT NULL)',
             'CREATE TABLE plates (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, name TEXT NOT NULL)',
+            'CREATE TABLE folders (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL, parent_id INTEGER)',
             'CREATE TABLE topics (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
             'CREATE TABLE book_topic (book_id INTEGER NOT NULL, topic_id INTEGER)',
             'CREATE TABLE reviews (id INTEGER PRIMARY KEY AUTOINCREMENT, body TEXT NOT NULL, book_id INTEGER NOT NULL)',
@@ -229,6 +236,8 @@ abstract class EntityTestCase extends TestCase
         $connection->execute("INSERT INTO jackets (book_id, colour) VALUES (1, 'blue'), (NULL, 'red')");
         $connection->execute("INSERT INTO chapters (book_id, heading) VALUES (1, 'One'), (1, 'Two'), (2, 'Alpha')");
         $connection->execute("INSERT INTO plates (book_id, name) VALUES (1, 'front'), (NULL, 'back')");
+        $connection->execute('INSERT INTO folders (name, parent_id) VALUES '
+        . "('root', NULL), ('child', 1), ('grandchild', 2)");
         $connection->execute("INSERT INTO topics (name) VALUES ('fantasy'), ('scifi')");
         $connection->execute('INSERT INTO book_topic (book_id, topic_id) VALUES (1, 1), (1, 2), (2, 1)');
     }

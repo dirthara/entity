@@ -8,9 +8,10 @@ use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Attribute\BelongsToOne;
+use Dirthara\Entity\Relation\RelationLoading;
 
-#[Entity]
-final class Chapter
+#[Entity(table: 'chapters')]
+final class CyclicChapter
 {
     #[Id]
     #[Generated]
@@ -18,6 +19,6 @@ final class Chapter
 
     public string $heading;
 
-    #[BelongsToOne]
-    public ?Book $book;
+    #[BelongsToOne(loading: RelationLoading::Eager, target: CyclicBook::class)]
+    public ?CyclicBook $book;
 }

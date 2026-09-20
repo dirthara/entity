@@ -14,6 +14,7 @@ use Dirthara\Entity\EntityStore;
 use Dirthara\Entity\EntityManager;
 use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\Entities\Record;
 use Dirthara\Entity\Metadata\MetadataFactory;
@@ -266,21 +267,15 @@ abstract class EntityConformanceTestCase extends TestCase
             database: $this->database,
             metadata: $registry,
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: new DefaultRelationLoader(
-                metadata: $registry,
-                hydrator: new ReflectionHydrator(),
-                states: $states,
-            ),
-            relationStates: $states,
-            relationHandles: new DefaultRelationHandleFactory(
-                metadata: $registry,
-                states: $states,
-                loader: new DefaultRelationLoader(
+            persister: new ReflectionPersister($registry),
+            relations: new Relations(
+                loader: new DefaultRelationLoader($registry, new ReflectionHydrator(), $states),
+                handles: new DefaultRelationHandleFactory(
                     metadata: $registry,
-                    hydrator: new ReflectionHydrator(),
                     states: $states,
+                    loader: new DefaultRelationLoader($registry, new ReflectionHydrator(), $states),
                 ),
+                states: $states,
             ),
         );
     }

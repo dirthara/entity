@@ -7,10 +7,10 @@ namespace Dirthara\Entity;
 use ReflectionProperty;
 use Dirthara\Entity\Query\EntityQuery;
 use Dirthara\Entity\Hydration\Hydrator;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Collection\Contract\Collection;
 use Dirthara\Entity\Metadata\EntityMetadata;
-use Dirthara\Entity\Relation\RelationLoader;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
@@ -21,8 +21,6 @@ use Dirthara\Entity\Relation\Handle\HasManyHandle;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Relation\Handle\RelationHandle;
-use Dirthara\Entity\Relation\RelationHandleFactory;
-use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\InvalidEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
@@ -46,9 +44,7 @@ final readonly class EntityStore
         private EntityMetadata $metadata,
         private Hydrator $hydrator,
         private EntityPersister $persister,
-        private RelationLoader $relationLoader,
-        private RelationStateRegistry $relationStates,
-        private RelationHandleFactory $relationHandles,
+        private Relations $relations,
     ) {}
 
     /**
@@ -60,9 +56,8 @@ final readonly class EntityStore
             metadata: $this->metadata,
             hydrator: $this->hydrator,
             builder: $this->database->table($this->metadata->table),
-            relationLoader: $this->relationLoader,
             database: $this->database,
-            relationStates: $this->relationStates,
+            relations: $this->relations,
         );
     }
 
@@ -121,21 +116,28 @@ final readonly class EntityStore
 
     /**
      * @param T $entity
+     * @param list<string> $relations
+     * @param list<string> $without
      *
      * @throws InvalidEntityException
      * @throws EntityDatabaseException
      * @throws RelationLoadingException
      * @throws MappingException
+     * @throws TypeConversionException
      */
-    public function load(object $entity, string ...$relations): void
+    public function load(object $entity, array $relations = [], array $without = []): void
     {
         $this->assertEntity($entity);
 
-        $this->relationLoader->load(
+        $this->relations->loader->assertLoadable(metadata: $this->metadata, relations: $relations);
+        $this->relations->loader->assertLoadable(metadata: $this->metadata, relations: $without);
+
+        $this->relations->loader->load(
             database: $this->database,
             metadata: $this->metadata,
             entities: [$entity],
-            relations: array_values($relations),
+            relations: $relations,
+            without: $without,
         );
     }
 
@@ -151,7 +153,7 @@ final readonly class EntityStore
     {
         $this->assertEntity($entity);
 
-        return $this->relationHandles->handle(
+        return $this->relations->handles->handle(
             database: $this->database,
             metadata: $this->metadata,
             entity: $entity,
@@ -315,7 +317,7 @@ final readonly class EntityStore
                 continue;
             }
 
-            $this->relationStates->markLoaded(entity: $entity, relation: $relation->property);
+            $this->relations->states->markLoaded(entity: $entity, relation: $relation->property);
         }
     }
 

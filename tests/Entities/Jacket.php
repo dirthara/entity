@@ -7,6 +7,7 @@ namespace Dirthara\Entity\Tests\Entities;
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Generated;
+use Dirthara\Entity\Attribute\BelongsToOne;
 
 #[Entity]
 final class Jacket
@@ -16,4 +17,7 @@ final class Jacket
     public int $id;
 
     public string $colour;
+
+    #[BelongsToOne]
+    public ?Book $book;
 }

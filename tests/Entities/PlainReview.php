@@ -9,15 +9,15 @@ use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Attribute\BelongsToOne;
 
-#[Entity]
-final class Chapter
+#[Entity(table: 'reviews')]
+final class PlainReview
 {
     #[Id]
     #[Generated]
     public int $id;
 
-    public string $heading;
+    public string $body;
 
-    #[BelongsToOne]
-    public ?Book $book;
+    #[BelongsToOne(target: EagerBook::class)]
+    public EagerBook $book;
 }

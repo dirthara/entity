@@ -17,7 +17,6 @@ final readonly class BelongsToOneMetadata extends RelationMetadata
         RelationLoading $loading,
         public string $foreignKey,
         public bool $nullable,
-        public PropertyMetadata $targetIdentifier,
     ) {
         parent::__construct(property: $property, target: $target, loading: $loading);
     }

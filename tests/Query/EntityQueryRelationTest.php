@@ -6,6 +6,7 @@ namespace Dirthara\Entity\Tests\Query;
 
 use Dirthara\Entity\Query\EntityQuery;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Review;
@@ -58,7 +59,7 @@ final class EntityQueryRelationTest extends EntityTestCase
     }
 
     #[Test]
-    public function it_loads_an_eager_relation_without_being_asked_for_it(): void
+    public function it_still_calls_the_loader_for_an_entity_that_names_no_relation_but_has_an_eager_one(): void
     {
         $loader = new RecordingRelationLoader();
 
@@ -66,7 +67,8 @@ final class EntityQueryRelationTest extends EntityTestCase
 
         $this->query($loader, Review::class, 'reviews')->get();
 
-        self::assertSame([['book']], $loader->relations);
+        self::assertSame([1], $loader->batches);
+        self::assertSame([[]], $loader->relations);
     }
 
     #[Test]
@@ -155,7 +157,7 @@ final class EntityQueryRelationTest extends EntityTestCase
 
         $book = self::entity(Book::class, $rows[0] ?? null);
 
-        $store->load($book, 'writer');
+        $store->load($book, ['writer']);
 
         self::assertSame('Ursula', $book->writer->name);
     }
@@ -183,9 +185,12 @@ final class EntityQueryRelationTest extends EntityTestCase
             metadata: $this->metadata($entity),
             hydrator: new ReflectionHydrator(),
             builder: $this->connected()->table($table),
-            relationLoader: $loader,
             database: $this->connected(),
-            relationStates: $this->relationStates,
+            relations: new Relations(
+                loader: $loader,
+                handles: $this->relations()->handles,
+                states: $this->relationStates,
+            ),
         );
     }
 }

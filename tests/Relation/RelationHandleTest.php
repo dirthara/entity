@@ -378,11 +378,11 @@ final class RelationHandleTest extends EntityTestCase
         $store = $this->store(Book::class);
         $book = $this->book('Earthsea');
 
-        $store->load($book, 'chapters');
+        $store->load($book, ['chapters']);
 
         $this->hasMany($book, 'chapters')->add($this->chapter(3));
 
-        $store->load($book, 'chapters');
+        $store->load($book, ['chapters']);
 
         self::assertSame(['One', 'Two', 'Alpha'], self::names($book->chapters, 'heading'));
     }
@@ -392,7 +392,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Lathe');
 
-        $this->store(Book::class)->load($book, 'chapters');
+        $this->store(Book::class)->load($book, ['chapters']);
 
         $this->hasMany($book, 'chapters')->add($this->chapter(3));
 
@@ -404,7 +404,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'chapters');
+        $this->store(Book::class)->load($book, ['chapters']);
 
         $this->hasMany($book, 'chapters')->remove($this->chapter(1));
 
@@ -426,7 +426,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Lathe');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         $this->belongsToMany($book, 'topics')->attach($this->topic(1));
 
@@ -438,7 +438,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         $this->belongsToMany($book, 'topics')->detach($this->topic(1));
 
@@ -450,11 +450,25 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         $this->belongsToMany($book, 'topics')->sync([$this->topic(2)]);
 
         self::assertSame(['scifi'], self::names($book->topics, 'name'));
+    }
+
+    #[Test]
+    public function it_does_not_reload_what_was_nested_under_a_relation_it_refreshed(): void
+    {
+        $books = $this->store(Book::class)->query()->with('topics.books')->get();
+        $book = self::entity(Book::class, $books->get(2));
+
+        $this->belongsToMany($book, 'topics')->attach($this->topic(1));
+
+        $topic = self::entity(Topic::class, $book->topics->get(0));
+
+        self::assertSame('fantasy', $topic->name);
+        self::assertFalse(new ReflectionProperty($topic, 'books')->isInitialized($topic));
     }
 
     #[Test]
@@ -734,10 +748,8 @@ final class RelationHandleTest extends EntityTestCase
                 ],
             ),
             hydrator: new ReflectionHydrator(),
-            persister: new ReflectionPersister(),
-            relationLoader: $this->relationLoader(),
-            relationStates: $this->relationStates,
-            relationHandles: $this->relationHandles(),
+            persister: new ReflectionPersister($this->registry()),
+            relations: $this->relations(),
         );
     }
 
