@@ -54,14 +54,30 @@ final class RelationPersistenceTest extends EntityTestCase
     }
 
     #[Test]
-    public function it_leaves_out_a_relation_the_entity_never_set(): void
+    public function it_refuses_an_insert_with_a_relation_the_entity_never_set(): void
     {
         $book = $this->book('Tehanu');
         $book->writer = $this->writer(1);
 
-        $this->store(Book::class)->insert($book);
+        $this->expectException(PersistenceException::class);
+        $this->expectExceptionMessage(sprintf('Property "editor" of entity "%s" is not initialized', Book::class));
 
-        self::assertSame(['writer_id' => 1, 'editor_id' => null], $this->keysOf('Tehanu'));
+        $this->store(Book::class)->insert($book);
+    }
+
+    #[Test]
+    public function it_refuses_an_insert_before_it_writes_anything(): void
+    {
+        $book = $this->book('Tehanu');
+        $book->writer = $this->writer(1);
+
+        try {
+            $this->store(Book::class)->insert($book);
+
+            self::fail('Expected the insert to be refused.');
+        } catch (PersistenceException) {
+            self::assertSame(3, $this->store(Book::class)->count());
+        }
     }
 
     #[Test]
@@ -69,6 +85,7 @@ final class RelationPersistenceTest extends EntityTestCase
     {
         $book = $this->book('Tehanu');
         $book->writer = $this->writer(1);
+        $book->editor = null;
 
         $this->store(Book::class)->insert($book);
 
@@ -135,6 +152,7 @@ final class RelationPersistenceTest extends EntityTestCase
     {
         $book = $this->book('Tehanu');
         $book->writer = new Writer();
+        $book->editor = null;
 
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage(sprintf(

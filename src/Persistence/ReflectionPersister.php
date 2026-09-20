@@ -49,6 +49,8 @@ final class ReflectionPersister implements EntityPersister
             );
         }
 
+        $this->assertRelationsInitialized(metadata: $metadata, entity: $entity);
+
         $values = [...$values, ...$this->relationValues(metadata: $metadata, entity: $entity)];
 
         $generated = $this->generatedIdentifier($metadata);
@@ -187,6 +189,28 @@ final class ReflectionPersister implements EntityPersister
         }
 
         return $affected;
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
+     * @throws PersistenceException
+     */
+    private function assertRelationsInitialized(EntityMetadata $metadata, object $entity): void
+    {
+        foreach ($metadata->relations as $relation) {
+            if (!$relation instanceof BelongsToOneMetadata) {
+                continue;
+            }
+
+            if ($this->property(entity: $metadata->entity, property: $relation->property)->isInitialized($entity)) {
+                continue;
+            }
+
+            throw PersistenceException::uninitializedProperty(entity: $metadata->entity, property: $relation->property);
+        }
     }
 
     /**
