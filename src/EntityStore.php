@@ -9,12 +9,14 @@ use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Collection\Contract\Collection;
 use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Relation\RelationLoader;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
+use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\InvalidEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
@@ -35,6 +37,8 @@ final readonly class EntityStore
         private EntityMetadata $metadata,
         private Hydrator $hydrator,
         private EntityPersister $persister,
+        private RelationLoader $relationLoader,
+        private RelationStateRegistry $relationStates,
     ) {}
 
     /**
@@ -46,6 +50,9 @@ final readonly class EntityStore
             metadata: $this->metadata,
             hydrator: $this->hydrator,
             builder: $this->database->table($this->metadata->table),
+            relationLoader: $this->relationLoader,
+            database: $this->database,
+            relationStates: $this->relationStates,
         );
     }
 
@@ -100,6 +107,23 @@ final readonly class EntityStore
     public function all(): Collection
     {
         return $this->query()->get();
+    }
+
+    /**
+     * @param T $entity
+     *
+     * @throws InvalidEntityException
+     */
+    public function load(object $entity, string ...$relations): void
+    {
+        $this->assertEntity($entity);
+
+        $this->relationLoader->load(
+            database: $this->database,
+            metadata: $this->metadata,
+            entities: [$entity],
+            relations: $relations,
+        );
     }
 
     /**

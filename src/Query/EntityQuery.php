@@ -6,36 +6,48 @@ namespace Dirthara\Entity\Query;
 
 use Closure;
 use Dirthara\Entity\Hydration\Hydrator;
+use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Database\Query\QueryBuilder;
 use Dirthara\Collection\Contract\Collection;
 use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Relation\RelationLoader;
+use Dirthara\Entity\Relation\RelationLoading;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Query\Sql\OrderDirection;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
+use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Exception\RelationLoadingException;
 
 /**
  * @template T of object
  */
-final readonly class EntityQuery
+final class EntityQuery
 {
+    /**
+     * @var array<string, true>
+     */
+    private array $with = [];
+
     /**
      * @param EntityMetadata<T> $metadata
      */
     public function __construct(
-        private EntityMetadata $metadata,
-        private Hydrator $hydrator,
-        private QueryBuilder $builder,
+        private readonly EntityMetadata $metadata,
+        private readonly Hydrator $hydrator,
+        private readonly QueryBuilder $builder,
+        private readonly RelationLoader $relationLoader,
+        private readonly ConnectedDatabase $database,
+        private readonly RelationStateRegistry $relationStates,
     ) {}
 
     /**
-     * @throws TypeConversionException
      * @throws MappingException
      */
     public function where(string $property, ComparisonOperator|string $operator, mixed $value): self
@@ -49,7 +61,6 @@ final readonly class EntityQuery
 
     /**
      * @throws MappingException
-     * @throws TypeConversionException
      */
     public function orWhere(string $property, ComparisonOperator|string $operator, mixed $value): self
     {
@@ -85,8 +96,6 @@ final readonly class EntityQuery
     }
 
     /**
-     * @param iterable<mixed> $values
-     *
      * @throws MappingException
      * @throws TypeConversionException
      */
@@ -100,8 +109,6 @@ final readonly class EntityQuery
     }
 
     /**
-     * @param iterable<mixed> $values
-     *
      * @throws MappingException
      * @throws TypeConversionException
      */
@@ -116,7 +123,6 @@ final readonly class EntityQuery
 
     /**
      * @throws MappingException
-     * @throws TypeConversionException
      */
     public function whereBetween(string $property, mixed $from, mixed $to): self
     {
@@ -134,7 +140,14 @@ final readonly class EntityQuery
     public function whereNested(Closure $callback): self
     {
         $this->builder->whereNested(function (QueryBuilder $builder) use ($callback): void {
-            $query = new self(metadata: $this->metadata, hydrator: $this->hydrator, builder: $builder);
+            $query = new self(
+                metadata: $this->metadata,
+                hydrator: $this->hydrator,
+                builder: $builder,
+                relationLoader: $this->relationLoader,
+                database: $this->database,
+                relationStates: $this->relationStates,
+            );
 
             $callback($query);
         });
@@ -177,12 +190,27 @@ final readonly class EntityQuery
     }
 
     /**
+     * @throws MappingException
+     */
+    public function with(string ...$relations): self
+    {
+        foreach ($relations as $relation) {
+            $this->metadata->relation($relation);
+
+            $this->with[$relation] = true;
+        }
+
+        return $this;
+    }
+
+    /**
      * @return Collection<int, T>
      *
      * @throws CreateEntityException
      * @throws EntityDatabaseException
      * @throws TypeConversionException
      * @throws HydrationException
+     * @throws RelationLoadingException
      */
     public function get(): Collection
     {
@@ -192,9 +220,13 @@ final readonly class EntityQuery
             foreach ($this->builder->get() as $row) {
                 $entity = $this->hydrator->newInstance($this->metadata);
 
+                $entities[] = $entity;
+
                 $this->hydrator->hydrate($this->metadata, $entity, $row);
 
-                $entities[] = $entity;
+                $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
+
+                $this->loadRelations($entities);
             }
         } catch (DatabaseException $exception) {
             throw EntityDatabaseException::fromDatabaseException(
@@ -214,6 +246,7 @@ final readonly class EntityQuery
      * @throws CreateEntityException
      * @throws TypeConversionException
      * @throws HydrationException
+     * @throws RelationLoadingException
      */
     public function first(): ?object
     {
@@ -235,6 +268,10 @@ final readonly class EntityQuery
 
         $this->hydrator->hydrate($this->metadata, $entity, $row);
 
+        $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
+
+        $this->loadRelations([$entity]);
+
         return $entity;
     }
 
@@ -245,6 +282,7 @@ final readonly class EntityQuery
      * @throws CreateEntityException
      * @throws TypeConversionException
      * @throws HydrationException
+     * @throws RelationLoadingException
      */
     public function cursor(): iterable
     {
@@ -253,6 +291,10 @@ final readonly class EntityQuery
                 $entity = $this->hydrator->newInstance($this->metadata);
 
                 $this->hydrator->hydrate($this->metadata, $entity, $row);
+
+                $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
+
+                $this->loadRelations([$entity]);
 
                 yield $entity;
             }
@@ -306,7 +348,7 @@ final readonly class EntityQuery
     }
 
     /**
-     * @throws TypeConversionException
+     * @throws MappingException
      */
     private function toDatabase(PropertyMetadata $property, mixed $value): string|int|float|bool|null
     {
@@ -318,11 +360,10 @@ final readonly class EntityQuery
     }
 
     /**
-     * @param iterable<mixed> $values
-     *
      * @return list<string|int|float|bool>
      *
      * @throws TypeConversionException
+     * @throws MappingException
      */
     private function convertValues(PropertyMetadata $property, iterable $values): array
     {
@@ -339,5 +380,46 @@ final readonly class EntityQuery
         }
 
         return $converted;
+    }
+
+    /**
+     * @return list<string>
+     */
+    private function relationsToLoad(): array
+    {
+        $relations = $this->with;
+
+        foreach ($this->metadata->relations as $relation) {
+            if ($relation->loading !== RelationLoading::Eager) {
+                continue;
+            }
+
+            $relations[$relation->property] = true;
+        }
+
+        return array_keys($relations);
+    }
+
+    /**
+     * @param list<object> $entities
+     */
+    private function loadRelations(array $entities): void
+    {
+        if ($entities === []) {
+            return;
+        }
+
+        $relations = $this->relationsToLoad();
+
+        if ($relations === []) {
+            return;
+        }
+
+        $this->relationLoader->load(
+            database: $this->database,
+            metadata: $this->metadata,
+            entities: $entities,
+            relations: $relations,
+        );
     }
 }
