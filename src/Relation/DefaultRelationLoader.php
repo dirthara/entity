@@ -240,6 +240,8 @@ final class DefaultRelationLoader implements RelationLoader
 
     /**
      * @return list<object>
+     *
+     * @throws RelationLoadingException
      */
     private function relatedOf(RelationMetadata $relation, object $entity): array
     {
@@ -258,7 +260,13 @@ final class DefaultRelationLoader implements RelationLoader
         $related = [];
 
         foreach ($value as $item) {
-            assert(is_object($item), description: 'A loaded relation only ever holds entities');
+            if (!is_object($item)) {
+                throw RelationLoadingException::invalidRelatedValue(
+                    entity: $entity::class,
+                    relation: $relation->property,
+                    actual: get_debug_type($item),
+                );
+            }
 
             $related[] = $item;
         }

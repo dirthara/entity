@@ -276,6 +276,25 @@ final class NestedRelationLoadingTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_reports_a_loaded_to_many_that_no_longer_holds_entities(): void
+    {
+        $store = $this->store(Anthology::class);
+        $owner = self::entity(Anthology::class, $store->query()->first());
+
+        $store->load($owner, ['chapters']);
+
+        new ReflectionProperty($owner, 'chapters')->setRawValue($owner, ['not an entity']);
+
+        $this->expectException(RelationLoadingException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "chapters" of entity "%s" holds a "string" where an entity was expected',
+            Anthology::class,
+        ));
+
+        $store->load($owner, ['chapters.book']);
+    }
+
+    #[Test]
     public function it_reports_a_nested_relation_the_target_does_not_map(): void
     {
         $this->expectException(MappingException::class);

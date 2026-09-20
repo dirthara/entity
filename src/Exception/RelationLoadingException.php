@@ -45,6 +45,20 @@ final class RelationLoadingException extends EntityException
         ]);
     }
 
+    public static function invalidRelatedValue(string $entity, string $relation, string $actual): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" holds a "%s" where an entity was expected',
+            $relation,
+            $entity,
+            $actual,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'actual' => $actual,
+        ]);
+    }
+
     public static function unsupportedRelation(string $relation): self
     {
         return new self(sprintf('Unsupported relation "%s"', $relation))->addContext([
