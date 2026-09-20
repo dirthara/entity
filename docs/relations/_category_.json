@@ -1,0 +1,10 @@
+{
+  "label": "Relations",
+  "position": 7,
+  "collapsed": false,
+  "link": {
+    "type": "generated-index",
+    "title": "Relations",
+    "description": "Declare how two entities point at each other, load what a row relates to, and write those links back."
+  }
+}

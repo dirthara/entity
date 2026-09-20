@@ -47,9 +47,15 @@ converter throws `TypeConversionException`.
 | `insert(object $entity)` | `void` | Writes back a generated identifier. |
 | `update(object $entity)` | `int` | Rows the driver reports as affected. |
 | `delete(object $entity)` | `int` | Rows the identifier matched. |
+| `load(object $entity, string ...$relations)` | `void` | Fills relations on an entity you already have. |
+| `relation(object $entity, string $relation)` | `RelationHandle` | A handle for writing one relation. |
+| `belongsToOne()`, `hasOne()`, `hasMany()`, `belongsToMany()` | a typed handle | The same, narrowed to one relation kind. |
 
 `all()`, `count()` and `exists()` are the unfiltered forms of the same methods
 on [a query](querying.md); reach for `query()` as soon as you need a condition.
+
+The last four are described in [loading](relations/loading.md) and
+[writing relations](relations/writing.md).
 
 Handing a store an object of another class throws `InvalidEntityException`. The
 store checks before it does anything, so a mistyped call cannot write a row.

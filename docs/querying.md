@@ -74,7 +74,7 @@ you need both.
 | --- | --- | --- |
 | `get()` | `Collection<int, T>` | Every matching row, hydrated. |
 | `first()` | `T\|null` | Applies `LIMIT 1` for you. |
-| `cursor()` | `iterable<T>` | A generator, one entity at a time. |
+| `cursor()` | `iterable<T>` | A generator, one entity at a time. Cannot load relations. |
 | `exists()` | `bool` | |
 | `count()` | `int` | |
 
@@ -95,7 +95,8 @@ foreach ($articles->query()->cursor() as $article) {
 ```
 
 :::caution
-A cursor cannot load relations. `get()` reads its whole page first and then
+A cursor cannot load relations, described in
+[loading relations](relations/loading.md). `get()` reads its whole page first and then
 loads each relation for every entity at once; a cursor only ever holds one row,
 so it would have to query again for each one. Rather than turn streaming into a
 hidden N+1, `cursor()` refuses the combination and throws
