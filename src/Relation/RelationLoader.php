@@ -8,6 +8,7 @@ use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
+use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
 interface RelationLoader

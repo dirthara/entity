@@ -256,6 +256,18 @@ final class NestedRelationLoadingTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_stops_at_a_to_one_that_was_already_loaded_as_null(): void
+    {
+        $store = $this->store(Book::class);
+        $book = $this->book('Discworld');
+
+        $store->load($book, ['editor']);
+        $store->load($book, ['editor.books']);
+
+        self::assertNull($book->editor);
+    }
+
+    #[Test]
     public function it_leaves_a_nested_relation_alone_when_the_middle_is_null(): void
     {
         $book = $this->book('Discworld');
@@ -278,18 +290,41 @@ final class NestedRelationLoadingTest extends EntityTestCase
     #[Test]
     public function it_reports_a_loaded_to_many_that_no_longer_holds_entities(): void
     {
+        $this->expectException(RelationLoadingException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "chapters" of entity "%s" holds a "string" where a "%s" was expected',
+            Anthology::class,
+            Chapter::class,
+        ));
+
+        $this->descendInto(['not an entity']);
+    }
+
+    #[Test]
+    public function it_reports_a_loaded_to_many_that_holds_the_wrong_kind_of_entity(): void
+    {
+        $this->expectException(RelationLoadingException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "chapters" of entity "%s" holds a "%s" where a "%s" was expected',
+            Anthology::class,
+            Topic::class,
+            Chapter::class,
+        ));
+
+        $this->descendInto([self::entity(Topic::class, $this->store(Topic::class)->find(1))]);
+    }
+
+    /**
+     * @param list<mixed> $chapters
+     */
+    private function descendInto(array $chapters): void
+    {
         $store = $this->store(Anthology::class);
         $owner = self::entity(Anthology::class, $store->query()->first());
 
         $store->load($owner, ['chapters']);
 
-        new ReflectionProperty($owner, 'chapters')->setRawValue($owner, ['not an entity']);
-
-        $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
-            'Relation "chapters" of entity "%s" holds a "string" where an entity was expected',
-            Anthology::class,
-        ));
+        new ReflectionProperty($owner, 'chapters')->setRawValue($owner, $chapters);
 
         $store->load($owner, ['chapters.book']);
     }

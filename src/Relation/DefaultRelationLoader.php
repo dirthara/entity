@@ -50,14 +50,6 @@ final class DefaultRelationLoader implements RelationLoader
     }
 
     /**
-     * @param list<object> $entities
-     * @param list<string> $relations
-     *
-     * @throws EntityDatabaseException
-     * @throws RelationLoadingException
-     * @throws MappingException
-     */
-    /**
      * @param list<string> $relations
      *
      * @throws MappingException
@@ -268,17 +260,18 @@ final class DefaultRelationLoader implements RelationLoader
             $value = $value->toArray();
         }
 
-        if (!is_array($value)) {
-            return is_object($value) ? [$value] : [];
+        if ($value === null) {
+            return [];
         }
 
         $related = [];
 
-        foreach ($value as $item) {
-            if (!is_object($item)) {
+        foreach (is_array($value) ? $value : [$value] as $item) {
+            if (!$item instanceof $relation->target) {
                 throw RelationLoadingException::invalidRelatedValue(
                     entity: $entity::class,
                     relation: $relation->property,
+                    expected: $relation->target,
                     actual: get_debug_type($item),
                 );
             }
