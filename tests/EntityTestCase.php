@@ -24,11 +24,13 @@ use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationHandleFactory;
 use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
 use Dirthara\Database\Query\Grammar\SQLiteQueryGrammar;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
@@ -106,6 +108,14 @@ abstract class EntityTestCase extends TestCase
         );
     }
 
+    protected function relationHandles(?MetadataRegistry $registry = null): RelationHandleFactory
+    {
+        return new DefaultRelationHandleFactory(
+            metadata: $registry ?? $this->registry(),
+            states: $this->relationStates,
+        );
+    }
+
     /**
      * @param class-string $entity
      */
@@ -126,6 +136,7 @@ abstract class EntityTestCase extends TestCase
             persister: new ReflectionPersister(),
             relationLoader: $this->relationLoader(),
             relationStates: $this->relationStates,
+            relationHandles: $this->relationHandles(),
         );
     }
 
@@ -140,6 +151,7 @@ abstract class EntityTestCase extends TestCase
             persister: new ReflectionPersister(),
             relationLoader: $this->relationLoader($registry),
             relationStates: $this->relationStates,
+            relationHandles: $this->relationHandles($registry),
         );
     }
 
@@ -193,8 +205,8 @@ abstract class EntityTestCase extends TestCase
         foreach ([
             'CREATE TABLE writers (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
             'CREATE TABLE books (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, writer_id INTEGER, editor_id INTEGER)',
-            'CREATE TABLE jackets (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER NOT NULL, colour TEXT NOT NULL)',
-            'CREATE TABLE chapters (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER NOT NULL, heading TEXT NOT NULL)',
+            'CREATE TABLE jackets (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, colour TEXT NOT NULL)',
+            'CREATE TABLE chapters (id INTEGER PRIMARY KEY AUTOINCREMENT, book_id INTEGER, heading TEXT NOT NULL)',
             'CREATE TABLE topics (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT NOT NULL)',
             'CREATE TABLE book_topic (book_id INTEGER NOT NULL, topic_id INTEGER)',
             'CREATE TABLE reviews (id INTEGER PRIMARY KEY AUTOINCREMENT, body TEXT NOT NULL, book_id INTEGER NOT NULL)',

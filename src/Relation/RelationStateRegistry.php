@@ -57,6 +57,11 @@ final class RelationStateRegistry
         $this->state(entity: $entity, relation: $relation)->markLoaded();
     }
 
+    public function markUnloaded(object $entity, string $relation): void
+    {
+        $this->state(entity: $entity, relation: $relation)->markUnloaded();
+    }
+
     public function hasForeignKey(object $entity, string $relation): bool
     {
         return $this->state(entity: $entity, relation: $relation)->hasForeignKey();

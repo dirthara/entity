@@ -32,6 +32,11 @@ final class RelationState
         $this->loaded = true;
     }
 
+    public function markUnloaded(): void
+    {
+        $this->loaded = false;
+    }
+
     public function hasForeignKey(): bool
     {
         return $this->foreignKeyCaptured;

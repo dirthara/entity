@@ -31,6 +31,7 @@ use Dirthara\Entity\Relation\DefaultRelationLoader;
 use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\TransactionGrammar;
@@ -272,6 +273,7 @@ abstract class EntityConformanceTestCase extends TestCase
                 states: $states,
             ),
             relationStates: $states,
+            relationHandles: new DefaultRelationHandleFactory(metadata: $registry, states: $states),
         );
     }
 

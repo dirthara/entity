@@ -18,6 +18,8 @@ use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
+use Dirthara\Entity\Relation\Handle\RelationHandle;
+use Dirthara\Entity\Relation\RelationHandleFactory;
 use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\InvalidEntityException;
@@ -42,6 +44,7 @@ final readonly class EntityStore
         private EntityPersister $persister,
         private RelationLoader $relationLoader,
         private RelationStateRegistry $relationStates,
+        private RelationHandleFactory $relationHandles,
     ) {}
 
     /**
@@ -129,6 +132,26 @@ final readonly class EntityStore
             metadata: $this->metadata,
             entities: [$entity],
             relations: array_values($relations),
+        );
+    }
+
+    /**
+     * @param T $entity
+     *
+     * @throws InvalidEntityException
+     * @throws MappingException
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    public function relation(object $entity, string $relation): RelationHandle
+    {
+        $this->assertEntity($entity);
+
+        return $this->relationHandles->handle(
+            database: $this->database,
+            metadata: $this->metadata,
+            entity: $entity,
+            relation: $relation,
         );
     }
 

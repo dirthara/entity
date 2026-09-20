@@ -77,6 +77,39 @@ final class PersistenceException extends EntityException
         ]);
     }
 
+    public static function relationNotNullable(string $entity, string $relation): self
+    {
+        return new self(sprintf('Relation "%s" of entity "%s" does not accept null', $relation, $entity))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+        ]);
+    }
+
+    public static function relationWriteFailed(string $entity, string $relation, Throwable $previous): self
+    {
+        return new self(
+            message: sprintf('Failed to write relation "%s" of entity "%s"', $relation, $entity),
+            previous: $previous,
+        )->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+        ]);
+    }
+
+    public static function unsupportedRelation(string $entity, string $relation, string $kind): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" is of unsupported kind "%s"',
+            $relation,
+            $entity,
+            $kind,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'kind' => $kind,
+        ]);
+    }
+
     public static function missingGeneratedIdentifier(string $entity, string $property): self
     {
         return new self(sprintf(
