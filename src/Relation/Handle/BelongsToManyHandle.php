@@ -12,8 +12,9 @@ use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Metadata\BelongsToManyMetadata;
-use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
 final readonly class BelongsToManyHandle implements RelationHandle
@@ -24,7 +25,7 @@ final readonly class BelongsToManyHandle implements RelationHandle
         private EntityMetadata $target,
         private BelongsToManyMetadata $relation,
         private object $entity,
-        private RelationStateRegistry $states,
+        private RelationRefresher $refresher,
         private RelationIdentity $identity,
     ) {}
 
@@ -38,6 +39,8 @@ final readonly class BelongsToManyHandle implements RelationHandle
      * @throws MappingException
      * @throws PersistenceException
      * @throws TypeConversionException
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
      */
     public function attach(object $related): void
     {
@@ -58,7 +61,12 @@ final readonly class BelongsToManyHandle implements RelationHandle
             return;
         }
 
-        $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
+        $this->refresher->refresh(
+            database: $this->database,
+            metadata: $this->metadata,
+            entity: $this->entity,
+            relation: $this->relation->property,
+        );
     }
 
     /**
@@ -66,6 +74,8 @@ final readonly class BelongsToManyHandle implements RelationHandle
      * @throws MappingException
      * @throws PersistenceException
      * @throws TypeConversionException
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
      */
     public function detach(object $related): void
     {
@@ -76,7 +86,12 @@ final readonly class BelongsToManyHandle implements RelationHandle
             $this->delete($owner, [$identifier]);
         });
 
-        $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
+        $this->refresher->refresh(
+            database: $this->database,
+            metadata: $this->metadata,
+            entity: $this->entity,
+            relation: $this->relation->property,
+        );
     }
 
     /**
@@ -86,6 +101,8 @@ final readonly class BelongsToManyHandle implements RelationHandle
      * @throws MappingException
      * @throws PersistenceException
      * @throws TypeConversionException
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
      */
     public function sync(iterable $related): void
     {
@@ -104,7 +121,12 @@ final readonly class BelongsToManyHandle implements RelationHandle
             $this->insert($owner, array_values(array_diff($wanted, $current)));
         }));
 
-        $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
+        $this->refresher->refresh(
+            database: $this->database,
+            metadata: $this->metadata,
+            entity: $this->entity,
+            relation: $this->relation->property,
+        );
     }
 
     /**

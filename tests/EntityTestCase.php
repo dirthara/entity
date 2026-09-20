@@ -110,9 +110,12 @@ abstract class EntityTestCase extends TestCase
 
     protected function relationHandles(?MetadataRegistry $registry = null): RelationHandleFactory
     {
+        $registry ??= $this->registry();
+
         return new DefaultRelationHandleFactory(
-            metadata: $registry ?? $this->registry(),
+            metadata: $registry,
             states: $this->relationStates,
+            loader: $this->relationLoader($registry),
         );
     }
 

@@ -18,6 +18,7 @@ use Dirthara\Entity\Metadata\BelongsToManyMetadata;
 use Dirthara\Entity\Relation\Handle\RelationHandle;
 use Dirthara\Entity\Relation\Handle\RelationIdentity;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Relation\Handle\RelationRefresher;
 use Dirthara\Entity\Relation\Handle\BelongsToOneHandle;
 use Dirthara\Entity\Relation\Handle\BelongsToManyHandle;
 
@@ -25,11 +26,15 @@ final class DefaultRelationHandleFactory implements RelationHandleFactory
 {
     private RelationIdentity $identity;
 
+    private RelationRefresher $refresher;
+
     public function __construct(
         private readonly MetadataRegistry $metadata,
         private readonly RelationStateRegistry $states,
+        RelationLoader $loader,
     ) {
         $this->identity = new RelationIdentity();
+        $this->refresher = new RelationRefresher(loader: $loader, states: $states);
     }
 
     /**
@@ -72,7 +77,7 @@ final class DefaultRelationHandleFactory implements RelationHandleFactory
                 target: $target,
                 relation: $relationMetadata,
                 entity: $entity,
-                states: $this->states,
+                refresher: $this->refresher,
                 identity: $this->identity,
             ),
             $relationMetadata instanceof BelongsToManyMetadata => new BelongsToManyHandle(
@@ -81,7 +86,7 @@ final class DefaultRelationHandleFactory implements RelationHandleFactory
                 target: $target,
                 relation: $relationMetadata,
                 entity: $entity,
-                states: $this->states,
+                refresher: $this->refresher,
                 identity: $this->identity,
             ),
             default => throw PersistenceException::unsupportedRelation(

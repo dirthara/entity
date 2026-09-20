@@ -12,8 +12,9 @@ use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
-use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
 final readonly class HasManyHandle implements RelationHandle
@@ -24,7 +25,7 @@ final readonly class HasManyHandle implements RelationHandle
         private EntityMetadata $target,
         private HasManyMetadata $relation,
         private object $entity,
-        private RelationStateRegistry $states,
+        private RelationRefresher $refresher,
         private RelationIdentity $identity,
     ) {}
 
@@ -38,6 +39,8 @@ final readonly class HasManyHandle implements RelationHandle
      * @throws MappingException
      * @throws PersistenceException
      * @throws TypeConversionException
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
      */
     public function add(object $related): void
     {
@@ -51,6 +54,8 @@ final readonly class HasManyHandle implements RelationHandle
      * @throws MappingException
      * @throws PersistenceException
      * @throws TypeConversionException
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
      */
     public function remove(object $related): void
     {
@@ -98,6 +103,11 @@ final readonly class HasManyHandle implements RelationHandle
             );
         }
 
-        $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
+        $this->refresher->refresh(
+            database: $this->database,
+            metadata: $this->metadata,
+            entity: $this->entity,
+            relation: $this->relation->property,
+        );
     }
 }

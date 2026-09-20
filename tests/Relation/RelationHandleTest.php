@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Relation;
 
+use ReflectionProperty;
 use Dirthara\Entity\EntityStore;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Book;
@@ -278,6 +279,86 @@ final class RelationHandleTest extends EntityTestCase
         $store->load($book, 'chapters');
 
         self::assertSame(['One', 'Two', 'Alpha'], self::names($book->chapters, 'heading'));
+    }
+
+    #[Test]
+    public function it_keeps_a_loaded_has_many_in_step_with_what_it_added(): void
+    {
+        $book = $this->book('Lathe');
+
+        $this->store(Book::class)->load($book, 'chapters');
+
+        $this->hasMany($book, 'chapters')->add($this->chapter(3));
+
+        self::assertSame(['Alpha'], self::names($book->chapters, 'heading'));
+    }
+
+    #[Test]
+    public function it_keeps_a_loaded_has_many_in_step_with_what_it_removed(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->store(Book::class)->load($book, 'chapters');
+
+        $this->hasMany($book, 'chapters')->remove($this->chapter(1));
+
+        self::assertSame(['Two'], self::names($book->chapters, 'heading'));
+    }
+
+    #[Test]
+    public function it_does_not_load_a_has_many_it_was_never_asked_to_load(): void
+    {
+        $book = $this->book('Lathe');
+
+        $this->hasMany($book, 'chapters')->add($this->chapter(3));
+
+        self::assertFalse(new ReflectionProperty($book, 'chapters')->isInitialized($book));
+    }
+
+    #[Test]
+    public function it_keeps_a_loaded_belongs_to_many_in_step_with_what_it_attached(): void
+    {
+        $book = $this->book('Lathe');
+
+        $this->store(Book::class)->load($book, 'topics');
+
+        $this->belongsToMany($book, 'topics')->attach($this->topic(1));
+
+        self::assertSame(['fantasy'], self::names($book->topics, 'name'));
+    }
+
+    #[Test]
+    public function it_keeps_a_loaded_belongs_to_many_in_step_with_what_it_detached(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->store(Book::class)->load($book, 'topics');
+
+        $this->belongsToMany($book, 'topics')->detach($this->topic(1));
+
+        self::assertSame(['scifi'], self::names($book->topics, 'name'));
+    }
+
+    #[Test]
+    public function it_keeps_a_loaded_belongs_to_many_in_step_with_what_it_synced(): void
+    {
+        $book = $this->book('Earthsea');
+
+        $this->store(Book::class)->load($book, 'topics');
+
+        $this->belongsToMany($book, 'topics')->sync([$this->topic(2)]);
+
+        self::assertSame(['scifi'], self::names($book->topics, 'name'));
+    }
+
+    #[Test]
+    public function it_does_not_load_a_belongs_to_many_it_was_never_asked_to_load(): void
+    {
+        $book = $this->book('Lathe');
+
+        $this->belongsToMany($book, 'topics')->attach($this->topic(1));
+
+        self::assertFalse(new ReflectionProperty($book, 'topics')->isInitialized($book));
     }
 
     #[Test]

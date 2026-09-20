@@ -273,7 +273,15 @@ abstract class EntityConformanceTestCase extends TestCase
                 states: $states,
             ),
             relationStates: $states,
-            relationHandles: new DefaultRelationHandleFactory(metadata: $registry, states: $states),
+            relationHandles: new DefaultRelationHandleFactory(
+                metadata: $registry,
+                states: $states,
+                loader: new DefaultRelationLoader(
+                    metadata: $registry,
+                    hydrator: new ReflectionHydrator(),
+                    states: $states,
+                ),
+            ),
         );
     }
 
