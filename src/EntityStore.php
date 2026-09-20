@@ -15,7 +15,9 @@ use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
 use Dirthara\Entity\Exception\HydrationException;
+use Dirthara\Entity\Relation\Handle\HasOneHandle;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
+use Dirthara\Entity\Relation\Handle\HasManyHandle;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Relation\Handle\RelationHandle;
@@ -27,6 +29,8 @@ use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\EntityNotFoundException;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
+use Dirthara\Entity\Relation\Handle\BelongsToOneHandle;
+use Dirthara\Entity\Relation\Handle\BelongsToManyHandle;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
 /**
@@ -156,6 +160,58 @@ final readonly class EntityStore
     }
 
     /**
+     * @param T $entity
+     *
+     * @throws InvalidEntityException
+     * @throws MappingException
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    public function belongsToOne(object $entity, string $relation): BelongsToOneHandle
+    {
+        return $this->handle(entity: $entity, relation: $relation, handle: BelongsToOneHandle::class);
+    }
+
+    /**
+     * @param T $entity
+     *
+     * @throws InvalidEntityException
+     * @throws MappingException
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    public function hasOne(object $entity, string $relation): HasOneHandle
+    {
+        return $this->handle(entity: $entity, relation: $relation, handle: HasOneHandle::class);
+    }
+
+    /**
+     * @param T $entity
+     *
+     * @throws InvalidEntityException
+     * @throws MappingException
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    public function hasMany(object $entity, string $relation): HasManyHandle
+    {
+        return $this->handle(entity: $entity, relation: $relation, handle: HasManyHandle::class);
+    }
+
+    /**
+     * @param T $entity
+     *
+     * @throws InvalidEntityException
+     * @throws MappingException
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    public function belongsToMany(object $entity, string $relation): BelongsToManyHandle
+    {
+        return $this->handle(entity: $entity, relation: $relation, handle: BelongsToManyHandle::class);
+    }
+
+    /**
      * @throws EntityDatabaseException
      */
     public function count(): int
@@ -217,6 +273,35 @@ final readonly class EntityStore
         $this->assertEntity($entity);
 
         return $this->persister->delete(database: $this->database, metadata: $this->metadata, entity: $entity);
+    }
+
+    /**
+     * @template THandle of RelationHandle
+     *
+     * @param T $entity
+     * @param class-string<THandle> $handle
+     *
+     * @return THandle
+     *
+     * @throws InvalidEntityException
+     * @throws MappingException
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    private function handle(object $entity, string $relation, string $handle): RelationHandle
+    {
+        $resolved = $this->relation(entity: $entity, relation: $relation);
+
+        if ($resolved instanceof $handle) {
+            return $resolved;
+        }
+
+        throw PersistenceException::unexpectedRelationHandle(
+            entity: $this->metadata->entity,
+            relation: $relation,
+            expected: $handle,
+            actual: $resolved::class,
+        );
     }
 
     private function markWrittenRelations(object $entity): void

@@ -138,11 +138,7 @@ final class RelationHandleTest extends EntityTestCase
         $book = $this->book('Discworld');
         $jacket = self::entity(Jacket::class, $this->store(Jacket::class)->find(1));
 
-        $handle = $this->store(Book::class)->relation($book, 'jacket');
-
-        self::assertInstanceOf(HasOneHandle::class, $handle);
-
-        $handle->associate($jacket);
+        $this->hasOne($book, 'jacket')->associate($jacket);
 
         self::assertSame($book->id, $this->column('jackets', 'book_id', 1));
         self::assertSame($jacket, $book->jacket);
@@ -218,11 +214,8 @@ final class RelationHandleTest extends EntityTestCase
     public function it_dissociates_a_has_one(): void
     {
         $book = $this->book('Earthsea');
-        $handle = $this->store(Book::class)->relation($book, 'jacket');
 
-        self::assertInstanceOf(HasOneHandle::class, $handle);
-
-        $handle->dissociate();
+        $this->hasOne($book, 'jacket')->dissociate();
 
         self::assertNull($this->column('jackets', 'book_id', 1));
         self::assertNull($book->jacket);
@@ -239,11 +232,7 @@ final class RelationHandleTest extends EntityTestCase
             RequiredHasOne::class,
         ));
 
-        $handle = $this->store(RequiredHasOne::class)->relation($owner, 'jacket');
-
-        self::assertInstanceOf(HasOneHandle::class, $handle);
-
-        $handle->dissociate();
+        $this->store(RequiredHasOne::class)->hasOne($owner, 'jacket')->dissociate();
     }
 
     #[Test]
@@ -367,9 +356,7 @@ final class RelationHandleTest extends EntityTestCase
         $owner = new UnknownForeignKeyColumn();
         $owner->id = 1;
 
-        $handle = $this->store(UnknownForeignKeyColumn::class)->relation($owner, 'writer');
-
-        self::assertInstanceOf(BelongsToOneHandle::class, $handle);
+        $handle = $this->store(UnknownForeignKeyColumn::class)->belongsToOne($owner, 'writer');
 
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage(sprintf(
@@ -385,9 +372,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $owner = self::entity(MissingHasOneTable::class, $this->store(MissingHasOneTable::class)->query()->first());
 
-        $handle = $this->store(MissingHasOneTable::class)->relation($owner, 'row');
-
-        self::assertInstanceOf(HasOneHandle::class, $handle);
+        $handle = $this->store(MissingHasOneTable::class)->hasOne($owner, 'row');
 
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage(sprintf(
@@ -403,9 +388,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $owner = self::entity(MissingPivotTable::class, $this->store(MissingPivotTable::class)->query()->first());
 
-        $handle = $this->store(MissingPivotTable::class)->relation($owner, 'topics');
-
-        self::assertInstanceOf(BelongsToManyHandle::class, $handle);
+        $handle = $this->store(MissingPivotTable::class)->belongsToMany($owner, 'topics');
 
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage(sprintf(
@@ -434,6 +417,34 @@ final class RelationHandleTest extends EntityTestCase
         } catch (PersistenceException) {
             self::assertSame([1, 2], $this->attached($book->id));
         }
+    }
+
+    #[Test]
+    public function it_refuses_a_typed_accessor_for_a_relation_of_another_kind(): void
+    {
+        $this->expectException(PersistenceException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "topics" of entity "%s" answers a "%s", not a "%s"',
+            Book::class,
+            BelongsToManyHandle::class,
+            HasManyHandle::class,
+        ));
+
+        $this->store(Book::class)->hasMany($this->book('Earthsea'), 'topics');
+    }
+
+    #[Test]
+    public function it_refuses_a_to_one_accessor_for_the_other_kind_of_to_one(): void
+    {
+        $this->expectException(PersistenceException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relation "writer" of entity "%s" answers a "%s", not a "%s"',
+            Book::class,
+            BelongsToOneHandle::class,
+            HasOneHandle::class,
+        ));
+
+        $this->store(Book::class)->hasOne($this->book('Earthsea'), 'writer');
     }
 
     #[Test]
@@ -471,9 +482,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $owner = self::entity(MissingTargetTable::class, $this->store(MissingTargetTable::class)->query()->first());
 
-        $handle = $this->store(MissingTargetTable::class)->relation($owner, 'rows');
-
-        self::assertInstanceOf(HasManyHandle::class, $handle);
+        $handle = $this->store(MissingTargetTable::class)->hasMany($owner, 'rows');
 
         $this->expectException(PersistenceException::class);
         $this->expectExceptionMessage(sprintf(
@@ -489,38 +498,22 @@ final class RelationHandleTest extends EntityTestCase
 
     private function belongsToOne(Book $book, string $relation): BelongsToOneHandle
     {
-        $handle = $this->store(Book::class)->relation($book, $relation);
-
-        self::assertInstanceOf(BelongsToOneHandle::class, $handle);
-
-        return $handle;
+        return $this->store(Book::class)->belongsToOne($book, $relation);
     }
 
     private function hasOne(Book $book, string $relation): HasOneHandle
     {
-        $handle = $this->store(Book::class)->relation($book, $relation);
-
-        self::assertInstanceOf(HasOneHandle::class, $handle);
-
-        return $handle;
+        return $this->store(Book::class)->hasOne($book, $relation);
     }
 
     private function hasMany(Book $book, string $relation): HasManyHandle
     {
-        $handle = $this->store(Book::class)->relation($book, $relation);
-
-        self::assertInstanceOf(HasManyHandle::class, $handle);
-
-        return $handle;
+        return $this->store(Book::class)->hasMany($book, $relation);
     }
 
     private function belongsToMany(Book $book, string $relation): BelongsToManyHandle
     {
-        $handle = $this->store(Book::class)->relation($book, $relation);
-
-        self::assertInstanceOf(BelongsToManyHandle::class, $handle);
-
-        return $handle;
+        return $this->store(Book::class)->belongsToMany($book, $relation);
     }
 
     /**

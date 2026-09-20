@@ -96,6 +96,26 @@ final class PersistenceException extends EntityException
         ]);
     }
 
+    public static function unexpectedRelationHandle(
+        string $entity,
+        string $relation,
+        string $expected,
+        string $actual,
+    ): self {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" answers a "%s", not a "%s"',
+            $relation,
+            $entity,
+            $actual,
+            $expected,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'expected' => $expected,
+            'actual' => $actual,
+        ]);
+    }
+
     public static function unsupportedRelation(string $entity, string $relation, string $kind): self
     {
         return new self(sprintf(
