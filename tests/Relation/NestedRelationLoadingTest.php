@@ -197,7 +197,37 @@ final class NestedRelationLoadingTest extends EntityTestCase
 
         $this->store(Book::class, $connection)->query()->with('topics.books')->get();
 
-        self::assertCount(5, $connection->selects());
+        self::assertSame(
+            [
+                'SELECT * FROM "books"',
+                'SELECT * FROM "book_topic" WHERE "book_id" IN (?, ?, ?)',
+                'SELECT * FROM "topics" WHERE "id" IN (?, ?)',
+                'SELECT * FROM "book_topic" WHERE "topic_id" IN (?, ?)',
+                'SELECT * FROM "books" WHERE "id" IN (?, ?)',
+            ],
+            $connection->selects(),
+        );
+    }
+
+    #[Test]
+    public function it_keeps_batching_a_belongs_to_many_however_many_levels_deep_it_goes(): void
+    {
+        $connection = $this->counting();
+
+        $this->store(Book::class, $connection)->query()->with('topics.books.topics')->get();
+
+        self::assertSame(
+            [
+                'SELECT * FROM "books"',
+                'SELECT * FROM "book_topic" WHERE "book_id" IN (?, ?, ?)',
+                'SELECT * FROM "topics" WHERE "id" IN (?, ?)',
+                'SELECT * FROM "book_topic" WHERE "topic_id" IN (?, ?)',
+                'SELECT * FROM "books" WHERE "id" IN (?, ?)',
+                'SELECT * FROM "book_topic" WHERE "book_id" IN (?, ?)',
+                'SELECT * FROM "topics" WHERE "id" IN (?, ?)',
+            ],
+            $connection->selects(),
+        );
     }
 
     #[Test]
