@@ -24,7 +24,8 @@ foreach ($books as $book) {
 ```
 
 A name the entity does not map throws `MappingException` from `with()` itself,
-so a typo fails where you wrote it.
+so a typo fails where you wrote it. Every segment of a path is checked, not just
+the first.
 
 ## Asking for one afterwards
 
@@ -69,6 +70,43 @@ $books->get(0)->writer === $books->get(2)->writer;   // true, same row
 That is a consequence of batching rather than an identity map. Two separate
 queries still give you two objects; see
 [what this package does not do](../intro.md#what-it-does-not-do).
+
+## Relations of relations
+
+A dot names a relation of the relation before it, to any depth:
+
+```php
+$books = $books->query()->with('writer.books.chapters')->get();
+
+$books->get(0)->writer->books->get(0)->chapters;
+```
+
+`load()` takes the same paths:
+
+```php
+$books->load($book, 'writer.books');
+```
+
+Each level is still one query for the whole batch, not one per parent. The page
+above costs four: the books, their writers, those writers' books, and those
+books' chapters — whatever the page size.
+
+Paths sharing a head are loaded once. `with('writer.books', 'writer')` reads the
+writers a single time and then their books.
+
+A relation you already loaded is not read again, but a path still continues
+through it:
+
+```php
+$books->load($book, 'writer');
+$books->load($book, 'writer.books');   // the writer stays as it is; its books load
+```
+
+:::note
+`RelationLoading::Eager` still only applies to the entity the query is for. A
+relation marked `Eager` on a target is not loaded when that target is reached
+through a path — name it in the path if you want it.
+:::
 
 ## Cursors cannot load relations
 
@@ -129,6 +167,4 @@ missing from the table itself.
 
 ## Not yet supported
 
-- **Nested loading.** `with('writer.books')` is not a thing; load the second
-  level from the entities you got back.
 - **Conditions on a relation.** A relation loads whole; filter what you got.

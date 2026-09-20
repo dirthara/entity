@@ -131,6 +131,8 @@ final readonly class EntityStore
     {
         $this->assertEntity($entity);
 
+        $this->relationLoader->assertLoadable(metadata: $this->metadata, relations: array_values($relations));
+
         $this->relationLoader->load(
             database: $this->database,
             metadata: $this->metadata,

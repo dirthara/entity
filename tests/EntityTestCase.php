@@ -28,6 +28,7 @@ use Dirthara\Entity\Relation\RelationHandleFactory;
 use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Connection\Driver\SQLiteDriver;
+use Dirthara\Entity\Tests\Doubles\CountingConnection;
 use Dirthara\Database\Query\Grammar\SQLiteQueryGrammar;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
 use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
@@ -47,6 +48,11 @@ abstract class EntityTestCase extends TestCase
 
         $this->connection = $this->sqlite();
         $this->relationStates = new RelationStateRegistry();
+    }
+
+    protected function counting(?Connection $connection = null): CountingConnection
+    {
+        return new CountingConnection($connection ?? $this->connection);
     }
 
     protected function sqlite(string $database = ':memory:'): Connection

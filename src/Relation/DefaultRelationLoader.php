@@ -56,6 +56,36 @@ final class DefaultRelationLoader implements RelationLoader
      * @throws RelationLoadingException
      * @throws MappingException
      */
+    /**
+     * @param list<string> $relations
+     *
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    public function assertLoadable(EntityMetadata $metadata, array $relations): void
+    {
+        $this->assertTree(metadata: $metadata, tree: RelationTree::fromPaths($relations));
+    }
+
+    /**
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    private function assertTree(EntityMetadata $metadata, RelationTree $tree): void
+    {
+        foreach ($tree->relations() as $relationName) {
+            $relation = $metadata->relation($relationName);
+
+            $nested = $tree->nestedFor($relationName);
+
+            if ($nested->isEmpty()) {
+                continue;
+            }
+
+            $this->assertTree(metadata: $this->metadata->for($relation->target), tree: $nested);
+        }
+    }
+
     public function load(ConnectedDatabase $database, EntityMetadata $metadata, array $entities, array $relations): void
     {
         if ($entities === [] || $relations === []) {
@@ -70,32 +100,135 @@ final class DefaultRelationLoader implements RelationLoader
             }
         }
 
-        foreach ($relations as $relationName) {
-            $relation = $metadata->relation($relationName);
-
-            $pending = array_values(array_filter(
-                $entities,
-                fn(object $entity): bool => !$this->states->isLoaded(entity: $entity, relation: $relationName),
-            ));
-
-            if ($pending === []) {
-                continue;
-            }
-
-            try {
-                $this->loadRelation(database: $database, metadata: $metadata, relation: $relation, entities: $pending);
-            } catch (DatabaseException $exception) {
-                throw EntityDatabaseException::fromDatabaseException(
-                    exception: $exception,
-                    entity: $metadata->entity,
-                    operation: sprintf('load relation "%s"', $relationName),
-                );
-            }
-        }
+        $this->loadTree(
+            database: $database,
+            metadata: $metadata,
+            entities: $entities,
+            tree: RelationTree::fromPaths($relations),
+        );
     }
 
     /**
      * @param list<object> $entities
+     *
+     * @throws EntityDatabaseException
+     * @throws RelationLoadingException
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    private function loadTree(
+        ConnectedDatabase $database,
+        EntityMetadata $metadata,
+        array $entities,
+        RelationTree $tree,
+    ): void {
+        foreach ($tree->relations() as $relationName) {
+            $relation = $metadata->relation($relationName);
+            $nested = $tree->nestedFor($relationName);
+
+            $pending = [];
+            $already = [];
+
+            foreach ($entities as $entity) {
+                if ($this->states->isLoaded(entity: $entity, relation: $relationName)) {
+                    $already[] = $entity;
+
+                    continue;
+                }
+
+                $pending[] = $entity;
+            }
+
+            $related = [];
+
+            if ($pending !== []) {
+                try {
+                    $related = $this->loadRelation(
+                        database: $database,
+                        metadata: $metadata,
+                        relation: $relation,
+                        entities: $pending,
+                    );
+                } catch (DatabaseException $exception) {
+                    throw EntityDatabaseException::fromDatabaseException(
+                        exception: $exception,
+                        entity: $metadata->entity,
+                        operation: sprintf('load relation "%s"', $relationName),
+                    );
+                }
+            }
+
+            if ($nested->isEmpty()) {
+                continue;
+            }
+
+            foreach ($already as $entity) {
+                $related = [...$related, ...$this->relatedOf(relation: $relation, entity: $entity)];
+            }
+
+            $related = $this->distinct($related);
+
+            if ($related === []) {
+                continue;
+            }
+
+            $this->loadTree(
+                database: $database,
+                metadata: $this->metadata->for($relation->target),
+                entities: $related,
+                tree: $nested,
+            );
+        }
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function relatedOf(RelationMetadata $relation, object $entity): array
+    {
+        $property = $this->property(entity: $entity::class, property: $relation->property);
+
+        $value = $property->isInitialized($entity) ? $property->getRawValue($entity) : null;
+
+        if ($value instanceof Collection) {
+            $value = $value->toArray();
+        }
+
+        if (!is_array($value)) {
+            return is_object($value) ? [$value] : [];
+        }
+
+        $related = [];
+
+        foreach ($value as $item) {
+            assert(is_object($item), description: 'A loaded relation only ever holds entities');
+
+            $related[] = $item;
+        }
+
+        return $related;
+    }
+
+    /**
+     * @param list<object> $entities
+     *
+     * @return list<object>
+     */
+    private function distinct(array $entities): array
+    {
+        $unique = [];
+
+        foreach ($entities as $entity) {
+            $unique[spl_object_id($entity)] = $entity;
+        }
+
+        return array_values($unique);
+    }
+
+    /**
+     * @param list<object> $entities
+     *
+     * @return list<object>
      *
      * @throws RelationLoadingException
      * @throws MappingException
@@ -106,8 +239,8 @@ final class DefaultRelationLoader implements RelationLoader
         EntityMetadata $metadata,
         RelationMetadata $relation,
         array $entities,
-    ): void {
-        match (true) {
+    ): array {
+        return match (true) {
             $relation instanceof BelongsToOneMetadata => $this->loadBelongsToOne(
                 database: $database,
                 relation: $relation,
@@ -138,6 +271,8 @@ final class DefaultRelationLoader implements RelationLoader
     /**
      * @param list<object> $entities
      *
+     * @return list<object>
+     *
      * @throws RelationLoadingException
      * @throws MappingException
      * @throws TypeConversionException
@@ -146,7 +281,7 @@ final class DefaultRelationLoader implements RelationLoader
         ConnectedDatabase $database,
         BelongsToOneMetadata $relation,
         array $entities,
-    ): void {
+    ): array {
         $targetMetadata = $this->metadata->for($relation->target);
         $targetIdentifier = $this->singleIdentifier($targetMetadata);
 
@@ -192,7 +327,7 @@ final class DefaultRelationLoader implements RelationLoader
         }
 
         if ($foreignKeys === []) {
-            return;
+            return [];
         }
 
         $related = [];
@@ -211,6 +346,8 @@ final class DefaultRelationLoader implements RelationLoader
             $related[$this->key($identifier)] = $this->hydrate(metadata: $targetMetadata, row: $row);
         }
 
+        $loaded = [];
+
         foreach ($entitiesByForeignKey as $key => $owners) {
             if (!isset($related[$key])) {
                 throw RelationLoadingException::relatedEntityNotFound(
@@ -220,16 +357,22 @@ final class DefaultRelationLoader implements RelationLoader
                 );
             }
 
+            $loaded[] = $related[$key];
+
             foreach ($owners as $entity) {
                 $this->write(entity: $entity, relation: $relation, value: $related[$key]);
 
                 $this->states->markLoaded(entity: $entity, relation: $relation->property);
             }
         }
+
+        return $loaded;
     }
 
     /**
      * @param list<object> $entities
+     *
+     * @return list<object>
      *
      * @throws RelationLoadingException
      * @throws MappingException
@@ -240,7 +383,7 @@ final class DefaultRelationLoader implements RelationLoader
         EntityMetadata $metadata,
         HasOneMetadata $relation,
         array $entities,
-    ): void {
+    ): array {
         $targetMetadata = $this->metadata->for($relation->target);
 
         [$identifiers, $entitiesByIdentifier] = $this->groupByIdentifier(metadata: $metadata, entities: $entities);
@@ -271,6 +414,8 @@ final class DefaultRelationLoader implements RelationLoader
             $related[$key] = $this->hydrate(metadata: $targetMetadata, row: $row);
         }
 
+        $loaded = [];
+
         foreach ($entitiesByIdentifier as $key => $owners) {
             $value = $related[$key] ?? null;
 
@@ -282,16 +427,24 @@ final class DefaultRelationLoader implements RelationLoader
                 );
             }
 
+            if ($value !== null) {
+                $loaded[] = $value;
+            }
+
             foreach ($owners as $entity) {
                 $this->write(entity: $entity, relation: $relation, value: $value);
 
                 $this->states->markLoaded(entity: $entity, relation: $relation->property);
             }
         }
+
+        return $loaded;
     }
 
     /**
      * @param list<object> $entities
+     *
+     * @return list<object>
      *
      * @throws RelationLoadingException
      * @throws MappingException
@@ -302,7 +455,7 @@ final class DefaultRelationLoader implements RelationLoader
         EntityMetadata $metadata,
         HasManyMetadata $relation,
         array $entities,
-    ): void {
+    ): array {
         $targetMetadata = $this->metadata->for($relation->target);
 
         [$identifiers, $entitiesByIdentifier] = $this->groupByIdentifier(metadata: $metadata, entities: $entities);
@@ -326,8 +479,14 @@ final class DefaultRelationLoader implements RelationLoader
             $related[$this->key($foreignKey)][] = $this->hydrate(metadata: $targetMetadata, row: $row);
         }
 
+        $loaded = [];
+
         foreach ($entitiesByIdentifier as $key => $owners) {
-            $collection = new ImmutableCollection($related[$key] ?? []);
+            $items = $related[$key] ?? [];
+
+            $loaded = [...$loaded, ...$items];
+
+            $collection = new ImmutableCollection($items);
 
             foreach ($owners as $entity) {
                 $this->write(entity: $entity, relation: $relation, value: $collection);
@@ -335,10 +494,14 @@ final class DefaultRelationLoader implements RelationLoader
                 $this->states->markLoaded(entity: $entity, relation: $relation->property);
             }
         }
+
+        return $loaded;
     }
 
     /**
      * @param list<object> $entities
+     *
+     * @return list<object>
      *
      * @throws RelationLoadingException
      * @throws MappingException
@@ -349,7 +512,7 @@ final class DefaultRelationLoader implements RelationLoader
         EntityMetadata $metadata,
         BelongsToManyMetadata $relation,
         array $entities,
-    ): void {
+    ): array {
         $targetMetadata = $this->metadata->for($relation->target);
         $targetIdentifier = $this->singleIdentifier($targetMetadata);
 
@@ -411,6 +574,8 @@ final class DefaultRelationLoader implements RelationLoader
             }
         }
 
+        $loaded = [];
+
         foreach ($entitiesByIdentifier as $ownerKey => $owners) {
             $items = [];
 
@@ -426,6 +591,8 @@ final class DefaultRelationLoader implements RelationLoader
                 $items[] = $related[$relatedKey];
             }
 
+            $loaded = [...$loaded, ...$items];
+
             $collection = new ImmutableCollection($items);
 
             foreach ($owners as $entity) {
@@ -434,6 +601,8 @@ final class DefaultRelationLoader implements RelationLoader
                 $this->states->markLoaded(entity: $entity, relation: $relation->property);
             }
         }
+
+        return $this->distinct($loaded);
     }
 
     /**

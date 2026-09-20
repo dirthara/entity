@@ -13,6 +13,14 @@ use Dirthara\Entity\Exception\RelationLoadingException;
 interface RelationLoader
 {
     /**
+     * @param list<string> $relations
+     *
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    public function assertLoadable(EntityMetadata $metadata, array $relations): void;
+
+    /**
      * @param list<object> $entities
      * @param list<string> $relations
      *

@@ -192,12 +192,13 @@ final class EntityQuery
 
     /**
      * @throws MappingException
+     * @throws TypeConversionException
      */
     public function with(string ...$relations): self
     {
-        foreach ($relations as $relation) {
-            $this->metadata->relation($relation);
+        $this->relationLoader->assertLoadable(metadata: $this->metadata, relations: array_values($relations));
 
+        foreach ($relations as $relation) {
             $this->with[$relation] = true;
         }
 
