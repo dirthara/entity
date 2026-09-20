@@ -543,10 +543,6 @@ final class DefaultRelationLoader implements RelationLoader
         }
     }
 
-    /**
-     * A to-many relation answers a collection, but a property that asks for a
-     * plain array takes the items out of it.
-     */
     private function writable(ReflectionProperty $property, mixed $value): mixed
     {
         if (!$value instanceof Collection) {

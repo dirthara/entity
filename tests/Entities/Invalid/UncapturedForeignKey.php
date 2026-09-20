@@ -10,9 +10,6 @@ use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Entities\Writer;
 use Dirthara\Entity\Attribute\BelongsToOne;
 
-/**
- * A belongs to one whose foreign key is not a column of the mapped table.
- */
 #[Entity(table: 'topics')]
 final class UncapturedForeignKey
 {

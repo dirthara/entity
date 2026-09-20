@@ -23,10 +23,6 @@ use Dirthara\Entity\Tests\Doubles\UnknownRelation;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
-/**
- * The loader answers to metadata, not to attributes, so these reach the
- * failures the metadata factory refuses to produce in the first place.
- */
 final class DefaultRelationLoaderTest extends EntityTestCase
 {
     #[Test]
@@ -144,6 +140,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
                 loading: RelationLoading::Explicit,
                 foreignKey: 'writer_id',
                 nullable: false,
+                targetIdentifier: $this->identifier('id'),
             ),
         );
 

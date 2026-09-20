@@ -47,6 +47,36 @@ final class PersistenceException extends EntityException
         ]);
     }
 
+    public static function unsavedRelation(string $entity, string $relation, string $target): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" points at a "%s" that has no identifier yet',
+            $relation,
+            $entity,
+            $target,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+        ]);
+    }
+
+    public static function invalidRelation(string $entity, string $relation, string $expected, string $actual): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" expects a "%s", got "%s"',
+            $relation,
+            $entity,
+            $expected,
+            $actual,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'expected' => $expected,
+            'actual' => $actual,
+        ]);
+    }
+
     public static function missingGeneratedIdentifier(string $entity, string $property): self
     {
         return new self(sprintf(

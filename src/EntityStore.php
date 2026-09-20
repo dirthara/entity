@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity;
 
+use ReflectionProperty;
 use Dirthara\Entity\Query\EntityQuery;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
@@ -14,6 +15,7 @@ use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
 use Dirthara\Entity\Exception\HydrationException;
+use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Relation\RelationStateRegistry;
@@ -158,6 +160,8 @@ final readonly class EntityStore
         $this->assertEntity($entity);
 
         $this->persister->insert(database: $this->database, metadata: $this->metadata, entity: $entity);
+
+        $this->markWrittenRelations($entity);
     }
 
     /**
@@ -171,7 +175,11 @@ final readonly class EntityStore
     {
         $this->assertEntity($entity);
 
-        return $this->persister->update(database: $this->database, metadata: $this->metadata, entity: $entity);
+        $affected = $this->persister->update(database: $this->database, metadata: $this->metadata, entity: $entity);
+
+        $this->markWrittenRelations($entity);
+
+        return $affected;
     }
 
     /**
@@ -186,6 +194,21 @@ final readonly class EntityStore
         $this->assertEntity($entity);
 
         return $this->persister->delete(database: $this->database, metadata: $this->metadata, entity: $entity);
+    }
+
+    private function markWrittenRelations(object $entity): void
+    {
+        foreach ($this->metadata->relations as $relation) {
+            if (!$relation instanceof BelongsToOneMetadata) {
+                continue;
+            }
+
+            if (!new ReflectionProperty($entity, $relation->property)->isInitialized($entity)) {
+                continue;
+            }
+
+            $this->relationStates->markLoaded(entity: $entity, relation: $relation->property);
+        }
     }
 
     /**

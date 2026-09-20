@@ -203,10 +203,6 @@ abstract class EntityTestCase extends TestCase
         }
     }
 
-    /**
-     * Two writers, three books, and enough of everything else to tell the
-     * four relation kinds apart. Book 1 and book 3 share a writer.
-     */
     protected function seedLibrary(?Connection $connection = null): void
     {
         $connection ??= $this->connection;

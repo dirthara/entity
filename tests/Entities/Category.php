@@ -8,9 +8,6 @@ use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\BelongsToMany;
 
-/**
- * A many to many an entity points at itself, with both keys told apart.
- */
 #[Entity]
 final class Category
 {

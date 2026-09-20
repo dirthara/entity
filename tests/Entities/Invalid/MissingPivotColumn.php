@@ -11,9 +11,6 @@ use Dirthara\Entity\Tests\Entities\Topic;
 use Dirthara\Collection\Contract\Collection;
 use Dirthara\Entity\Attribute\BelongsToMany;
 
-/**
- * A many to many whose related key is not a column of the join table.
- */
 #[Entity(table: 'books')]
 final class MissingPivotColumn
 {

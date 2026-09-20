@@ -9,9 +9,6 @@ use Dirthara\Entity\Attribute\Entity;
 use Dirthara\Entity\Attribute\HasMany;
 use Dirthara\Entity\Attribute\Generated;
 
-/**
- * A to-many kept in a plain array rather than a collection.
- */
 #[Entity(table: 'books')]
 final class Anthology
 {

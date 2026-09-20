@@ -116,10 +116,6 @@ final readonly class MetadataFactory
 
             $relations[$relation->property] = $relation;
 
-            /*
-             * BelongsToOne stores its foreign key on this entity's table,
-             * so it participates in local column collision checking.
-             */
             if ($relation instanceof BelongsToOneMetadata) {
                 $this->registerColumn(
                     entity: $entity,
@@ -435,10 +431,6 @@ final readonly class MetadataFactory
         ReflectionProperty $property,
         HasMany $attribute,
     ): HasManyMetadata {
-        /*
-         * A to-many property cannot be typed with its target, so the attribute
-         * is the only thing naming it. Reflect it to prove the class is there.
-         */
         $this->reflection($attribute->target);
 
         $sourceIdentifier = $this->relationIdentifierProperty(
@@ -497,6 +489,7 @@ final readonly class MetadataFactory
             loading: $attribute->loading,
             foreignKey: $foreignKey,
             nullable: $type->allowsNull(),
+            targetIdentifier: $targetIdentifier,
         );
     }
 
@@ -536,10 +529,6 @@ final readonly class MetadataFactory
             identifierColumn: $targetIdentifier->column(),
         );
 
-        /*
-         * Both keys are columns of the same join table, so they cannot share a name.
-         * Pointing an entity at itself derives the same name twice and has to be told apart.
-         */
         if ($foreignKey === $relatedForeignKey) {
             throw MappingException::duplicateRelationForeignKey(
                 entity: $reflection->getName(),
@@ -599,10 +588,7 @@ final readonly class MetadataFactory
 
         $metadata = $this->propertyMetadata(entity: $name, property: $identifiers[0]);
 
-        assert(
-            $metadata !== null,
-            description: 'A property carrying both #[Id] and #[Ignore] is refused before it answers null',
-        );
+        assert($metadata !== null, description: 'An #[Id] property cannot also be #[Ignore]d');
 
         return $metadata;
     }

@@ -10,9 +10,6 @@ use Dirthara\Entity\Attribute\HasMany;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Entities\Chapter;
 
-/**
- * A to-many on a property that can hold neither a collection nor an array.
- */
 #[Entity(table: 'books')]
 final class StringRelation
 {

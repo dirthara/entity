@@ -12,9 +12,6 @@ use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Attribute\BelongsToMany;
 
-/**
- * Every relation kind, each left to the naming strategy.
- */
 #[Entity]
 final class Post
 {

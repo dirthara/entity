@@ -10,9 +10,6 @@ use Dirthara\Entity\Attribute\HasOne;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Entities\Jacket;
 
-/**
- * A has one the entity insists on, for a row that may not have one.
- */
 #[Entity(table: 'books')]
 final class RequiredHasOne
 {

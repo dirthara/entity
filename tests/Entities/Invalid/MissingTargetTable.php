@@ -11,9 +11,6 @@ use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Entities\Plain;
 use Dirthara\Collection\Contract\Collection;
 
-/**
- * A to-many pointing at an entity whose table is not there.
- */
 #[Entity(table: 'books')]
 final class MissingTargetTable
 {

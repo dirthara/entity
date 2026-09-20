@@ -12,9 +12,6 @@ use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Attribute\BelongsToMany;
 use Dirthara\Entity\Relation\RelationLoading;
 
-/**
- * Every relation kind, each told what to map to.
- */
 #[Entity(table: 'drafts')]
 final class Draft
 {

@@ -8,9 +8,6 @@ use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Relation\RelationLoader;
 
-/**
- * Records how the query batches its entities before handing them over.
- */
 final class RecordingRelationLoader implements RelationLoader
 {
     /**
