@@ -11,6 +11,7 @@ use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Review;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Hydration\ReflectionHydrator;
+use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Tests\Doubles\RecordingRelationLoader;
 
 final class EntityQueryRelationTest extends EntityTestCase
@@ -95,17 +96,68 @@ final class EntityQueryRelationTest extends EntityTestCase
     }
 
     #[Test]
-    public function it_loads_the_relations_of_every_row_it_streams(): void
+    public function it_refuses_to_stream_rows_with_a_relation_it_was_asked_for(): void
+    {
+        $this->expectException(RelationLoadingException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relations "writer" of entity "%s" cannot be loaded from a cursor',
+            Book::class,
+        ));
+
+        $this->store(Book::class)->query()->with('writer')->cursor();
+    }
+
+    #[Test]
+    public function it_refuses_to_stream_rows_of_an_entity_that_loads_a_relation_eagerly(): void
+    {
+        $this->expectException(RelationLoadingException::class);
+        $this->expectExceptionMessage(sprintf(
+            'Relations "book" of entity "%s" cannot be loaded from a cursor',
+            Review::class,
+        ));
+
+        $this->store(Review::class)->query()->cursor();
+    }
+
+    #[Test]
+    public function it_names_every_relation_a_cursor_will_not_load(): void
+    {
+        try {
+            $this->store(Book::class)->query()->with('writer', 'chapters')->cursor();
+
+            self::fail('Expected the cursor to be refused.');
+        } catch (RelationLoadingException $exception) {
+            self::assertSame(['writer', 'chapters'], $exception->getContext()['relations']);
+        }
+    }
+
+    #[Test]
+    public function it_streams_rows_when_no_relation_is_wanted(): void
     {
         $titles = [];
 
-        foreach ($this->store(Book::class)->query()->with('writer')->cursor() as $row) {
-            $book = self::entity(Book::class, $row);
-
-            $titles[] = sprintf('%s by %s', $book->title, $book->writer->name);
+        foreach ($this->store(Book::class)->query()->cursor() as $row) {
+            $titles[] = self::entity(Book::class, $row)->title;
         }
 
-        self::assertSame(['Earthsea by Ursula', 'Discworld by Terry', 'Lathe by Ursula'], $titles);
+        self::assertSame(['Earthsea', 'Discworld', 'Lathe'], $titles);
+    }
+
+    #[Test]
+    public function it_still_captures_the_foreign_keys_of_the_rows_it_streams(): void
+    {
+        $store = $this->store(Book::class);
+        $rows = [];
+
+        foreach ($store->query()->cursor() as $row) {
+            $rows[] = $row;
+        }
+
+        $book = self::entity(Book::class, $rows[0] ?? null);
+
+        $store->load($book, 'writer');
+
+        self::assertSame('Ursula', $book->writer->name);
     }
 
     #[Test]

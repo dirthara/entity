@@ -11,7 +11,6 @@ use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\RelationMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\PersistenceException;
-use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
 final class RelationIdentity

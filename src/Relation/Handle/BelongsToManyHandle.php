@@ -100,9 +100,9 @@ final readonly class BelongsToManyHandle implements RelationHandle
 
         $current = $this->attached($owner);
 
-        array_diff($current, $wanted) |> array_values(...) |> (fn($x) => $this->detachAll($owner, $x));
+        $this->detachAll($owner, array_values(array_diff($current, $wanted)));
 
-        array_diff($wanted, $current) |> array_values(...) |> (fn($x) => $this->attachAll($owner, $x));
+        $this->attachAll($owner, array_values(array_diff($wanted, $current)));
 
         $this->states->markUnloaded(entity: $this->entity, relation: $this->relation->property);
     }

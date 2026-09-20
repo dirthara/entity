@@ -30,6 +30,21 @@ final class RelationLoadingException extends EntityException
         ]);
     }
 
+    /**
+     * @param list<string> $relations
+     */
+    public static function cursorCannotLoadRelations(string $entity, array $relations): self
+    {
+        return new self(sprintf(
+            'Relations %s of entity "%s" cannot be loaded from a cursor',
+            implode(', ', array_map(static fn(string $relation): string => sprintf('"%s"', $relation), $relations)),
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'relations' => $relations,
+        ]);
+    }
+
     public static function unsupportedRelation(string $relation): self
     {
         return new self(sprintf('Unsupported relation "%s"', $relation))->addContext([

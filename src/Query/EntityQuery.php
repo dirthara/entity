@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Query;
 
 use Closure;
+use Generator;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Database\Query\QueryBuilder;
@@ -286,6 +287,29 @@ final class EntityQuery
      */
     public function cursor(): iterable
     {
+        $relations = $this->relationsToLoad();
+
+        if ($relations !== []) {
+            throw RelationLoadingException::cursorCannotLoadRelations(
+                entity: $this->metadata->entity,
+                relations: $relations,
+            );
+        }
+
+        return $this->stream();
+    }
+
+    /**
+     * @return Generator<int, T>
+     *
+     * @throws EntityDatabaseException
+     * @throws CreateEntityException
+     * @throws TypeConversionException
+     * @throws HydrationException
+     * @throws RelationLoadingException
+     */
+    private function stream(): Generator
+    {
         try {
             foreach ($this->builder->cursor() as $row) {
                 $entity = $this->hydrator->newInstance($this->metadata);
@@ -293,8 +317,6 @@ final class EntityQuery
                 $this->hydrator->hydrate($this->metadata, $entity, $row);
 
                 $this->relationStates->capture(metadata: $this->metadata, entity: $entity, row: $row);
-
-                $this->loadRelations([$entity]);
 
                 yield $entity;
             }
