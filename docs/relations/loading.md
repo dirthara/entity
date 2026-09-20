@@ -57,11 +57,32 @@ Use it for a relation the entity is not really usable without. Everything else
 is better named at the call site, where the cost is visible.
 
 :::caution
-An eager relation is not followed back to an entity already on the path. If
-`Book` eagerly loads its chapters and `Chapter` eagerly loads its book, loading
-a book gives you its chapters and stops there — the chapters' `book` is left
-unloaded rather than fetching the book again forever. A path you write yourself
-is always followed, so `with('chapters.book')` still works.
+An eager relation is followed **at most once along a path**, which is what keeps
+a cycle from running forever.
+
+If `Book` eagerly loads its chapters and `Chapter` eagerly loads its book,
+loading a book gives you its chapters and each chapter's book, and stops: those
+books' chapters are left unloaded rather than going round again. Note that the
+book you get back on a chapter is a second object read from the row, not the one
+you started with — there is no identity map.
+
+The same rule lets a relation point at its own entity. A folder that eagerly
+loads its parent gives you one parent, not the whole chain:
+
+```php
+#[BelongsToOne(loading: RelationLoading::Eager)]
+public ?Folder $parent;
+```
+
+A path you write yourself is always followed, so name the relation as deep as
+you need it and the rule does not get in the way:
+
+```php
+$folders->load($folder, ['parent.parent']);   // two levels up
+```
+
+A path uses up that one hop, so an eager relation does not carry a path further
+than you wrote it.
 :::
 
 ## Leaving one out

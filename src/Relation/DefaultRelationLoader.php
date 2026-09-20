@@ -111,12 +111,17 @@ final class DefaultRelationLoader implements RelationLoader
             entities: $entities,
             tree: RelationTree::fromPaths($relations),
             without: RelationTree::fromPaths($without),
-            seen: [$metadata->entity => true],
+            seen: [],
         );
     }
 
+    private function step(string $entity, string $relation): string
+    {
+        return sprintf('%s::%s', $entity, $relation);
+    }
+
     /**
-     * @param array<class-string, true> $seen
+     * @param array<string, true> $seen
      *
      * @return list<string>
      */
@@ -133,7 +138,7 @@ final class DefaultRelationLoader implements RelationLoader
                 continue;
             }
 
-            if (isset($seen[$relation->target])) {
+            if (isset($seen[$this->step($metadata->entity, $relation->property)])) {
                 continue;
             }
 
@@ -153,7 +158,7 @@ final class DefaultRelationLoader implements RelationLoader
 
     /**
      * @param list<object> $entities
-     * @param array<class-string, true> $seen
+     * @param array<string, true> $seen
      *
      * @throws EntityDatabaseException
      * @throws RelationLoadingException
@@ -205,7 +210,7 @@ final class DefaultRelationLoader implements RelationLoader
             }
 
             $nestedWithout = $without->nestedFor($relationName);
-            $nestedSeen = [...$seen, $relation->target => true];
+            $nestedSeen = [...$seen, $this->step($metadata->entity, $relationName) => true];
             $targetMetadata = $this->metadata->for($relation->target);
 
             if ($nested->isEmpty() && $this->wanted($targetMetadata, $nested, $nestedWithout, $nestedSeen) === []) {

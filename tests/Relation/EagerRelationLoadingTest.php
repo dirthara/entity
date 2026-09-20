@@ -7,6 +7,7 @@ namespace Dirthara\Entity\Tests\Relation;
 use ReflectionProperty;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Tests\Entities\Folder;
 use Dirthara\Entity\Tests\Entities\EagerBook;
 use Dirthara\Entity\Tests\Entities\CyclicBook;
 use Dirthara\Entity\Exception\MappingException;
@@ -68,14 +69,74 @@ final class EagerRelationLoadingTest extends EntityTestCase
     }
 
     #[Test]
-    public function it_stops_an_eager_relation_that_points_back_at_something_on_the_path(): void
+    public function it_follows_an_eager_relation_once_and_then_stops(): void
     {
         $book = self::entity(CyclicBook::class, $this->store(CyclicBook::class)->query()->first());
 
         $chapter = self::entity(CyclicChapter::class, $book->chapters->get(0));
 
         self::assertSame(['One', 'Two'], self::names($book->chapters, 'heading'));
-        self::assertFalse(new ReflectionProperty($chapter, 'book')->isInitialized($chapter));
+        $parent = self::entity(CyclicBook::class, $chapter->book);
+
+        self::assertSame('Earthsea', $parent->title);
+        self::assertFalse(new ReflectionProperty($parent, 'chapters')->isInitialized($parent));
+    }
+
+    #[Test]
+    public function it_walks_a_cycle_no_further_than_one_lap(): void
+    {
+        $connection = $this->counting();
+
+        $this->store(CyclicBook::class, $connection)->query()->get();
+
+        self::assertCount(3, $connection->selects());
+    }
+
+    #[Test]
+    public function it_follows_an_eager_relation_that_points_at_its_own_entity_once(): void
+    {
+        $folder = self::entity(Folder::class, $this->store(Folder::class)->find(3));
+
+        $parent = self::entity(Folder::class, $folder->parent);
+
+        self::assertSame('child', $parent->name);
+        self::assertFalse(new ReflectionProperty($parent, 'parent')->isInitialized($parent));
+    }
+
+    #[Test]
+    public function it_climbs_a_self_referential_relation_by_one_step_however_deep_the_row_sits(): void
+    {
+        $connection = $this->counting();
+
+        $this->store(Folder::class, $connection)->query()->where('name', '=', 'grandchild')->get();
+
+        self::assertCount(2, $connection->selects());
+    }
+
+    #[Test]
+    public function it_does_not_let_an_eager_relation_carry_a_path_further_than_it_was_written(): void
+    {
+        $store = $this->store(Folder::class);
+        $folder = self::entity(Folder::class, $store->find(3));
+
+        $store->load($folder, ['parent.parent']);
+
+        $root = self::entity(Folder::class, $folder->parent?->parent);
+
+        self::assertSame('root', $root->name);
+        self::assertFalse(new ReflectionProperty($root, 'parent')->isInitialized($root));
+    }
+
+    #[Test]
+    public function it_walks_a_self_referential_relation_as_far_as_the_path_names_it(): void
+    {
+        $store = $this->store(Folder::class);
+        $folder = self::entity(Folder::class, $store->find(3));
+
+        $store->load($folder, ['parent.parent']);
+
+        self::assertSame('child', $folder->parent?->name);
+        self::assertSame('root', $folder->parent?->parent?->name);
     }
 
     #[Test]
