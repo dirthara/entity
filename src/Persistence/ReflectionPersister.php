@@ -10,6 +10,7 @@ use ReflectionException;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Database\Exceptions\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
@@ -47,6 +48,10 @@ final class ReflectionPersister implements EntityPersister
                 property: $property,
             );
         }
+
+        $this->assertRelationsInitialized(metadata: $metadata, entity: $entity);
+
+        $values = [...$values, ...$this->relationValues(metadata: $metadata, entity: $entity)];
 
         $generated = $this->generatedIdentifier($metadata);
 
@@ -111,6 +116,8 @@ final class ReflectionPersister implements EntityPersister
                 property: $property,
             );
         }
+
+        $values = [...$values, ...$this->relationValues(metadata: $metadata, entity: $entity)];
 
         if ($values === []) {
             return 0;
@@ -182,6 +189,110 @@ final class ReflectionPersister implements EntityPersister
         }
 
         return $affected;
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
+     * @throws PersistenceException
+     */
+    private function assertRelationsInitialized(EntityMetadata $metadata, object $entity): void
+    {
+        foreach ($metadata->relations as $relation) {
+            if (!$relation instanceof BelongsToOneMetadata) {
+                continue;
+            }
+
+            if ($this->property(entity: $metadata->entity, property: $relation->property)->isInitialized($entity)) {
+                continue;
+            }
+
+            throw PersistenceException::uninitializedProperty(entity: $metadata->entity, property: $relation->property);
+        }
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
+     * @return array<string, string|int|float|bool|null>
+     *
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    private function relationValues(EntityMetadata $metadata, object $entity): array
+    {
+        $values = [];
+
+        foreach ($metadata->relations as $relation) {
+            if (!$relation instanceof BelongsToOneMetadata) {
+                continue;
+            }
+
+            $reflection = $this->property(entity: $metadata->entity, property: $relation->property);
+
+            if (!$reflection->isInitialized($entity)) {
+                continue;
+            }
+
+            $values[$relation->foreignKey] = $this->relationValue(
+                metadata: $metadata,
+                relation: $relation,
+                related: $reflection->getRawValue($entity),
+            );
+        }
+
+        return $values;
+    }
+
+    /**
+     * @template T of object
+     *
+     * @param EntityMetadata<T> $metadata
+     *
+     * @throws PersistenceException
+     * @throws TypeConversionException
+     */
+    private function relationValue(
+        EntityMetadata $metadata,
+        BelongsToOneMetadata $relation,
+        mixed $related,
+    ): string|int|float|bool|null {
+        if ($related === null) {
+            if (!$relation->nullable) {
+                throw PersistenceException::nullNotAllowed(entity: $metadata->entity, property: $relation->property);
+            }
+
+            return null;
+        }
+
+        if (!$related instanceof $relation->target) {
+            throw PersistenceException::invalidRelation(
+                entity: $metadata->entity,
+                relation: $relation->property,
+                expected: $relation->target,
+                actual: get_debug_type($related),
+            );
+        }
+
+        $identifier = $relation->targetIdentifier;
+
+        $reflection = $this->property(entity: $relation->target, property: $identifier->property);
+
+        $value = $reflection->isInitialized($related) ? $reflection->getRawValue($related) : null;
+
+        if ($value === null) {
+            throw PersistenceException::unsavedRelation(
+                entity: $metadata->entity,
+                relation: $relation->property,
+                target: $relation->target,
+            );
+        }
+
+        return $identifier->single()->toDatabase($value);
     }
 
     /**

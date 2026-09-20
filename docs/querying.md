@@ -74,7 +74,7 @@ you need both.
 | --- | --- | --- |
 | `get()` | `Collection<int, T>` | Every matching row, hydrated. |
 | `first()` | `T\|null` | Applies `LIMIT 1` for you. |
-| `cursor()` | `iterable<T>` | A generator, one entity at a time. |
+| `cursor()` | `iterable<T>` | A generator, one entity at a time. Cannot load relations. |
 | `exists()` | `bool` | |
 | `count()` | `int` | |
 
@@ -84,14 +84,49 @@ $articles->query()->where('id', '>', 10)->first();
 
 ### Streaming with `cursor()`
 
-`cursor()` is a generator, so nothing runs until you iterate it. That also means
-a database failure surfaces on the first iteration rather than on the call.
+`cursor()` hands back a generator, so the query itself does not run until you
+iterate it. That also means a database failure surfaces on the first iteration
+rather than on the call.
 
 ```php
 foreach ($articles->query()->cursor() as $article) {
     // one Article at a time, not the whole table in memory
 }
 ```
+
+:::caution
+A cursor cannot load relations, described in
+[loading relations](relations/loading.md). `get()` reads its whole page first and then
+loads each relation for every entity at once; a cursor only ever holds one row,
+so it would have to query again for each one. Rather than turn streaming into a
+hidden N+1, `cursor()` refuses the combination and throws
+`RelationLoadingException` from the call itself:
+
+```php
+$articles->query()->with('author')->cursor(); // throws
+```
+
+The same applies without `with()` when the entity declares a relation as
+`RelationLoading::Eager`, because that relation would be loaded anyway.
+
+When you need both the relations and a bounded amount of memory, page through
+the table with `get()` instead. Every page still loads its relations in one
+query each:
+
+```php
+$offset = 0;
+
+do {
+    $page = $articles->query()->with('author')->limit(100)->offset($offset)->get();
+
+    foreach ($page as $article) {
+        // one page of Articles, each with its author already loaded
+    }
+
+    $offset += 100;
+} while (!$page->isEmpty());
+```
+:::
 
 ## A query is a builder, not a value
 

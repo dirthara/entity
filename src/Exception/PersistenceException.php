@@ -47,6 +47,148 @@ final class PersistenceException extends EntityException
         ]);
     }
 
+    public static function unsavedRelation(string $entity, string $relation, string $target): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" points at a "%s" that has no identifier yet',
+            $relation,
+            $entity,
+            $target,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+        ]);
+    }
+
+    public static function invalidRelation(string $entity, string $relation, string $expected, string $actual): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" expects a "%s", got "%s"',
+            $relation,
+            $entity,
+            $expected,
+            $actual,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'expected' => $expected,
+            'actual' => $actual,
+        ]);
+    }
+
+    public static function unexpectedRelatedRows(
+        string $entity,
+        string $relation,
+        int $expectedMaximum,
+        int $actual,
+    ): self {
+        return new self(sprintf(
+            'Unexpected related rows "%s" for relation "%s" on entity "%s"',
+            $actual,
+            $relation,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'expectedMaximum' => $expectedMaximum,
+            'actual' => $actual,
+        ]);
+    }
+
+    public static function relationTargetMissing(
+        string $entity,
+        string $relation,
+        string $target,
+        string|int|float|bool $identifier,
+    ): self {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" points at a "%s" with identifier "%s" that does not exist',
+            $relation,
+            $entity,
+            $target,
+            $identifier,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+            'identifier' => $identifier,
+        ]);
+    }
+
+    public static function relationTaken(
+        string $entity,
+        string $relation,
+        string $target,
+        string|int|float|bool $owner,
+    ): self {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" cannot take a "%s" that already belongs to "%s"',
+            $relation,
+            $entity,
+            $target,
+            $owner,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'target' => $target,
+            'owner' => $owner,
+        ]);
+    }
+
+    public static function relationNotNullable(string $entity, string $relation): self
+    {
+        return new self(sprintf('Relation "%s" of entity "%s" does not accept null', $relation, $entity))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+        ]);
+    }
+
+    public static function relationWriteFailed(string $entity, string $relation, Throwable $previous): self
+    {
+        return new self(
+            message: sprintf('Failed to write relation "%s" of entity "%s"', $relation, $entity),
+            previous: $previous,
+        )->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+        ]);
+    }
+
+    public static function unexpectedRelationHandle(
+        string $entity,
+        string $relation,
+        string $expected,
+        string $actual,
+    ): self {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" answers a "%s", not a "%s"',
+            $relation,
+            $entity,
+            $actual,
+            $expected,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'expected' => $expected,
+            'actual' => $actual,
+        ]);
+    }
+
+    public static function unsupportedRelation(string $entity, string $relation, string $kind): self
+    {
+        return new self(sprintf(
+            'Relation "%s" of entity "%s" is of unsupported kind "%s"',
+            $relation,
+            $entity,
+            $kind,
+        ))->addContext([
+            'entity' => $entity,
+            'relation' => $relation,
+            'kind' => $kind,
+        ]);
+    }
+
     public static function missingGeneratedIdentifier(string $entity, string $property): self
     {
         return new self(sprintf(

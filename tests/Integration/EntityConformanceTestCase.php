@@ -27,8 +27,11 @@ use Dirthara\Database\Connection\ConnectionFactory;
 use Dirthara\Database\Connection\ConnectionManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Persistence\ReflectionPersister;
 use Dirthara\Database\Query\Grammar\QueryGrammarResolver;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
 use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\TransactionGrammar;
@@ -256,12 +259,29 @@ abstract class EntityConformanceTestCase extends TestCase
     protected function manager(): EntityManager
     {
         $types = new TypeRegistry();
+        $registry = new MetadataRegistry(new MetadataFactory(new DefaultNamingStrategy(), $types));
+        $states = new RelationStateRegistry();
 
         return new EntityManager(
             database: $this->database,
-            metadata: new MetadataRegistry(new MetadataFactory(new DefaultNamingStrategy(), $types)),
+            metadata: $registry,
             hydrator: new ReflectionHydrator(),
             persister: new ReflectionPersister(),
+            relationLoader: new DefaultRelationLoader(
+                metadata: $registry,
+                hydrator: new ReflectionHydrator(),
+                states: $states,
+            ),
+            relationStates: $states,
+            relationHandles: new DefaultRelationHandleFactory(
+                metadata: $registry,
+                states: $states,
+                loader: new DefaultRelationLoader(
+                    metadata: $registry,
+                    hydrator: new ReflectionHydrator(),
+                    states: $states,
+                ),
+            ),
         );
     }
 

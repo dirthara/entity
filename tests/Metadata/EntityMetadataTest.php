@@ -8,6 +8,8 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\HasManyMetadata;
+use Dirthara\Entity\Relation\RelationLoading;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Metadata\IdentifierMetadata;
@@ -24,6 +26,7 @@ final class EntityMetadataTest extends TestCase
             table: 'articles',
             identifier: new IdentifierMetadata([$identifier]),
             properties: ['id' => $identifier],
+            relations: [],
         );
 
         self::assertSame(Article::class, $metadata->entity);
@@ -40,12 +43,55 @@ final class EntityMetadataTest extends TestCase
             table: 'articles',
             identifier: new IdentifierMetadata([$this->property('id')]),
             properties: [],
+            relations: [],
         );
 
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage('Unknown property "missing"');
 
         $metadata->property('missing');
+    }
+
+    #[Test]
+    public function it_looks_a_relation_up_by_name(): void
+    {
+        $relation = $this->relation('comments');
+        $metadata = new EntityMetadata(
+            entity: Article::class,
+            table: 'articles',
+            identifier: new IdentifierMetadata([$this->property('id')]),
+            properties: [],
+            relations: ['comments' => $relation],
+        );
+
+        self::assertSame($relation, $metadata->relation('comments'));
+    }
+
+    #[Test]
+    public function it_reports_a_relation_it_does_not_map(): void
+    {
+        $metadata = new EntityMetadata(
+            entity: Article::class,
+            table: 'articles',
+            identifier: new IdentifierMetadata([$this->property('id')]),
+            properties: [],
+            relations: [],
+        );
+
+        $this->expectException(MappingException::class);
+        $this->expectExceptionMessage('Unknown relation "missing"');
+
+        $metadata->relation('missing');
+    }
+
+    private function relation(string $name): HasManyMetadata
+    {
+        return new HasManyMetadata(
+            property: $name,
+            target: Article::class,
+            loading: RelationLoading::Explicit,
+            foreignKey: 'article_id',
+        );
     }
 
     private function property(string $name): PropertyMetadata

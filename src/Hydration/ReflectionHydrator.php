@@ -10,9 +10,9 @@ use ReflectionProperty;
 use ReflectionException;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Entity\Exception\CreateEntityException;
-use Dirthara\Entity\Exception\TypeConversionException;
 
 final class ReflectionHydrator implements Hydrator
 {
@@ -54,8 +54,8 @@ final class ReflectionHydrator implements Hydrator
      * @param array<string, mixed> $data
      *
      * @throws HydrationException
-     * @throws TypeConversionException
      * @throws CreateEntityException
+     * @throws MappingException
      */
     public function hydrate(EntityMetadata $metadata, object $entity, array $data): void
     {
@@ -86,8 +86,8 @@ final class ReflectionHydrator implements Hydrator
      * @param array<string, mixed> $data
      *
      * @throws HydrationException
-     * @throws TypeConversionException
      * @throws CreateEntityException
+     * @throws MappingException
      */
     private function hydrateProperty(
         object $entity,
@@ -123,6 +123,7 @@ final class ReflectionHydrator implements Hydrator
 
     /**
      * @throws HydrationException
+     * @throws MappingException
      */
     private function value(EntityMetadata $metadata, PropertyMetadata $property, mixed $value): mixed
     {

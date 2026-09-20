@@ -327,6 +327,7 @@ final class ReflectionPersisterTest extends EntityTestCase
             table: $table,
             identifier: new IdentifierMetadata([$metadata]),
             properties: [$property => $metadata],
+            relations: [],
         );
     }
 }

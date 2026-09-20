@@ -43,6 +43,9 @@ $articles->update($article);
 - **The store is typed.** `of(Article::class)` returns a store whose `find()`,
   `all()` and `first()` are `Article`, so a static analyzer follows the entity
   through your code.
+- **Relations are declared and loaded on request.** Four attributes say which
+  side holds the foreign key. Nothing loads until you name it, and a page of
+  entities loads each relation in one query rather than one per row.
 - **Failures name the entity and the property.** Every exception carries the
   class, the property and the operation as context, ready for a log.
 
@@ -51,8 +54,8 @@ $articles->update($article);
 - There is no identity map and no unit of work. `insert()`, `update()` and
   `delete()` each go straight to the database, and reading the same row twice
   gives you two objects.
-- There are no relations. A foreign key is an ordinary column; loading what it
-  points at is a second query you write.
+- There is no cascading and no writing of a whole graph. A relation is written
+  one link at a time, and deleting an entity does not touch what it relates to.
 - There is no change tracking. `update()` writes every mapped column, because
   nothing recorded which ones you touched.
 - There are no partial reads. A row must carry every mapped column, so there is
@@ -65,6 +68,8 @@ $articles->update($article);
   `EntityManager`.
 - [Getting started](getting-started.md) to map a class and write a row.
 - [Mapping attributes](mapping/attributes.md) for every attribute and option.
+- [Defining relations](relations/defining.md) for which side holds the foreign
+  key, and [loading them](relations/loading.md) for when they are filled in.
 - [Converters](types/converters.md) to pick the precision a date column holds,
   or to map a type the built-in converters do not cover.
 - [Error handling](error-handling.md) for what each failure means.

@@ -6,9 +6,12 @@ namespace Dirthara\Entity;
 
 use Dirthara\Database\Database;
 use Dirthara\Entity\Hydration\Hydrator;
+use Dirthara\Entity\Relation\RelationLoader;
 use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
+use Dirthara\Entity\Relation\RelationHandleFactory;
+use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Database\Connection\Exceptions\ConnectionException;
@@ -20,6 +23,9 @@ final readonly class EntityManager
         private MetadataRegistry $metadata,
         private Hydrator $hydrator,
         private EntityPersister $persister,
+        private RelationLoader $relationLoader,
+        private RelationStateRegistry $relationStates,
+        private RelationHandleFactory $relationHandles,
     ) {}
 
     /**
@@ -43,6 +49,9 @@ final readonly class EntityManager
                 metadata: $metadata,
                 hydrator: $this->hydrator,
                 persister: $this->persister,
+                relationLoader: $this->relationLoader,
+                relationStates: $this->relationStates,
+                relationHandles: $this->relationHandles,
             );
         } catch (ConnectionException $exception) {
             throw EntityDatabaseException::fromDatabaseException(
