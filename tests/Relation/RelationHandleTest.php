@@ -378,11 +378,11 @@ final class RelationHandleTest extends EntityTestCase
         $store = $this->store(Book::class);
         $book = $this->book('Earthsea');
 
-        $store->load($book, 'chapters');
+        $store->load($book, ['chapters']);
 
         $this->hasMany($book, 'chapters')->add($this->chapter(3));
 
-        $store->load($book, 'chapters');
+        $store->load($book, ['chapters']);
 
         self::assertSame(['One', 'Two', 'Alpha'], self::names($book->chapters, 'heading'));
     }
@@ -392,7 +392,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Lathe');
 
-        $this->store(Book::class)->load($book, 'chapters');
+        $this->store(Book::class)->load($book, ['chapters']);
 
         $this->hasMany($book, 'chapters')->add($this->chapter(3));
 
@@ -404,7 +404,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'chapters');
+        $this->store(Book::class)->load($book, ['chapters']);
 
         $this->hasMany($book, 'chapters')->remove($this->chapter(1));
 
@@ -426,7 +426,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Lathe');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         $this->belongsToMany($book, 'topics')->attach($this->topic(1));
 
@@ -438,7 +438,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         $this->belongsToMany($book, 'topics')->detach($this->topic(1));
 
@@ -450,7 +450,7 @@ final class RelationHandleTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         $this->belongsToMany($book, 'topics')->sync([$this->topic(2)]);
 

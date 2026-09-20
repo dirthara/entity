@@ -22,8 +22,13 @@ final class RecordingRelationLoader implements RelationLoader
 
     public function assertLoadable(EntityMetadata $metadata, array $relations): void {}
 
-    public function load(ConnectedDatabase $database, EntityMetadata $metadata, array $entities, array $relations): void
-    {
+    public function load(
+        ConnectedDatabase $database,
+        EntityMetadata $metadata,
+        array $entities,
+        array $relations,
+        array $without = [],
+    ): void {
         $this->batches[] = count($entities);
         $this->relations[] = $relations;
     }

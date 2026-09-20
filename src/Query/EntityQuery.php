@@ -9,6 +9,7 @@ use Generator;
 use Dirthara\Entity\Hydration\Hydrator;
 use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Database\Query\QueryBuilder;
+use Dirthara\Entity\Relation\RelationTree;
 use Dirthara\Collection\Contract\Collection;
 use Dirthara\Collection\ImmutableCollection;
 use Dirthara\Entity\Metadata\EntityMetadata;
@@ -35,6 +36,11 @@ final class EntityQuery
      * @var array<string, true>
      */
     private array $with = [];
+
+    /**
+     * @var array<string, true>
+     */
+    private array $without = [];
 
     /**
      * @param EntityMetadata<T> $metadata
@@ -200,6 +206,21 @@ final class EntityQuery
 
         foreach ($relations as $relation) {
             $this->with[$relation] = true;
+        }
+
+        return $this;
+    }
+
+    /**
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    public function without(string ...$relations): self
+    {
+        $this->relationLoader->assertLoadable(metadata: $this->metadata, relations: array_values($relations));
+
+        foreach ($relations as $relation) {
+            $this->without[$relation] = true;
         }
 
         return $this;
@@ -420,6 +441,16 @@ final class EntityQuery
             $relations[$relation->property] = true;
         }
 
+        $without = RelationTree::fromPaths(array_keys($this->without));
+
+        foreach (array_keys($relations) as $path) {
+            $head = explode('.', $path, limit: 2)[0];
+
+            if ($without->has($head) && $without->nestedFor($head)->isEmpty()) {
+                unset($relations[$path]);
+            }
+        }
+
         return array_keys($relations);
     }
 
@@ -443,6 +474,7 @@ final class EntityQuery
             metadata: $this->metadata,
             entities: $entities,
             relations: $relations,
+            without: array_keys($this->without),
         );
     }
 }

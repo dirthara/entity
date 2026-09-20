@@ -34,7 +34,7 @@ the first.
 ```php
 $book = $books->findOrFail(1);
 
-$books->load($book, 'writer', 'topics');
+$books->load($book, ['writer', 'topics']);
 ```
 
 A relation already loaded is left alone, so calling `load()` twice costs one
@@ -42,16 +42,58 @@ round of queries, not two.
 
 ## Loading without asking
 
-`RelationLoading::Eager` on the attribute loads a relation with every query for
-that entity.
+`RelationLoading::Eager` on the attribute loads a relation whenever its entity
+is loaded — as the thing you queried for, and as the target of another relation.
 
 ```php
 #[BelongsToOne(loading: RelationLoading::Eager)]
 public Book $book;
 ```
 
+So a query for reviews loads each review's book, and if `Book` marks its writer
+`Eager`, those writers come too. Each level is still one query.
+
 Use it for a relation the entity is not really usable without. Everything else
 is better named at the call site, where the cost is visible.
+
+:::caution
+An eager relation is not followed back to an entity already on the path. If
+`Book` eagerly loads its chapters and `Chapter` eagerly loads its book, loading
+a book gives you its chapters and stops there — the chapters' `book` is left
+unloaded rather than fetching the book again forever. A path you write yourself
+is always followed, so `with('chapters.book')` still works.
+:::
+
+## Leaving one out
+
+`without()` drops a relation that would otherwise load, which is how you opt out
+of an eager one:
+
+```php
+$reviews->query()->without('book')->get();
+```
+
+It takes paths too, so you can keep a relation and drop something beneath it:
+
+```php
+$reviews->query()->without('book.writer')->get();   // the book, but not its writer
+```
+
+`load()` takes the same list as a third argument:
+
+```php
+$reviews->load($review, ['book'], without: ['book.writer']);
+```
+
+Naming a relation in both `with()` and `without()` leaves it out; `without()`
+is the more specific instruction, so it wins. A name that is not a relation
+throws `MappingException`, the same as `with()`.
+
+Dropping the last relation an entity would load makes a cursor legal again:
+
+```php
+$reviews->query()->without('book')->cursor();   // fine
+```
 
 ## One query per relation, not per row
 
@@ -84,7 +126,7 @@ $books->get(0)->writer->books->get(0)->chapters;
 `load()` takes the same paths:
 
 ```php
-$books->load($book, 'writer.books');
+$books->load($book, ['writer.books']);
 ```
 
 Each level is still one query for the whole batch, not one per parent. The page
@@ -98,15 +140,9 @@ A relation you already loaded is not read again, but a path still continues
 through it:
 
 ```php
-$books->load($book, 'writer');
-$books->load($book, 'writer.books');   // the writer stays as it is; its books load
+$books->load($book, ['writer']);
+$books->load($book, ['writer.books']);   // the writer stays as it is; its books load
 ```
-
-:::note
-`RelationLoading::Eager` still only applies to the entity the query is for. A
-relation marked `Eager` on a target is not loaded when that target is reached
-through a path — name it in the path if you want it.
-:::
 
 ## Cursors cannot load relations
 
@@ -126,7 +162,7 @@ load a relation afterwards, one entity at a time:
 
 ```php
 foreach ($books->query()->cursor() as $book) {
-    $books->load($book, 'writer');   // fine, and one query per book
+    $books->load($book, ['writer']);   // fine, and one query per book
 }
 ```
 

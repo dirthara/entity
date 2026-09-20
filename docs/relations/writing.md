@@ -150,7 +150,7 @@ A to-many verb cannot splice a row into a collection you are holding, so it
 reloads instead — but only if you had loaded it:
 
 ```php
-$books->load($book, 'chapters');
+$books->load($book, ['chapters']);
 $books->hasMany($book, 'chapters')->add($chapter);
 
 $book->chapters;   // includes the new chapter

@@ -155,7 +155,7 @@ final class EntityQueryRelationTest extends EntityTestCase
 
         $book = self::entity(Book::class, $rows[0] ?? null);
 
-        $store->load($book, 'writer');
+        $store->load($book, ['writer']);
 
         self::assertSame('Ursula', $book->writer->name);
     }

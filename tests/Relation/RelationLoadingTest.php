@@ -37,7 +37,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'writer');
+        $this->store(Book::class)->load($book, ['writer']);
 
         self::assertSame('Ursula', self::entity(Writer::class, $book->writer)->name);
     }
@@ -47,7 +47,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Discworld');
 
-        $this->store(Book::class)->load($book, 'editor');
+        $this->store(Book::class)->load($book, ['editor']);
 
         self::assertNull($book->editor);
     }
@@ -57,7 +57,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'jacket');
+        $this->store(Book::class)->load($book, ['jacket']);
 
         self::assertSame('blue', self::entity(Jacket::class, $book->jacket)->colour);
     }
@@ -67,7 +67,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Discworld');
 
-        $this->store(Book::class)->load($book, 'jacket');
+        $this->store(Book::class)->load($book, ['jacket']);
 
         self::assertNull($book->jacket);
     }
@@ -77,7 +77,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'chapters');
+        $this->store(Book::class)->load($book, ['chapters']);
 
         self::assertSame(['One', 'Two'], self::names($book->chapters, 'heading'));
     }
@@ -87,7 +87,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Lathe');
 
-        $this->store(Book::class)->load($book, 'chapters');
+        $this->store(Book::class)->load($book, ['chapters']);
 
         self::assertSame([], self::names($book->chapters, 'heading'));
     }
@@ -97,7 +97,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         self::assertSame(['fantasy', 'scifi'], self::names($book->topics, 'name'));
     }
@@ -107,7 +107,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Lathe');
 
-        $this->store(Book::class)->load($book, 'topics');
+        $this->store(Book::class)->load($book, ['topics']);
 
         self::assertSame([], self::names($book->topics, 'name'));
     }
@@ -117,7 +117,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $writer = self::entity(Writer::class, $this->store(Writer::class)->query()->first());
 
-        $this->store(Writer::class)->load($writer, 'books');
+        $this->store(Writer::class)->load($writer, ['books']);
 
         self::assertSame(['Earthsea', 'Lathe'], self::names($writer->books, 'title'));
     }
@@ -140,11 +140,11 @@ final class RelationLoadingTest extends EntityTestCase
         $store = $this->store(Book::class);
         $book = $this->book('Earthsea');
 
-        $store->load($book, 'writer');
+        $store->load($book, ['writer']);
 
         $writer = $book->writer;
 
-        $store->load($book, 'writer');
+        $store->load($book, ['writer']);
 
         self::assertSame($writer, $book->writer);
     }
@@ -154,7 +154,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'writer', 'chapters', 'topics');
+        $this->store(Book::class)->load($book, ['writer', 'chapters', 'topics']);
 
         self::assertSame('Ursula', $book->writer->name);
         self::assertSame(['One', 'Two'], self::names($book->chapters, 'heading'));
@@ -186,7 +186,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $this->expectException(InvalidEntityException::class);
 
-        $this->store(Book::class)->load(new Topic(), 'writer');
+        $this->store(Book::class)->load(new Topic(), ['writer']);
     }
 
     #[Test]
@@ -195,7 +195,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage('Unknown relation "missing"');
 
-        $this->store(Book::class)->load($this->book('Earthsea'), 'missing');
+        $this->store(Book::class)->load($this->book('Earthsea'), ['missing']);
     }
 
     #[Test]
@@ -209,7 +209,7 @@ final class RelationLoadingTest extends EntityTestCase
             Writer::class,
         ));
 
-        $this->store(Book::class)->load($this->book('Earthsea'), 'writer');
+        $this->store(Book::class)->load($this->book('Earthsea'), ['writer']);
     }
 
     #[Test]
@@ -223,7 +223,7 @@ final class RelationLoadingTest extends EntityTestCase
             Book::class,
         ));
 
-        $this->store(Book::class)->load($this->book('Earthsea'), 'writer');
+        $this->store(Book::class)->load($this->book('Earthsea'), ['writer']);
     }
 
     #[Test]
@@ -237,7 +237,7 @@ final class RelationLoadingTest extends EntityTestCase
             Book::class,
         ));
 
-        $this->store(Book::class)->load($this->book('Earthsea'), 'jacket');
+        $this->store(Book::class)->load($this->book('Earthsea'), ['jacket']);
     }
 
     #[Test]
@@ -251,7 +251,7 @@ final class RelationLoadingTest extends EntityTestCase
             Topic::class,
         ));
 
-        $this->store(Book::class)->load($this->book('Earthsea'), 'topics');
+        $this->store(Book::class)->load($this->book('Earthsea'), ['topics']);
     }
 
     #[Test]
@@ -260,7 +260,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->expectException(RelationLoadingException::class);
         $this->expectExceptionMessage(sprintf('Identifier "id" for entity "%s" is not initialized', Book::class));
 
-        $this->store(Book::class)->load(new Book(), 'chapters');
+        $this->store(Book::class)->load(new Book(), ['chapters']);
     }
 
     #[Test]
@@ -271,7 +271,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->expectException(RelationLoadingException::class);
         $this->expectExceptionMessage('Invalid identifier value of type "null"');
 
-        $this->store(Book::class)->load($this->book('Lathe'), 'topics');
+        $this->store(Book::class)->load($this->book('Lathe'), ['topics']);
     }
 
     #[Test]
@@ -291,7 +291,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->expectException(RelationLoadingException::class);
         $this->expectExceptionMessage('Missing foreign key column "nope" for relation "topics"');
 
-        $this->store(MissingPivotColumn::class)->load($owner, 'topics');
+        $this->store(MissingPivotColumn::class)->load($owner, ['topics']);
     }
 
     #[Test]
@@ -299,7 +299,7 @@ final class RelationLoadingTest extends EntityTestCase
     {
         $owner = self::entity(Anthology::class, $this->store(Anthology::class)->query()->first());
 
-        $this->store(Anthology::class)->load($owner, 'chapters');
+        $this->store(Anthology::class)->load($owner, ['chapters']);
 
         self::assertIsArray($owner->chapters);
         self::assertSame(['One', 'Two'], self::names($owner->chapters, 'heading'));
@@ -313,7 +313,7 @@ final class RelationLoadingTest extends EntityTestCase
             $this->store(Anthology::class)->query()->where('title', '=', 'Lathe')->first(),
         );
 
-        $this->store(Anthology::class)->load($owner, 'chapters');
+        $this->store(Anthology::class)->load($owner, ['chapters']);
 
         self::assertSame([], $owner->chapters);
     }
@@ -332,7 +332,7 @@ final class RelationLoadingTest extends EntityTestCase
             Jacket::class,
         ));
 
-        $this->store(RequiredHasOne::class)->load($owner, 'jacket');
+        $this->store(RequiredHasOne::class)->load($owner, ['jacket']);
     }
 
     #[Test]
@@ -343,7 +343,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->expectException(EntityDatabaseException::class);
         $this->expectExceptionMessage('load relation "rows"');
 
-        $this->store(MissingTargetTable::class)->load($owner, 'rows');
+        $this->store(MissingTargetTable::class)->load($owner, ['rows']);
     }
 
     private function book(string $title): Book

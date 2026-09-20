@@ -23,6 +23,7 @@ interface RelationLoader
     /**
      * @param list<object> $entities
      * @param list<string> $relations
+     * @param list<string> $without
      *
      * @throws EntityDatabaseException
      * @throws RelationLoadingException
@@ -33,5 +34,6 @@ interface RelationLoader
         EntityMetadata $metadata,
         array $entities,
         array $relations,
+        array $without = [],
     ): void;
 }

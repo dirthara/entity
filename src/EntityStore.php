@@ -121,23 +121,28 @@ final readonly class EntityStore
 
     /**
      * @param T $entity
+     * @param list<string> $relations
+     * @param list<string> $without
      *
      * @throws InvalidEntityException
      * @throws EntityDatabaseException
      * @throws RelationLoadingException
      * @throws MappingException
+     * @throws TypeConversionException
      */
-    public function load(object $entity, string ...$relations): void
+    public function load(object $entity, array $relations = [], array $without = []): void
     {
         $this->assertEntity($entity);
 
-        $this->relationLoader->assertLoadable(metadata: $this->metadata, relations: array_values($relations));
+        $this->relationLoader->assertLoadable(metadata: $this->metadata, relations: $relations);
+        $this->relationLoader->assertLoadable(metadata: $this->metadata, relations: $without);
 
         $this->relationLoader->load(
             database: $this->database,
             metadata: $this->metadata,
             entities: [$entity],
-            relations: array_values($relations),
+            relations: $relations,
+            without: $without,
         );
     }
 

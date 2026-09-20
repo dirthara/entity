@@ -51,6 +51,11 @@ final readonly class RelationTree
         return array_keys($this->nested);
     }
 
+    public function has(string $relation): bool
+    {
+        return isset($this->nested[$relation]);
+    }
+
     public function nestedFor(string $relation): self
     {
         return $this->nested[$relation] ?? new self([]);

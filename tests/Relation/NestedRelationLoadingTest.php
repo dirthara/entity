@@ -29,7 +29,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'writer.books');
+        $this->store(Book::class)->load($book, ['writer.books']);
 
         self::assertSame('Ursula', $book->writer->name);
         self::assertSame(['Earthsea', 'Lathe'], self::names($book->writer->books, 'title'));
@@ -40,7 +40,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'writer.books.chapters');
+        $this->store(Book::class)->load($book, ['writer.books.chapters']);
 
         $written = self::entity(Book::class, $book->writer->books->get(0));
 
@@ -52,7 +52,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     {
         $writer = self::entity(Writer::class, $this->store(Writer::class)->find(1));
 
-        $this->store(Writer::class)->load($writer, 'books.writer');
+        $this->store(Writer::class)->load($writer, ['books.writer']);
 
         foreach ($writer->books as $book) {
             self::assertSame('Ursula', self::entity(Book::class, $book)->writer->name);
@@ -86,8 +86,8 @@ final class NestedRelationLoadingTest extends EntityTestCase
         $store = $this->store(Book::class);
         $book = $this->book('Earthsea');
 
-        $store->load($book, 'writer');
-        $store->load($book, 'writer.books');
+        $store->load($book, ['writer']);
+        $store->load($book, ['writer.books']);
 
         self::assertSame(['Earthsea', 'Lathe'], self::names($book->writer->books, 'title'));
     }
@@ -110,8 +110,8 @@ final class NestedRelationLoadingTest extends EntityTestCase
         $store = $this->store(Writer::class);
         $writer = self::entity(Writer::class, $store->find(1));
 
-        $store->load($writer, 'books');
-        $store->load($writer, 'books.writer');
+        $store->load($writer, ['books']);
+        $store->load($writer, ['books.writer']);
 
         foreach ($writer->books as $book) {
             self::assertSame('Ursula', self::entity(Book::class, $book)->writer->name);
@@ -124,8 +124,8 @@ final class NestedRelationLoadingTest extends EntityTestCase
         $store = $this->store(Anthology::class);
         $owner = self::entity(Anthology::class, $store->query()->first());
 
-        $store->load($owner, 'chapters');
-        $store->load($owner, 'chapters.book');
+        $store->load($owner, ['chapters']);
+        $store->load($owner, ['chapters.book']);
 
         self::assertSame('Earthsea', self::entity(Chapter::class, $owner->chapters[0])->book?->title);
     }
@@ -135,7 +135,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Discworld');
 
-        $this->store(Book::class)->load($book, 'editor.books');
+        $this->store(Book::class)->load($book, ['editor.books']);
 
         self::assertNull($book->editor);
     }
@@ -145,7 +145,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     {
         $book = $this->book('Earthsea');
 
-        $this->store(Book::class)->load($book, 'writer.books');
+        $this->store(Book::class)->load($book, ['writer.books']);
 
         self::assertTrue(new ReflectionProperty($book, 'writer')->isInitialized($book));
     }
@@ -174,7 +174,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
         $this->expectException(MappingException::class);
         $this->expectExceptionMessage(sprintf('Unknown relation "nope" in entity "%s"', Writer::class));
 
-        $this->store(Book::class)->load($this->book('Earthsea'), 'writer.nope');
+        $this->store(Book::class)->load($this->book('Earthsea'), ['writer.nope']);
     }
 
     #[Test]

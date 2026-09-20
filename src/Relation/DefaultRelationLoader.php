@@ -86,8 +86,13 @@ final class DefaultRelationLoader implements RelationLoader
         }
     }
 
-    public function load(ConnectedDatabase $database, EntityMetadata $metadata, array $entities, array $relations): void
-    {
+    public function load(
+        ConnectedDatabase $database,
+        EntityMetadata $metadata,
+        array $entities,
+        array $relations,
+        array $without = [],
+    ): void {
         if ($entities === [] || $relations === []) {
             return;
         }
@@ -105,11 +110,50 @@ final class DefaultRelationLoader implements RelationLoader
             metadata: $metadata,
             entities: $entities,
             tree: RelationTree::fromPaths($relations),
+            without: RelationTree::fromPaths($without),
+            seen: [$metadata->entity => true],
         );
     }
 
     /**
+     * @param array<class-string, true> $seen
+     *
+     * @return list<string>
+     */
+    private function wanted(EntityMetadata $metadata, RelationTree $tree, RelationTree $without, array $seen): array
+    {
+        $relations = [];
+
+        foreach ($tree->relations() as $relationName) {
+            $relations[$relationName] = true;
+        }
+
+        foreach ($metadata->relations as $relation) {
+            if ($relation->loading !== RelationLoading::Eager) {
+                continue;
+            }
+
+            if (isset($seen[$relation->target])) {
+                continue;
+            }
+
+            $relations[$relation->property] = true;
+        }
+
+        foreach (array_keys($relations) as $relationName) {
+            if (!($without->has($relationName) && $without->nestedFor($relationName)->isEmpty())) {
+                continue;
+            }
+
+            unset($relations[$relationName]);
+        }
+
+        return array_keys($relations);
+    }
+
+    /**
      * @param list<object> $entities
+     * @param array<class-string, true> $seen
      *
      * @throws EntityDatabaseException
      * @throws RelationLoadingException
@@ -121,8 +165,10 @@ final class DefaultRelationLoader implements RelationLoader
         EntityMetadata $metadata,
         array $entities,
         RelationTree $tree,
+        RelationTree $without,
+        array $seen,
     ): void {
-        foreach ($tree->relations() as $relationName) {
+        foreach ($this->wanted($metadata, $tree, $without, $seen) as $relationName) {
             $relation = $metadata->relation($relationName);
             $nested = $tree->nestedFor($relationName);
 
@@ -158,7 +204,11 @@ final class DefaultRelationLoader implements RelationLoader
                 }
             }
 
-            if ($nested->isEmpty()) {
+            $nestedWithout = $without->nestedFor($relationName);
+            $nestedSeen = [...$seen, $relation->target => true];
+            $targetMetadata = $this->metadata->for($relation->target);
+
+            if ($nested->isEmpty() && $this->wanted($targetMetadata, $nested, $nestedWithout, $nestedSeen) === []) {
                 continue;
             }
 
@@ -174,9 +224,11 @@ final class DefaultRelationLoader implements RelationLoader
 
             $this->loadTree(
                 database: $database,
-                metadata: $this->metadata->for($relation->target),
+                metadata: $targetMetadata,
                 entities: $related,
                 tree: $nested,
+                without: $nestedWithout,
+                seen: $nestedSeen,
             );
         }
     }

@@ -60,6 +60,25 @@ final class RelationTreeTest extends TestCase
     }
 
     #[Test]
+    public function it_says_which_relations_it_holds(): void
+    {
+        $tree = RelationTree::fromPaths(['writer', 'topics.tagged']);
+
+        self::assertTrue($tree->has('writer'));
+        self::assertTrue($tree->has('topics'));
+        self::assertFalse($tree->has('chapters'));
+    }
+
+    #[Test]
+    public function it_tells_a_leaf_apart_from_a_branch(): void
+    {
+        $tree = RelationTree::fromPaths(['writer', 'topics.tagged']);
+
+        self::assertTrue($tree->nestedFor('writer')->isEmpty());
+        self::assertFalse($tree->nestedFor('topics')->isEmpty());
+    }
+
+    #[Test]
     public function it_is_empty_without_a_path(): void
     {
         self::assertTrue(RelationTree::fromPaths([])->isEmpty());

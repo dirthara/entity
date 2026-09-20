@@ -98,7 +98,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $store = $this->store(Book::class);
         $book = $this->find('Earthsea');
 
-        $store->load($book, 'writer', 'editor');
+        $store->load($book, ['writer', 'editor']);
 
         $book->writer = $this->writer(2);
 
@@ -112,7 +112,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $store = $this->store(Book::class);
         $book = $this->find('Earthsea');
 
-        $store->load($book, 'editor');
+        $store->load($book, ['editor']);
 
         $book->editor = null;
 
@@ -142,7 +142,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $book->writer = $this->writer(2);
 
         $store->update($book);
-        $store->load($book, 'writer');
+        $store->load($book, ['writer']);
 
         self::assertSame('Terry', $book->writer->name);
     }
