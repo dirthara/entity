@@ -10,12 +10,14 @@ use Dirthara\Entity\Attribute\Ignore;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Tag;
 use Dirthara\Entity\Attribute\Generated;
+use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\Entities\Post;
 use Dirthara\Entity\Tests\Entities\Draft;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Person;
 use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Tests\Entities\Account;
+use Dirthara\Entity\Tests\Entities\Chapter;
 use Dirthara\Entity\Tests\Entities\Comment;
 use Dirthara\Entity\Tests\Entities\Country;
 use Dirthara\Entity\Tests\Entities\Profile;
@@ -29,6 +31,7 @@ use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Entity\Metadata\BelongsToManyMetadata;
 use Dirthara\Entity\Tests\Entities\Invalid\MappedRelation;
+use Dirthara\Entity\Tests\Entities\Invalid\StringRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\BuiltinRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\CompositeHasOne;
 use Dirthara\Entity\Tests\Entities\Invalid\UnrelatedTarget;
@@ -86,6 +89,10 @@ final class RelationTest extends EntityTestCase
             TargetWithoutIdentifier::class,
             'Missing identifier for entity "' . WithoutIdentifier::class . '"',
         ];
+        yield 'a to-many on a type that cannot hold one' => [
+            StringRelation::class,
+            'Invalid to-many type "string" for property "chapters"',
+        ];
         yield 'a foreign key a column already takes' => [
             CollidingRelationColumn::class,
             'Duplicate column "country_code" in entity "'
@@ -129,6 +136,14 @@ final class RelationTest extends EntityTestCase
         self::assertInstanceOf(HasOneMetadata::class, $metadata->relation('profile'));
         self::assertInstanceOf(HasManyMetadata::class, $metadata->relation('comments'));
         self::assertInstanceOf(BelongsToManyMetadata::class, $metadata->relation('tags'));
+    }
+
+    #[Test]
+    public function it_takes_a_to_many_in_an_array_a_collection_or_anything_iterable(): void
+    {
+        self::assertSame(Comment::class, $this->metadata(Post::class)->relation('comments')->target);
+        self::assertSame(Chapter::class, $this->metadata(Book::class)->relation('chapters')->target);
+        self::assertSame(Tag::class, $this->metadata(Draft::class)->relation('labels')->target);
     }
 
     #[Test]

@@ -40,5 +40,5 @@ final class Draft
         relatedForeignKey: 'label_key',
         loading: RelationLoading::Eager,
     )]
-    public array $labels;
+    public iterable $labels;
 }

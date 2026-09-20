@@ -25,6 +25,7 @@ use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Attribute\BelongsToMany;
 use Dirthara\Entity\Type\CompositeConverter;
 use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Relation\RelationCollection;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
@@ -431,6 +432,8 @@ final readonly class MetadataFactory
         ReflectionProperty $property,
         HasMany $attribute,
     ): HasManyMetadata {
+        $this->assertCollectionType(entity: $reflection->getName(), property: $property);
+
         $this->reflection($attribute->target);
 
         $sourceIdentifier = $this->relationIdentifierProperty(
@@ -505,6 +508,8 @@ final readonly class MetadataFactory
         ReflectionProperty $property,
         BelongsToMany $attribute,
     ): BelongsToManyMetadata {
+        $this->assertCollectionType(entity: $reflection->getName(), property: $property);
+
         $sourceIdentifier = $this->relationIdentifierProperty(
             entity: $reflection->getName(),
             identifier: $identifier,
@@ -607,6 +612,26 @@ final readonly class MetadataFactory
         }
 
         return $identifier->single();
+    }
+
+    /**
+     * @param class-string $entity
+     *
+     * @throws MappingException
+     */
+    private function assertCollectionType(string $entity, ReflectionProperty $property): void
+    {
+        $type = $this->propertyType(entity: $entity, property: $property);
+
+        if (RelationCollection::accepts($type->getName())) {
+            return;
+        }
+
+        throw MappingException::invalidCollectionType(
+            entity: $entity,
+            property: $property->getName(),
+            type: $type->getName(),
+        );
     }
 
     /**

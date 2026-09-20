@@ -18,7 +18,6 @@ use Dirthara\Entity\Exception\InvalidEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Tests\Entities\Invalid\RequiredHasOne;
-use Dirthara\Entity\Tests\Entities\Invalid\StringRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\MissingPivotColumn;
 use Dirthara\Entity\Tests\Entities\Invalid\MissingTargetTable;
 use Dirthara\Entity\Tests\Entities\Invalid\UncapturedForeignKey;
@@ -317,20 +316,6 @@ final class RelationLoadingTest extends EntityTestCase
         $this->store(Anthology::class)->load($owner, 'chapters');
 
         self::assertSame([], $owner->chapters);
-    }
-
-    #[Test]
-    public function it_reports_a_relation_it_cannot_assign_to_the_property(): void
-    {
-        $owner = self::entity(StringRelation::class, $this->store(StringRelation::class)->query()->first());
-
-        $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
-            'Failed to assign relation "chapters" to entity "%s"',
-            StringRelation::class,
-        ));
-
-        $this->store(StringRelation::class)->load($owner, 'chapters');
     }
 
     #[Test]

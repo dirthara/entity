@@ -302,6 +302,20 @@ final class MappingException extends EntityException
         ]);
     }
 
+    public static function invalidCollectionType(string $entity, string $property, string $type): self
+    {
+        return new self(message: sprintf(
+            'Invalid to-many type "%s" for property "%s" in entity "%s", expected an array or a collection',
+            $type,
+            $property,
+            $entity,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'type' => $type,
+        ]);
+    }
+
     public static function invalidRelationTarget(
         string $entity,
         string $property,

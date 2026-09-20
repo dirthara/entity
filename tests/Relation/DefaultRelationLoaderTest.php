@@ -112,6 +112,27 @@ final class DefaultRelationLoaderTest extends EntityTestCase
     }
 
     #[Test]
+    public function it_reports_a_relation_it_cannot_assign_to_the_property(): void
+    {
+        $metadata = $this->metadataWith(
+            identifier: new IdentifierMetadata([$this->identifier('id')]),
+            relation: new HasManyMetadata(
+                property: 'title',
+                target: Chapter::class,
+                loading: RelationLoading::Explicit,
+                foreignKey: 'book_id',
+            ),
+        );
+
+        $this->createLibrary();
+
+        $this->expectException(RelationLoadingException::class);
+        $this->expectExceptionMessage(sprintf('Failed to assign relation "title" to entity "%s"', Book::class));
+
+        $this->load($metadata, $this->book(), 'title');
+    }
+
+    #[Test]
     public function it_reports_a_relation_kind_it_has_no_branch_for(): void
     {
         $metadata = $this->metadataWith(
