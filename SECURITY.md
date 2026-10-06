@@ -7,7 +7,7 @@ no backports to earlier ones.
 
 | Version | Supported |
 | --- | --- |
-| 0.2.x | Yes |
+| 0.3.x | Yes |
 | Older | No |
 
 ## Reporting a vulnerability
