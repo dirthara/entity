@@ -13,5 +13,6 @@ final readonly class Id
     public function __construct(
         public ?string $name = null,
         public string|Closure|null $converter = null,
+        public ?int $fractionalSeconds = null,
     ) {}
 }

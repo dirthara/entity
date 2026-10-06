@@ -17,6 +17,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\Entities\Record;
+use Dirthara\Entity\Tests\Entities\Reading;
 use Dirthara\Entity\Metadata\MetadataFactory;
 use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Tests\Entities\Membership;
@@ -59,6 +60,8 @@ abstract class EntityConformanceTestCase extends TestCase
 
     abstract protected function membershipsTable(): string;
 
+    abstract protected function readingsTable(): string;
+
     protected function transactions(): TransactionGrammar
     {
         return new StandardTransactionGrammar(new SavepointPrefix());
@@ -79,8 +82,10 @@ abstract class EntityConformanceTestCase extends TestCase
 
         $this->database->execute('DROP TABLE IF EXISTS conformance_records');
         $this->database->execute('DROP TABLE IF EXISTS memberships');
+        $this->database->execute('DROP TABLE IF EXISTS conformance_readings');
         $this->database->execute($this->recordsTable());
         $this->database->execute($this->membershipsTable());
+        $this->database->execute($this->readingsTable());
     }
 
     protected function env(string $name, string $default): string
@@ -207,6 +212,58 @@ abstract class EntityConformanceTestCase extends TestCase
     }
 
     #[Test]
+    public function it_round_trips_the_fractional_seconds_each_column_keeps(): void
+    {
+        $readings = $this->readings();
+
+        $reading = $this->reading('2026-03-04 10:15:30.123456');
+        $readings->insert($reading);
+
+        $found = $this->asReading($readings->findOrFail($reading->id));
+
+        self::assertSame('2026-03-04 10:15:30.123000', $found->loggedAt->format('Y-m-d H:i:s.u'));
+        self::assertSame('2026-03-04 10:15:30.123456', $found->measuredAt->format('Y-m-d H:i:s.u'));
+        self::assertSame('09:30:00.123000', $found->opensAt->format('H:i:s.u'));
+        self::assertSame('2026-03-04 10:15:30.000000', $found->settledAt->format('Y-m-d H:i:s.u'));
+        self::assertSame('2026-03-04 10:15:30.123000', $found->sampledAt->format('Y-m-d H:i:s.u'));
+
+        self::assertInstanceOf(DateTime::class, $found->measuredAt);
+    }
+
+    #[Test]
+    public function it_cuts_a_column_holding_more_digits_than_its_property_keeps(): void
+    {
+        $this->database->execute('INSERT INTO conformance_readings (logged_at, measured_at, opens_at, settled_at, sampled_at)'
+        . ' VALUES (?, ?, ?, ?, ?)', [
+            '2026-03-04 10:15:30.100',
+            '2026-03-04 10:15:30.100000',
+            '09:30:00.100',
+            '2026-03-04 10:15:30',
+            '2026-03-04 10:15:30.987654',
+        ]);
+
+        $found = $this->asReading($this->readings()->query()->first());
+
+        self::assertSame('2026-03-04 10:15:30.100000', $found->loggedAt->format('Y-m-d H:i:s.u'));
+        self::assertSame('2026-03-04 10:15:30.100000', $found->measuredAt->format('Y-m-d H:i:s.u'));
+        self::assertSame('2026-03-04 10:15:30.987000', $found->sampledAt->format('Y-m-d H:i:s.u'));
+    }
+
+    #[Test]
+    public function it_queries_by_a_value_at_its_fractional_seconds(): void
+    {
+        $readings = $this->readings();
+
+        $readings->insert($this->reading('2026-03-04 10:15:30.123456'));
+        $readings->insert($this->reading('2026-03-04 10:15:30.124456'));
+
+        $at = new DateTimeImmutable('2026-03-04 10:15:30.123999', new DateTimeZone('UTC'));
+
+        self::assertSame(1, $readings->query()->where('loggedAt', ComparisonOperator::Equal, $at)->count());
+        self::assertSame(2, $readings->query()->where('settledAt', ComparisonOperator::Equal, $at)->count());
+    }
+
+    #[Test]
     public function it_reads_a_null_column_back_as_null(): void
     {
         $records = $this->records();
@@ -258,6 +315,14 @@ abstract class EntityConformanceTestCase extends TestCase
         return $this->manager()->of(Membership::class);
     }
 
+    /**
+     * @return EntityStore<Reading>
+     */
+    protected function readings(): EntityStore
+    {
+        return $this->manager()->of(Reading::class);
+    }
+
     protected function manager(): EntityManager
     {
         $types = new TypeRegistry();
@@ -288,6 +353,29 @@ abstract class EntityConformanceTestCase extends TestCase
         }
 
         return $value;
+    }
+
+    protected function asReading(mixed $value): Reading
+    {
+        if (!$value instanceof Reading) {
+            self::fail(sprintf('Expected a reading, got %s.', get_debug_type($value)));
+        }
+
+        return $value;
+    }
+
+    protected function reading(string $at): Reading
+    {
+        $utc = new DateTimeZone('UTC');
+
+        $reading = new Reading();
+        $reading->loggedAt = new DateTimeImmutable($at, $utc);
+        $reading->measuredAt = new DateTime($at, $utc);
+        $reading->opensAt = new DateTimeImmutable('1970-01-01 09:30:00.123456', $utc);
+        $reading->settledAt = new DateTimeImmutable($at, $utc);
+        $reading->sampledAt = new DateTimeImmutable($at, $utc);
+
+        return $reading;
     }
 
     /**

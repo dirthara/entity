@@ -16,5 +16,6 @@ final readonly class Column
     public function __construct(
         public string|array|null $name = null,
         public string|Closure|null $converter = null,
+        public ?int $fractionalSeconds = null,
     ) {}
 }

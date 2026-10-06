@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Metadata;
 
+use DateTime;
+use DateTimeZone;
+use DateTimeImmutable;
 use ReflectionException;
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Column;
@@ -13,12 +16,15 @@ use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Entities\Role;
+use Dirthara\Entity\Type\TemporalFormat;
 use Dirthara\Entity\Tests\Entities\Plain;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Tests\Entities\Sample;
 use Dirthara\Entity\Tests\Entities\Ticket;
 use Dirthara\Entity\Tests\Entities\Account;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Profile;
+use Dirthara\Entity\Tests\Entities\Reading;
 use Dirthara\Entity\Tests\Entities\Replica;
 use PHPUnit\Framework\Attributes\UsesClass;
 use Dirthara\Entity\Metadata\EntityMetadata;
@@ -55,8 +61,12 @@ use Dirthara\Entity\Tests\Entities\Invalid\WithoutIdentifier;
 use Dirthara\Entity\Tests\Entities\Invalid\UnionTypedProperty;
 use Dirthara\Entity\Tests\Entities\Invalid\ConflictingAttributes;
 use Dirthara\Entity\Tests\Entities\Invalid\ConverterFactoryReturn;
+use Dirthara\Entity\Tests\Entities\Invalid\FractionalSecondsOnDate;
 use Dirthara\Entity\Tests\Entities\Invalid\UninstantiableConverter;
+use Dirthara\Entity\Tests\Entities\Invalid\TooManyFractionalSeconds;
 use Dirthara\Entity\Tests\Entities\Invalid\ConverterNeedingArguments;
+use Dirthara\Entity\Tests\Entities\Invalid\FractionalSecondsOnString;
+use Dirthara\Entity\Tests\Entities\Invalid\NegativeFractionalSeconds;
 
 use function sprintf;
 use function array_map;
@@ -84,6 +94,7 @@ use function array_keys;
 #[UsesClass(SerializedArrayConverter::class)]
 #[UsesClass(StringConverter::class)]
 #[UsesClass(TypeRegistry::class)]
+#[UsesClass(TemporalFormat::class)]
 final class MetadataFactoryTest extends EntityTestCase
 {
     /**
@@ -109,6 +120,22 @@ final class MetadataFactoryTest extends EntityTestCase
         yield 'a union type' => [UnionTypedProperty::class, 'Unsupported property type "string|int"'];
         yield 'a mixed type' => [MixedProperty::class, 'Unsupported property type "mixed"'];
         yield 'two properties on one column' => [DuplicateColumn::class, 'Duplicate column "id"'];
+        yield 'fractional seconds on a date' => [
+            FractionalSecondsOnDate::class,
+            'names fractional seconds, which its converter "date" does not keep',
+        ];
+        yield 'fractional seconds on a string' => [
+            FractionalSecondsOnString::class,
+            'names fractional seconds, which its converter "string" does not keep',
+        ];
+        yield 'too many fractional seconds' => [
+            TooManyFractionalSeconds::class,
+            'names 7 digits of fractional seconds, expected 0 to 6',
+        ];
+        yield 'negative fractional seconds' => [
+            NegativeFractionalSeconds::class,
+            'names -1 digits of fractional seconds, expected 0 to 6',
+        ];
     }
 
     #[Test]
@@ -263,6 +290,37 @@ final class MetadataFactoryTest extends EntityTestCase
         $this->expectExceptionMessage('answered "string", expected a converter');
 
         $this->metadata(ConverterFactoryReturn::class);
+    }
+
+    #[Test]
+    public function it_keeps_the_fractional_seconds_a_column_names(): void
+    {
+        $metadata = $this->metadata(Reading::class);
+        $value = new DateTimeImmutable('2026-03-04 10:15:30.123456', new DateTimeZone('UTC'));
+
+        self::assertSame('2026-03-04 10:15:30.123', $metadata->property('loggedAt')->single()->toDatabase($value));
+        self::assertSame('2026-03-04 10:15:30.123456', $metadata->property('measuredAt')->single()->toDatabase($value));
+        self::assertSame('10:15:30.123', $metadata->property('opensAt')->single()->toDatabase($value));
+        self::assertSame('2026-03-04 10:15:30', $metadata->property('settledAt')->single()->toDatabase($value));
+    }
+
+    #[Test]
+    public function it_keeps_a_mutable_converter_mutable_with_fractional_seconds(): void
+    {
+        $converter = $this->metadata(Reading::class)->property('measuredAt')->single();
+
+        self::assertInstanceOf(DateTime::class, $converter->fromDatabase('2026-03-04 10:15:30.123456'));
+    }
+
+    #[Test]
+    public function it_keeps_the_fractional_seconds_an_identifier_names(): void
+    {
+        $converter = $this->metadata(Sample::class)->property('takenAt')->single();
+
+        self::assertSame(
+            '2026-03-04 10:15:30.123456',
+            $converter->toDatabase(new DateTimeImmutable('2026-03-04 10:15:30.123456', new DateTimeZone('UTC'))),
+        );
     }
 
     #[Test]

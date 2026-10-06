@@ -53,6 +53,27 @@ final class TypeConversionException extends RuntimeException implements EntityEx
         ]);
     }
 
+    public static function fractionalSecondsNotKept(string $type): self
+    {
+        return new self(sprintf('Type "%s" keeps no fractional seconds', $type))->addContext([
+            'type' => $type,
+        ]);
+    }
+
+    public static function invalidFractionalSeconds(string $type, int $fractionalSeconds, int $maximum): self
+    {
+        return new self(sprintf(
+            'Type "%s" cannot keep %d digits of fractional seconds, expected 0 to %d',
+            $type,
+            $fractionalSeconds,
+            $maximum,
+        ))->addContext([
+            'type' => $type,
+            'fractionalSeconds' => $fractionalSeconds,
+            'maximum' => $maximum,
+        ]);
+    }
+
     public static function conversionFailed(string $type, mixed $value, Throwable $previous): self
     {
         return new self(

@@ -349,6 +349,46 @@ final class MappingException extends InvalidArgumentException implements EntityE
         ]);
     }
 
+    /**
+     * @param class-string $entity
+     */
+    public static function fractionalSecondsNotSupported(string $entity, string $property, string $converter): self
+    {
+        return new self(message: sprintf(
+            'Property "%s" in entity "%s" names fractional seconds, which its converter "%s" does not keep',
+            $property,
+            $entity,
+            $converter,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'converter' => $converter,
+        ]);
+    }
+
+    /**
+     * @param class-string $entity
+     */
+    public static function invalidFractionalSeconds(
+        string $entity,
+        string $property,
+        int $fractionalSeconds,
+        int $maximum,
+    ): self {
+        return new self(message: sprintf(
+            'Property "%s" in entity "%s" names %d digits of fractional seconds, expected 0 to %d',
+            $property,
+            $entity,
+            $fractionalSeconds,
+            $maximum,
+        ))->addContext([
+            'entity' => $entity,
+            'property' => $property,
+            'fractionalSeconds' => $fractionalSeconds,
+            'maximum' => $maximum,
+        ]);
+    }
+
     public static function invalidRelationPath(string $path): self
     {
         return new self(message: sprintf(

@@ -133,4 +133,16 @@ final class SQLiteEntityConformanceTest extends EntityConformanceTestCase
             PRIMARY KEY (team_id, user_id)
         )';
     }
+
+    protected function readingsTable(): string
+    {
+        return 'CREATE TABLE conformance_readings (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            logged_at DATETIME(3) NOT NULL,
+            measured_at DATETIME(6) NOT NULL,
+            opens_at TIME(3) NOT NULL,
+            settled_at DATETIME(0) NOT NULL,
+            sampled_at DATETIME(6) NOT NULL
+        )';
+    }
 }

@@ -209,4 +209,139 @@ final class DateTimeConverterTest extends TestCase
 
         return $read;
     }
+
+    /**
+     * @return iterable<string, array{int, string}>
+     */
+    public static function fractionalSeconds(): iterable
+    {
+        yield 'whole seconds' => [0, '2026-03-04 10:15:30'];
+        yield 'tenths' => [1, '2026-03-04 10:15:30.9'];
+        yield 'milliseconds' => [3, '2026-03-04 10:15:30.987'];
+        yield 'microseconds' => [6, '2026-03-04 10:15:30.987654'];
+    }
+
+    /**
+     * @return iterable<string, array{string, string}>
+     */
+    public static function reportedFractions(): iterable
+    {
+        yield 'the digits it writes' => ['2026-03-04 10:15:30.123', '2026-03-04 10:15:30.123000'];
+        yield 'trailing zeros dropped' => ['2026-03-04 10:15:30.1', '2026-03-04 10:15:30.100000'];
+        yield 'no fraction at all' => ['2026-03-04 10:15:30', '2026-03-04 10:15:30.000000'];
+        yield 'more digits than it keeps' => ['2026-03-04 10:15:30.123456', '2026-03-04 10:15:30.123000'];
+        yield 'SQL Server seven digits' => ['2026-03-04 10:15:30.1239999', '2026-03-04 10:15:30.123000'];
+    }
+
+    #[Test]
+    #[DataProvider('fractionalSeconds')]
+    public function it_writes_the_fractional_seconds_it_keeps(int $fractionalSeconds, string $expected): void
+    {
+        $converter = new DateTimeConverter('datetime', fractionalSeconds: $fractionalSeconds);
+
+        self::assertSame(
+            $expected,
+            $converter->toDatabase(new DateTimeImmutable('2026-03-04 10:15:30.987654', new DateTimeZone('UTC'))),
+        );
+    }
+
+    #[Test]
+    public function it_cuts_rather_than_rounds_the_digits_it_does_not_keep(): void
+    {
+        $converter = new DateTimeConverter('datetime', fractionalSeconds: 3);
+
+        self::assertSame(
+            '2026-03-04 10:15:59.999',
+            $converter->toDatabase(new DateTimeImmutable('2026-03-04 10:15:59.999999', new DateTimeZone('UTC'))),
+        );
+    }
+
+    #[Test]
+    #[DataProvider('reportedFractions')]
+    public function it_reads_back_the_fractional_seconds_it_keeps(string $reported, string $expected): void
+    {
+        $converter = new DateTimeConverter('datetime', fractionalSeconds: 3);
+
+        self::assertSame($expected, $converter->fromDatabase($reported)?->format('Y-m-d H:i:s.u'));
+    }
+
+    #[Test]
+    public function it_keeps_fractional_seconds_on_a_time(): void
+    {
+        $converter = new DateTimeConverter('time', TemporalFormat::Time, fractionalSeconds: 3);
+
+        self::assertSame('10:15:30.987', $converter->toDatabase(new DateTimeImmutable('2026-03-04 10:15:30.987654')));
+        self::assertSame(
+            '1970-01-01 10:15:30.987000',
+            $converter->fromDatabase('10:15:30.987654')?->format('Y-m-d H:i:s.u'),
+        );
+    }
+
+    #[Test]
+    public function it_keeps_its_fractional_seconds_when_it_turns_mutable(): void
+    {
+        $converter = new DateTimeConverter('datetime', fractionalSeconds: 3)->mutable();
+
+        $value = $converter->fromDatabase('2026-03-04 10:15:30.123456');
+
+        self::assertInstanceOf(DateTime::class, $value);
+        self::assertSame('2026-03-04 10:15:30.123000', $value->format('Y-m-d H:i:s.u'));
+    }
+
+    #[Test]
+    public function it_stays_mutable_when_it_is_given_fractional_seconds(): void
+    {
+        $converter = new DateTimeConverter('datetime', mutable: true)->withFractionalSeconds(6);
+
+        $value = $converter->fromDatabase('2026-03-04 10:15:30.123456');
+
+        self::assertInstanceOf(DateTime::class, $value);
+        self::assertSame('2026-03-04 10:15:30.123456', $value->format('Y-m-d H:i:s.u'));
+    }
+
+    #[Test]
+    public function it_answers_whether_its_precision_keeps_fractional_seconds(): void
+    {
+        self::assertTrue(new DateTimeConverter('datetime')->keepsFractionalSeconds());
+        self::assertFalse(new DateTimeConverter('date', TemporalFormat::Date)->keepsFractionalSeconds());
+    }
+
+    #[Test]
+    public function it_refuses_fractional_seconds_on_a_date(): void
+    {
+        try {
+            new DateTimeConverter('date', TemporalFormat::Date, fractionalSeconds: 0);
+
+            self::fail('Expected the fractional seconds to be refused.');
+        } catch (TypeConversionException $exception) {
+            self::assertSame('Type "date" keeps no fractional seconds', $exception->getMessage());
+        }
+    }
+
+    #[Test]
+    public function it_refuses_more_fractional_seconds_than_a_microsecond(): void
+    {
+        try {
+            new DateTimeConverter('datetime')->withFractionalSeconds(7);
+
+            self::fail('Expected the fractional seconds to be refused.');
+        } catch (TypeConversionException $exception) {
+            self::assertSame(
+                'Type "datetime" cannot keep 7 digits of fractional seconds, expected 0 to 6',
+                $exception->getMessage(),
+            );
+        }
+    }
+
+    #[Test]
+    public function it_refuses_negative_fractional_seconds(): void
+    {
+        try {
+            new DateTimeConverter('datetime', fractionalSeconds: -1);
+
+            self::fail('Expected the fractional seconds to be refused.');
+        } catch (TypeConversionException $exception) {
+            self::assertSame(['type' => 'datetime', 'fractionalSeconds' => -1, 'maximum' => 6], $exception->context);
+        }
+    }
 }

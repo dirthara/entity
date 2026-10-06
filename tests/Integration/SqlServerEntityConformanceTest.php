@@ -151,4 +151,16 @@ final class SqlServerEntityConformanceTest extends EntityConformanceTestCase
             PRIMARY KEY (team_id, user_id)
         )';
     }
+
+    protected function readingsTable(): string
+    {
+        return 'CREATE TABLE conformance_readings (
+            id INT IDENTITY(1,1) PRIMARY KEY,
+            logged_at DATETIME2(3) NOT NULL,
+            measured_at DATETIME2(6) NOT NULL,
+            opens_at TIME(3) NOT NULL,
+            settled_at DATETIME2(0) NOT NULL,
+            sampled_at DATETIME2(6) NOT NULL
+        )';
+    }
 }

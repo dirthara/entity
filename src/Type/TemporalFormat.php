@@ -6,12 +6,16 @@ namespace Dirthara\Entity\Type;
 
 use DateTimeImmutable;
 
+use function substr;
+
 enum TemporalFormat: string
 {
     case Date = 'date';
     case Time = 'time';
     case DateTime = 'datetime';
     case Timestamp = 'timestamp';
+
+    public const int MAX_FRACTIONAL_SECONDS = 6;
 
     /**
      * @return non-empty-string
@@ -25,14 +29,47 @@ enum TemporalFormat: string
         };
     }
 
-    public function hold(DateTimeImmutable $value): DateTimeImmutable
+    public function keepsFractionalSeconds(): bool
     {
-        $whole = $value->setTime((int) $value->format('H'), (int) $value->format('i'), (int) $value->format('s'));
+        return $this !== self::Date;
+    }
+
+    public function write(DateTimeImmutable $value, ?int $fractionalSeconds = null): string
+    {
+        $written = $value->format($this->format());
+
+        if ($fractionalSeconds === null || $fractionalSeconds === 0 || !$this->keepsFractionalSeconds()) {
+            return $written;
+        }
+
+        return $written . '.' . substr($value->format('u'), offset: 0, length: $fractionalSeconds);
+    }
+
+    public function hold(DateTimeImmutable $value, ?int $fractionalSeconds = null): DateTimeImmutable
+    {
+        $kept = $value->setTime(
+            (int) $value->format('H'),
+            (int) $value->format('i'),
+            (int) $value->format('s'),
+            $this->keptMicroseconds($value, $fractionalSeconds),
+        );
 
         return match ($this) {
-            self::Date => $whole->setTime(0, 0),
-            self::Time => $whole->setDate(1970, 1, 1),
-            self::DateTime, self::Timestamp => $whole,
+            self::Date => $kept->setTime(0, 0),
+            self::Time => $kept->setDate(1970, 1, 1),
+            self::DateTime, self::Timestamp => $kept,
         };
+    }
+
+    private function keptMicroseconds(DateTimeImmutable $value, ?int $fractionalSeconds): int
+    {
+        if ($fractionalSeconds === null || $fractionalSeconds === 0) {
+            return 0;
+        }
+
+        return (
+            (int) substr($value->format('u'), offset: 0, length: $fractionalSeconds)
+            * (10 ** (self::MAX_FRACTIONAL_SECONDS - $fractionalSeconds))
+        );
     }
 }

@@ -20,12 +20,14 @@ use Dirthara\Entity\Attribute\HasMany;
 use Dirthara\Entity\Type\TypeRegistry;
 use Dirthara\Entity\Type\TypeConverter;
 use Dirthara\Entity\Attribute\Generated;
+use Dirthara\Entity\Type\TemporalFormat;
 use Dirthara\Entity\Naming\NamingStrategy;
 use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Attribute\BelongsToMany;
 use Dirthara\Entity\Type\CompositeConverter;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Relation\RelationCollection;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
@@ -324,11 +326,16 @@ final readonly class MetadataFactory
 
         $mapping = $id ?? $column;
 
-        $converter = $this->converter(
+        $converter = $this->withFractionalSeconds(
             entity: $entity,
-            property: $property,
-            converter: $mapping?->converter,
-            propertyType: $type->getName(),
+            property: $property->getName(),
+            converter: $this->converter(
+                entity: $entity,
+                property: $property,
+                converter: $mapping?->converter,
+                propertyType: $type->getName(),
+            ),
+            fractionalSeconds: $mapping?->fractionalSeconds,
         );
 
         if ($converter instanceof CompositeConverter) {
@@ -827,6 +834,42 @@ final readonly class MetadataFactory
         }
 
         return $this->types->resolve(propertyType: $propertyType, converterType: $converter);
+    }
+
+    /**
+     * @param class-string $entity
+     *
+     * @throws MappingException
+     * @throws TypeConversionException
+     */
+    private function withFractionalSeconds(
+        string $entity,
+        string $property,
+        TypeConverter $converter,
+        ?int $fractionalSeconds,
+    ): TypeConverter {
+        if ($fractionalSeconds === null) {
+            return $converter;
+        }
+
+        if (!$converter instanceof DateTimeConverter || !$converter->keepsFractionalSeconds()) {
+            throw MappingException::fractionalSecondsNotSupported(
+                entity: $entity,
+                property: $property,
+                converter: $converter->type(),
+            );
+        }
+
+        if ($fractionalSeconds < 0 || $fractionalSeconds > TemporalFormat::MAX_FRACTIONAL_SECONDS) {
+            throw MappingException::invalidFractionalSeconds(
+                entity: $entity,
+                property: $property,
+                fractionalSeconds: $fractionalSeconds,
+                maximum: TemporalFormat::MAX_FRACTIONAL_SECONDS,
+            );
+        }
+
+        return $converter->withFractionalSeconds($fractionalSeconds);
     }
 
     /**

@@ -16,8 +16,8 @@ identifier, because everything else has a convention behind it.
 | Attribute | Target | Options |
 | --- | --- | --- |
 | `#[Entity]` | class | `table`, `connection` |
-| `#[Id]` | property | `name`, `converter` |
-| `#[Column]` | property | `name`, `converter` |
+| `#[Id]` | property | `name`, `converter`, `fractionalSeconds` |
+| `#[Column]` | property | `name`, `converter`, `fractionalSeconds` |
 | `#[Generated]` | property | none |
 | `#[Ignore]` | property | none |
 
@@ -60,12 +60,14 @@ More than one `#[Id]` makes the identifier composite, described in
 
 ## `#[Column]`
 
-Optional. Renames the column or names the converter.
+Optional. Renames the column, names the converter, or says how many digits of
+fractional seconds a date and time column keeps.
 
 | Option | Type | Default | Meaning |
 | --- | --- | --- | --- |
 | `name` | `string\|array\|null` | `null` | The column name. `null` derives it from the property name. An array names a column per part, for a converter that maps more than one; see [writing a converter](../types/writing-a-converter.md#the-interface). |
 | `converter` | `string\|Closure\|null` | `null` | A registry key, a converter class name, or a closure answering a converter. `null` looks one up by the property's type. |
+| `fractionalSeconds` | `?int` | `null` | Digits kept after the decimal point of the seconds, `0` to `6`, for a `time`, `datetime` or `timestamp` converter. `null` keeps whole seconds. See [Fractional seconds](../types/converters.md#fractional-seconds). |
 
 ```php
 #[Column(name: 'display_name')]
@@ -79,6 +81,9 @@ public Money $price;
 
 #[Column(converter: Money::converter(...))]
 public Money $total;
+
+#[Column(fractionalSeconds: 3)]
+public DateTimeImmutable $loggedAt;
 ```
 
 The `converter` option takes a registry key, the class name of a converter to

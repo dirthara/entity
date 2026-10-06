@@ -32,7 +32,7 @@ EntityException
 
 | Exception | Thrown when |
 | --- | --- |
-| `MappingException` | A class cannot be mapped: no identifier, contradictory attributes, an untyped or unsupported property, two properties on one column, a converter that cannot be built. |
+| `MappingException` | A class cannot be mapped: no identifier, contradictory attributes, an untyped or unsupported property, two properties on one column, a converter that cannot be built, fractional seconds on a converter that does not keep them or outside `0` to `6`. |
 | `TypeConversionException` | No converter handles a type, or a value cannot cross the boundary in either direction. |
 | `CreateEntityException` | An entity could not be instantiated to hydrate into. |
 | `HydrationException` | A row cannot fill an entity: a column missing, a `NULL` in a property that refuses it, a value the property's type rejects. |
@@ -92,6 +92,7 @@ break cannot forge a line in a log. The context keeps the value as it was given.
 | An unsupported property type | `entity`, `property`, `type` |
 | A converter that cannot be built | `entity`, `property`, `converter`, `reason` |
 | A closure that did not answer a converter | `entity`, `property`, `returned` |
+| Fractional seconds a converter cannot keep | `entity`, `property`, and `converter` or `fractionalSeconds` and `maximum` |
 | A failed read or connection | `entity`, `operation` |
 | Too many rows affected | `entity`, `operation`, `expectedMaximum`, `actual` |
 | The wrong class | `expected`, `actual` |

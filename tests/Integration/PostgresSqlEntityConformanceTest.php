@@ -142,4 +142,16 @@ final class PostgresSqlEntityConformanceTest extends EntityConformanceTestCase
             PRIMARY KEY (team_id, user_id)
         )';
     }
+
+    protected function readingsTable(): string
+    {
+        return 'CREATE TABLE conformance_readings (
+            id SERIAL PRIMARY KEY,
+            logged_at TIMESTAMP(3) NOT NULL,
+            measured_at TIMESTAMP(6) NOT NULL,
+            opens_at TIME(3) NOT NULL,
+            settled_at TIMESTAMP(0) NOT NULL,
+            sampled_at TIMESTAMP(6) NOT NULL
+        )';
+    }
 }

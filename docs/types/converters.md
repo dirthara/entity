@@ -163,7 +163,57 @@ only in the column type they are meant for.
 Reading is lenient, because this is where drivers differ most. SQL Server
 reports milliseconds and PostgreSQL can report an offset; whatever comes back is
 read and then held to the precision the column is mapped at, so a `date` never
-carries a time and a `datetime` never carries microseconds.
+carries a time and a `datetime` without fractional seconds never carries
+microseconds.
+
+### Fractional seconds
+
+`time`, `datetime` and `timestamp` keep whole seconds unless the property says
+otherwise. `fractionalSeconds` on `#[Column]` or `#[Id]` names how many digits
+after the decimal point of the seconds the column keeps, the same number a
+`dirthara/schema` definition passes to `time()`, `dateTime()` or `timestamp()`:
+
+```php
+#[Column(fractionalSeconds: 3)]
+public DateTimeImmutable $loggedAt;   // '2026-03-04 10:15:30.123'
+
+#[Column(converter: 'timestamp', fractionalSeconds: 6)]
+public DateTime $measuredAt;          // '2026-03-04 10:15:30.123456'
+
+#[Column(converter: 'time', fractionalSeconds: 3)]
+public DateTimeImmutable $opensAt;    // '10:15:30.123'
+```
+
+| `fractionalSeconds` | Writes | Reads back |
+| --- | --- | --- |
+| `null` | `10:15:30` | whole seconds |
+| `0` | `10:15:30` | whole seconds |
+| `3` | `10:15:30.123` | milliseconds |
+| `6` | `10:15:30.123456` | microseconds |
+
+Any value from `0` to `6` is accepted. Six digits is a microsecond, the most PHP
+and every supported database keep. The digits a column does not keep are cut,
+not rounded: `10:15:30.999999` is written to a three-digit column as
+`10:15:30.999`, never as `10:15:31.000`. The package writes exactly as many
+digits as the column keeps, so the database never has to round, and the four
+databases store the same value.
+
+Reading cuts in the same way. A column that keeps more digits than its property
+names, such as a `DATETIME(6)` mapped with `fractionalSeconds: 3`, reads back at
+three. A database that reports fewer digits, as PostgreSQL does when it drops
+trailing zeros, reads back at the value it reported.
+
+:::caution
+Leaving `fractionalSeconds` out means whole seconds in this package, whatever the
+column keeps. A `TIMESTAMP` on PostgreSQL and a `DATETIME2` on SQL Server keep
+fractional seconds by default, and a property mapped without
+`fractionalSeconds` loses them in both directions. Name the precision on the
+property whenever the column has one.
+:::
+
+Naming fractional seconds on a `date`, or on any converter other than the
+built-in date and time ones, throws `MappingException` when the class is first
+mapped, and so does a value outside `0` to `6`.
 
 ### Timezones
 
