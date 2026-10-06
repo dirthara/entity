@@ -110,7 +110,7 @@ final class RelationTreeTest extends TestCase
     public function it_refuses_a_path_with_an_empty_segment(string $path): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Invalid relation path "%s": every segment between dots has to name a relation',
             $path,
         ));

@@ -32,7 +32,7 @@ final class SerializedArrayConverterTest extends TestCase
     public function it_refuses_to_write_a_value_that_is_not_an_array(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "string", expected "array"');
+        $this->expectExceptionMessageIs('Invalid value of type "string", expected "array"');
 
         new SerializedArrayConverter()->toDatabase('a:0:{}');
     }
@@ -50,7 +50,7 @@ final class SerializedArrayConverterTest extends TestCase
     public function it_refuses_a_column_value_that_is_not_a_string(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "int", expected "serialized string"');
+        $this->expectExceptionMessageIs('Invalid column value of type "int", expected "serialized string"');
 
         new SerializedArrayConverter()->fromDatabase(1);
     }
@@ -59,7 +59,7 @@ final class SerializedArrayConverterTest extends TestCase
     public function it_refuses_a_column_value_that_does_not_unserialize_to_an_array(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "string", expected "serialized array"');
+        $this->expectExceptionMessageIs('Invalid column value of type "string", expected "serialized array"');
 
         new SerializedArrayConverter()->fromDatabase('not serialized');
     }

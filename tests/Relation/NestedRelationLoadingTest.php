@@ -393,7 +393,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_reports_a_loaded_to_many_that_no_longer_holds_entities(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "chapters" of entity "%s" holds a "string" where a "%s" was expected',
             Anthology::class,
             Chapter::class,
@@ -406,7 +406,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_reports_a_loaded_to_many_that_holds_the_wrong_kind_of_entity(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "chapters" of entity "%s" holds a "%s" where a "%s" was expected',
             Anthology::class,
             Topic::class,
@@ -435,7 +435,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_reports_a_nested_relation_the_target_does_not_map(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf('Unknown relation "nope" in entity "%s"', Writer::class));
+        $this->expectExceptionMessageIs(sprintf('Unknown relation "nope" in entity "%s"', Writer::class));
 
         $this->store(Book::class)->query()->with('writer.nope');
     }
@@ -444,7 +444,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_reports_a_nested_path_on_something_that_is_not_a_relation(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf('Unknown relation "title" in entity "%s"', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Unknown relation "title" in entity "%s"', Book::class));
 
         $this->store(Book::class)->query()->with('title.writer');
     }
@@ -453,7 +453,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_reports_a_nested_relation_load_asks_for_that_does_not_exist(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf('Unknown relation "nope" in entity "%s"', Writer::class));
+        $this->expectExceptionMessageIs(sprintf('Unknown relation "nope" in entity "%s"', Writer::class));
 
         $this->store(Book::class)->load($this->book('Earthsea'), ['writer.nope']);
     }
@@ -462,7 +462,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_refuses_a_malformed_path_where_the_query_was_given_it(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Invalid relation path ".books"');
+        $this->expectExceptionMessageIsOrContains('Invalid relation path ".books"');
 
         $this->store(Book::class)->query()->with('.books');
     }
@@ -471,7 +471,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_refuses_a_malformed_path_where_load_was_given_it(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Invalid relation path "writer."');
+        $this->expectExceptionMessageIsOrContains('Invalid relation path "writer."');
 
         $this->store(Book::class)->load($this->book('Earthsea'), ['writer.']);
     }
@@ -480,7 +480,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_refuses_a_malformed_path_where_without_was_given_it(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Invalid relation path "writer..books"');
+        $this->expectExceptionMessageIsOrContains('Invalid relation path "writer..books"');
 
         $this->store(Book::class)->query()->without('writer..books');
     }
@@ -489,7 +489,7 @@ final class NestedRelationLoadingTest extends EntityTestCase
     public function it_still_refuses_to_stream_a_nested_relation(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage('cannot be loaded from a cursor');
+        $this->expectExceptionMessageIsOrContains('cannot be loaded from a cursor');
 
         $this->store(Book::class)->query()->with('writer.books')->cursor();
     }

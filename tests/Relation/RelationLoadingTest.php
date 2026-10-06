@@ -287,7 +287,7 @@ final class RelationLoadingTest extends EntityTestCase
     public function it_reports_a_relation_the_entity_does_not_map(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Unknown relation "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown relation "missing"');
 
         $this->store(Book::class)->load($this->book('Earthsea'), ['missing']);
     }
@@ -298,7 +298,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->connection->execute('DELETE FROM writers WHERE id = 1');
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Related entity "%s" not found for relation "writer" with identifier "1"',
             Writer::class,
         ));
@@ -312,7 +312,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->connection->execute('UPDATE books SET writer_id = NULL WHERE title = ?', ['Earthsea']);
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Null relation not allowed for relation "writer" in entity "%s"',
             Book::class,
         ));
@@ -326,7 +326,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->connection->execute("INSERT INTO jackets (book_id, colour) VALUES (1, 'red')");
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Multiple related entities found for relation "jacket" in entity "%s" with identifier "1"',
             Book::class,
         ));
@@ -340,7 +340,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->connection->execute('DELETE FROM topics WHERE id = 2');
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Related entity "%s" not found for relation "topics" with identifier "2"',
             Topic::class,
         ));
@@ -352,7 +352,7 @@ final class RelationLoadingTest extends EntityTestCase
     public function it_refuses_an_entity_whose_identifier_is_not_set(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Identifier "id" for entity "%s" is not initialised', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Identifier "id" for entity "%s" is not initialised', Book::class));
 
         $this->store(Book::class)->load(new Book(), ['chapters']);
     }
@@ -363,7 +363,7 @@ final class RelationLoadingTest extends EntityTestCase
         $this->connection->execute('INSERT INTO book_topic (book_id, topic_id) VALUES (3, NULL)');
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage('Invalid identifier value of type "null"');
+        $this->expectExceptionMessageIs('Invalid identifier value of type "null"');
 
         $this->store(Book::class)->load($this->book('Lathe'), ['topics']);
     }
@@ -372,7 +372,7 @@ final class RelationLoadingTest extends EntityTestCase
     public function it_reports_a_foreign_key_column_the_row_does_not_carry(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage('Missing foreign key column "writer_id" for relation "writer"');
+        $this->expectExceptionMessageIsOrContains('Missing foreign key column "writer_id" for relation "writer"');
 
         $this->store(UncapturedForeignKey::class)->query()->first();
     }
@@ -383,7 +383,7 @@ final class RelationLoadingTest extends EntityTestCase
         $owner = self::entity(MissingPivotColumn::class, $this->store(MissingPivotColumn::class)->query()->first());
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage('Missing foreign key column "nope" for relation "topics"');
+        $this->expectExceptionMessageIsOrContains('Missing foreign key column "nope" for relation "topics"');
 
         $this->store(MissingPivotColumn::class)->load($owner, ['topics']);
     }
@@ -421,7 +421,7 @@ final class RelationLoadingTest extends EntityTestCase
         );
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Related entity "%s" not found for relation "jacket" with identifier "2"',
             Jacket::class,
         ));
@@ -435,7 +435,7 @@ final class RelationLoadingTest extends EntityTestCase
         $owner = self::entity(MissingTargetTable::class, $this->store(MissingTargetTable::class)->query()->first());
 
         $this->expectException(EntityDatabaseException::class);
-        $this->expectExceptionMessage('load relation "rows"');
+        $this->expectExceptionMessageIsOrContains('load relation "rows"');
 
         $this->store(MissingTargetTable::class)->load($owner, ['rows']);
     }

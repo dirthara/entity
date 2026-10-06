@@ -361,7 +361,7 @@ final class RelationTest extends EntityTestCase
     public function it_refuses_a_relation_on_a_composite_identifier(string $entity, string $relation): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Entity "%s" has a composite identifier and cannot own the relation "%s"',
             $entity,
             $relation,
@@ -375,7 +375,7 @@ final class RelationTest extends EntityTestCase
     public function it_refuses_a_relation_to_a_composite_identifier(string $entity, string $relation): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "%s" in entity "%s" points at "%s", which has a composite identifier',
             $relation,
             $entity,
@@ -401,7 +401,7 @@ final class RelationTest extends EntityTestCase
     public function it_refuses_a_relation_it_cannot_map(string $entity, string $message): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessageIsOrContains($message);
 
         $this->metadata($entity);
     }

@@ -30,7 +30,7 @@ final class StringConverterTest extends TestCase
     public function it_refuses_to_write_a_value_that_is_not_a_string(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "int", expected "string"');
+        $this->expectExceptionMessageIs('Invalid value of type "int", expected "string"');
 
         new StringConverter()->toDatabase(1);
     }

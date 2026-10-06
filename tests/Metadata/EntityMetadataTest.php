@@ -56,7 +56,7 @@ final class EntityMetadataTest extends TestCase
         );
 
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Unknown property "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown property "missing"');
 
         $metadata->property('missing');
     }
@@ -88,7 +88,7 @@ final class EntityMetadataTest extends TestCase
         );
 
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Unknown relation "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown relation "missing"');
 
         $metadata->relation('missing');
     }

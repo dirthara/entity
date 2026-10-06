@@ -31,7 +31,7 @@ final class JsonArrayConverterTest extends TestCase
     public function it_refuses_to_write_a_value_that_is_not_an_array(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "string", expected "array"');
+        $this->expectExceptionMessageIs('Invalid value of type "string", expected "array"');
 
         new JsonArrayConverter()->toDatabase('{}');
     }
@@ -63,7 +63,7 @@ final class JsonArrayConverterTest extends TestCase
     public function it_refuses_a_column_value_that_is_not_a_string(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "int", expected "JSON string"');
+        $this->expectExceptionMessageIs('Invalid column value of type "int", expected "JSON string"');
 
         new JsonArrayConverter()->fromDatabase(1);
     }
@@ -72,7 +72,7 @@ final class JsonArrayConverterTest extends TestCase
     public function it_reports_a_column_value_it_cannot_decode(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Conversion failed for type "json"');
+        $this->expectExceptionMessageIsOrContains('Conversion failed for type "json"');
 
         new JsonArrayConverter()->fromDatabase('{');
     }
@@ -81,7 +81,7 @@ final class JsonArrayConverterTest extends TestCase
     public function it_refuses_json_that_is_not_an_array_or_object(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "string", expected "JSON array or object"');
+        $this->expectExceptionMessageIs('Invalid column value of type "string", expected "JSON array or object"');
 
         new JsonArrayConverter()->fromDatabase('"gold"');
     }

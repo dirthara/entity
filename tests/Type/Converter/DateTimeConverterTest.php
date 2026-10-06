@@ -178,7 +178,7 @@ final class DateTimeConverterTest extends TestCase
     public function it_reports_a_value_that_is_not_a_date_time(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "string", expected "DateTimeInterface"');
+        $this->expectExceptionMessageIs('Invalid value of type "string", expected "DateTimeInterface"');
 
         new DateTimeConverter('datetime')->toDatabase('2026-03-04 10:15:30');
     }
@@ -187,7 +187,7 @@ final class DateTimeConverterTest extends TestCase
     public function it_reports_a_column_value_that_is_not_a_string(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "int"');
+        $this->expectExceptionMessageIsOrContains('Invalid column value of type "int"');
 
         new DateTimeConverter('datetime')->fromDatabase(1_772_620_530);
     }
@@ -196,7 +196,7 @@ final class DateTimeConverterTest extends TestCase
     public function it_reports_a_column_value_it_cannot_read(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Conversion failed for type "datetime"');
+        $this->expectExceptionMessageIsOrContains('Conversion failed for type "datetime"');
 
         new DateTimeConverter('datetime')->fromDatabase('not a date at all');
     }

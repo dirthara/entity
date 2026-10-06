@@ -142,7 +142,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $book->writer = $this->writer(1);
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf('Property "editor" of entity "%s" is not initialised', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Property "editor" of entity "%s" is not initialised', Book::class));
 
         $this->store(Book::class)->insert($book);
     }
@@ -237,7 +237,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $book->editor = null;
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "writer" of entity "%s" points at a "%s" that has no identifier yet',
             Book::class,
             Writer::class,
@@ -253,7 +253,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $book->editor = null;
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Null value not allowed for property "editor" in entity "%s"',
             Book::class,
         ));
@@ -268,7 +268,7 @@ final class RelationPersistenceTest extends EntityTestCase
         $book->editor = $this->writer(1);
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "editor" of entity "%s" expects a "%s", got "%s"',
             Book::class,
             Topic::class,

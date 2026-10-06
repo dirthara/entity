@@ -33,7 +33,7 @@ final class FloatConverterTest extends TestCase
     public function it_refuses_to_write_a_value_that_is_not_numeric(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "string", expected "float"');
+        $this->expectExceptionMessageIs('Invalid value of type "string", expected "float"');
 
         new FloatConverter()->toDatabase('one');
     }
@@ -51,7 +51,7 @@ final class FloatConverterTest extends TestCase
     public function it_refuses_a_column_value_that_is_not_numeric(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "string", expected "float"');
+        $this->expectExceptionMessageIs('Invalid column value of type "string", expected "float"');
 
         new FloatConverter()->fromDatabase('not a number');
     }

@@ -287,7 +287,7 @@ final class EagerRelationLoadingTest extends EntityTestCase
     public function it_still_refuses_to_stream_an_entity_that_loads_a_relation_eagerly(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage('cannot be loaded from a cursor');
+        $this->expectExceptionMessageIsOrContains('cannot be loaded from a cursor');
 
         $this->store(EagerReview::class)->query()->cursor();
     }
@@ -326,7 +326,7 @@ final class EagerRelationLoadingTest extends EntityTestCase
         $review = self::entity(PlainReview::class, $store->query()->first());
 
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf('Unknown relation "nope" in entity "%s"', PlainReview::class));
+        $this->expectExceptionMessageIs(sprintf('Unknown relation "nope" in entity "%s"', PlainReview::class));
 
         $store->load($review, ['book'], without: ['nope']);
     }
@@ -420,7 +420,7 @@ final class EagerRelationLoadingTest extends EntityTestCase
     public function it_reports_a_relation_without_does_not_know(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf('Unknown relation "nope" in entity "%s"', EagerReview::class));
+        $this->expectExceptionMessageIs(sprintf('Unknown relation "nope" in entity "%s"', EagerReview::class));
 
         $this->store(EagerReview::class)->query()->without('nope');
     }

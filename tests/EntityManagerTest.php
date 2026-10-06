@@ -140,7 +140,7 @@ final class EntityManagerTest extends EntityTestCase
     public function it_reports_an_entity_it_cannot_map(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Missing identifier');
+        $this->expectExceptionMessageIsOrContains('Missing identifier');
 
         $this->manager($this->database())->of(WithoutIdentifier::class);
     }

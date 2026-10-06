@@ -96,7 +96,7 @@ final class TypeRegistryTest extends TestCase
         self::assertFalse($registry->has(SplFileInfo::class));
 
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage(sprintf('Unsupported type "%s"', SplFileInfo::class));
+        $this->expectExceptionMessageIs(sprintf('Unsupported type "%s"', SplFileInfo::class));
 
         $registry->get(SplFileInfo::class);
     }
@@ -150,7 +150,7 @@ final class TypeRegistryTest extends TestCase
     public function it_reports_a_named_converter_that_does_not_exist(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Unsupported type "csv"');
+        $this->expectExceptionMessageIs('Unsupported type "csv"');
 
         new TypeRegistry()->resolve(propertyType: 'array', converterType: 'csv');
     }
@@ -261,7 +261,7 @@ final class TypeRegistryTest extends TestCase
         self::assertFalse($registry->has(UnbackedRole::class));
 
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage(sprintf('Unsupported type "%s"', UnbackedRole::class));
+        $this->expectExceptionMessageIs(sprintf('Unsupported type "%s"', UnbackedRole::class));
 
         $registry->get(UnbackedRole::class);
     }

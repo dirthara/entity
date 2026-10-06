@@ -269,7 +269,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_reports_a_converter_whose_constructor_needs_arguments(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('its constructor requires arguments');
+        $this->expectExceptionMessageIsOrContains('its constructor requires arguments');
 
         $this->metadata(ConverterNeedingArguments::class);
     }
@@ -278,7 +278,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_reports_a_converter_that_cannot_be_instantiated(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('it cannot be instantiated');
+        $this->expectExceptionMessageIsOrContains('it cannot be instantiated');
 
         $this->metadata(UninstantiableConverter::class);
     }
@@ -287,7 +287,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_reports_a_closure_that_does_not_answer_a_converter(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('answered "string", expected a converter');
+        $this->expectExceptionMessageIsOrContains('answered "string", expected a converter');
 
         $this->metadata(ConverterFactoryReturn::class);
     }
@@ -368,7 +368,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_refuses_a_class_that_cannot_be_an_entity(string $entity, string $type): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage(sprintf('Invalid entity type for "%s": %s', $entity, $type));
+        $this->expectExceptionMessageIs(sprintf('Invalid entity type for "%s": %s', $entity, $type));
 
         $this->metadata($entity);
     }
@@ -378,7 +378,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_refuses_a_mapping_it_cannot_make_sense_of(string $entity, string $message): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessageIsOrContains($message);
 
         $this->metadata($entity);
     }
@@ -387,7 +387,7 @@ final class MetadataFactoryTest extends EntityTestCase
     public function it_reports_a_property_type_no_converter_handles(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Unsupported type "SplFileInfo"');
+        $this->expectExceptionMessageIs('Unsupported type "SplFileInfo"');
 
         $this->metadata(UnsupportedType::class);
     }

@@ -47,7 +47,7 @@ final class BooleanConverterTest extends TestCase
     public function it_refuses_to_write_a_value_that_is_not_a_boolean(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "int", expected "bool"');
+        $this->expectExceptionMessageIs('Invalid value of type "int", expected "bool"');
 
         new BooleanConverter()->toDatabase(1);
     }
@@ -63,7 +63,7 @@ final class BooleanConverterTest extends TestCase
     public function it_refuses_a_column_value_that_means_neither(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "string", expected "bool"');
+        $this->expectExceptionMessageIs('Invalid column value of type "string", expected "bool"');
 
         new BooleanConverter()->fromDatabase('t');
     }

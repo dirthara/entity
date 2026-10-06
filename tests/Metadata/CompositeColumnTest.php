@@ -156,7 +156,7 @@ final class CompositeColumnTest extends EntityTestCase
     public function it_refuses_to_answer_one_column_for_a_composite_property(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('maps to more than one column (price_amount, price_currency)');
+        $this->expectExceptionMessageIsOrContains('maps to more than one column (price_amount, price_currency)');
 
         $this->metadata(Order::class)->property('price')->column();
     }
@@ -165,7 +165,7 @@ final class CompositeColumnTest extends EntityTestCase
     public function it_refuses_to_answer_one_converter_for_a_composite_property(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('maps to more than one column');
+        $this->expectExceptionMessageIsOrContains('maps to more than one column');
 
         $this->metadata(Order::class)->property('price')->single();
     }
@@ -174,7 +174,7 @@ final class CompositeColumnTest extends EntityTestCase
     public function it_refuses_to_answer_a_composite_converter_for_a_single_property(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Property "id" maps to a single column');
+        $this->expectExceptionMessageIs('Property "id" maps to a single column');
 
         $this->metadata(Order::class)->property('id')->composite();
     }
@@ -190,7 +190,7 @@ final class CompositeColumnTest extends EntityTestCase
         ]);
 
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('maps to more than one column');
+        $this->expectExceptionMessageIsOrContains('maps to more than one column');
 
         $this->store(Order::class)->all();
     }
@@ -207,7 +207,7 @@ final class CompositeColumnTest extends EntityTestCase
         $order->tax = new Money(0, 'EUR');
 
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('maps to more than one column');
+        $this->expectExceptionMessageIsOrContains('maps to more than one column');
 
         $this->store(Order::class)->insert($order);
     }
@@ -218,7 +218,7 @@ final class CompositeColumnTest extends EntityTestCase
         $this->createTable('CREATE TABLE orders (id INTEGER PRIMARY KEY, price_amount INTEGER, price_currency TEXT)');
 
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('maps to more than one column');
+        $this->expectExceptionMessageIsOrContains('maps to more than one column');
 
         $this->store(Order::class)->query()->where('price', ComparisonOperator::Equal, new Money(1, 'EUR'));
     }
@@ -228,7 +228,7 @@ final class CompositeColumnTest extends EntityTestCase
     public function it_reports_a_mapping_it_cannot_make(string $entity, string $message): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage($message);
+        $this->expectExceptionMessageIsOrContains($message);
 
         $this->metadata($entity);
     }

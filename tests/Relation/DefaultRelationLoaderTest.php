@@ -92,7 +92,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         ]), relation: $this->chapters());
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Composite identifier not supported for "%s"', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Composite identifier not supported for "%s"', Book::class));
 
         $this->load($metadata, $this->book(), 'chapters');
     }
@@ -113,7 +113,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         $metadata = $this->metadataWith(identifier: new IdentifierMetadata([$identifier]), relation: $this->chapters());
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Composite identifier not supported for "%s"', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Composite identifier not supported for "%s"', Book::class));
 
         $this->load($metadata, $this->book(), 'chapters');
     }
@@ -143,7 +143,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         $measurement->celsius = null;
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Identifier "celsius" for entity "%s" is null', Measurement::class));
+        $this->expectExceptionMessageIs(sprintf('Identifier "celsius" for entity "%s" is null', Measurement::class));
 
         $this->load($metadata, $measurement, 'chapters');
     }
@@ -164,7 +164,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         $this->createLibrary();
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Unknown property "nope" in entity "%s"', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Unknown property "nope" in entity "%s"', Book::class));
 
         $this->load($metadata, $this->book(), 'nope');
     }
@@ -185,7 +185,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         $this->createLibrary();
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Failed to assign relation "title" to entity "%s"', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Failed to assign relation "title" to entity "%s"', Book::class));
 
         $this->load($metadata, $this->book(), 'title');
     }
@@ -203,7 +203,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         );
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Unsupported relation "%s"', UnknownRelation::class));
+        $this->expectExceptionMessageIs(sprintf('Unsupported relation "%s"', UnknownRelation::class));
 
         $this->load($metadata, $this->book(), 'chapters');
     }
@@ -225,7 +225,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         $this->createLibrary();
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Foreign key not captured for relation "writer" in entity "%s"',
             Book::class,
         ));
@@ -267,7 +267,7 @@ final class DefaultRelationLoaderTest extends EntityTestCase
         )]), relation: $this->chapters());
 
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf('Expected entity "%s" but got "%s"', Book::class, Chapter::class));
+        $this->expectExceptionMessageIs(sprintf('Expected entity "%s" but got "%s"', Book::class, Chapter::class));
 
         $this->load($metadata, new Chapter(), 'chapters');
     }

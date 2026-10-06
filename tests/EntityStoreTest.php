@@ -150,7 +150,7 @@ final class EntityStoreTest extends EntityTestCase
     public function it_needs_every_property_of_a_composite_identifier(): void
     {
         $this->expectException(InvalidIdentifierException::class);
-        $this->expectExceptionMessage('Missing property "userId" in composite identifier');
+        $this->expectExceptionMessageIsOrContains('Missing property "userId" in composite identifier');
 
         $this->memberships()->find(['teamId' => 1]);
     }
@@ -159,7 +159,7 @@ final class EntityStoreTest extends EntityTestCase
     public function it_refuses_a_single_value_for_a_composite_identifier(): void
     {
         $this->expectException(InvalidIdentifierException::class);
-        $this->expectExceptionMessage('Composite identifier expected');
+        $this->expectExceptionMessageIsOrContains('Composite identifier expected');
 
         $this->memberships()->find(1);
     }

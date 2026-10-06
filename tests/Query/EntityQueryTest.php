@@ -172,7 +172,7 @@ final class EntityQueryTest extends EntityTestCase
     public function it_refuses_null_among_the_values_a_set_matches(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('a value IN can match');
+        $this->expectExceptionMessageIsOrContains('a value IN can match');
 
         $this->seeded()->query()->whereIn('title', ['First', null]);
     }
@@ -181,7 +181,7 @@ final class EntityQueryTest extends EntityTestCase
     public function it_refuses_null_among_the_values_a_set_excludes(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('a value IN can match');
+        $this->expectExceptionMessageIsOrContains('a value IN can match');
 
         $this->seeded()->query()->whereNotIn('title', [null]);
     }
@@ -288,7 +288,7 @@ final class EntityQueryTest extends EntityTestCase
     public function it_reports_a_property_the_entity_does_not_map(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Unknown property "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown property "missing"');
 
         $this->seeded()->query()->where('missing', ComparisonOperator::Equal, 1);
     }
@@ -314,7 +314,7 @@ final class EntityQueryTest extends EntityTestCase
     public function it_reports_a_stream_the_database_refused(): void
     {
         $this->expectException(EntityDatabaseException::class);
-        $this->expectExceptionMessage('Database operation "cursor" failed');
+        $this->expectExceptionMessageIsOrContains('Database operation "cursor" failed');
 
         iterator_to_array($this->store(Article::class)->query()->cursor());
     }

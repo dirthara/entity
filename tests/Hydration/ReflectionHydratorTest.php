@@ -83,7 +83,7 @@ final class ReflectionHydratorTest extends EntityTestCase
     public function it_reports_a_class_it_cannot_instantiate(): void
     {
         $this->expectException(CreateEntityException::class);
-        $this->expectExceptionMessage('Failed to create entity "Closure"');
+        $this->expectExceptionMessageIsOrContains('Failed to create entity "Closure"');
 
         new ReflectionHydrator()->newInstance($this->metadataFor(Closure::class));
     }
@@ -92,7 +92,7 @@ final class ReflectionHydratorTest extends EntityTestCase
     public function it_reports_a_class_that_does_not_exist(): void
     {
         $this->expectException(CreateEntityException::class);
-        $this->expectExceptionMessage('Failed to create entity');
+        $this->expectExceptionMessageIsOrContains('Failed to create entity');
 
         new ReflectionHydrator()->newInstance($this->metadataFor('Dirthara\Entity\Tests\Entities\Missing'));
     }
@@ -175,7 +175,7 @@ final class ReflectionHydratorTest extends EntityTestCase
         $hydrator = new ReflectionHydrator();
 
         $this->expectException(HydrationException::class);
-        $this->expectExceptionMessage('Invalid entity type');
+        $this->expectExceptionMessageIsOrContains('Invalid entity type');
 
         $hydrator->hydrate($this->metadata(Article::class), new Country(), []);
     }

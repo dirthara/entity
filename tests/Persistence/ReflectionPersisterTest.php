@@ -140,7 +140,7 @@ final class ReflectionPersisterTest extends EntityTestCase
     public function it_reports_an_insert_the_database_refused(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('Failed to insert entity');
+        $this->expectExceptionMessageIsOrContains('Failed to insert entity');
 
         new ReflectionPersister($this->registry())->insert(
             $this->connected(),
@@ -153,7 +153,7 @@ final class ReflectionPersisterTest extends EntityTestCase
     public function it_refuses_an_entity_of_another_type(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('Invalid entity type');
+        $this->expectExceptionMessageIsOrContains('Invalid entity type');
 
         new ReflectionPersister($this->registry())->insert(
             $this->connected(),
@@ -191,7 +191,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $profile->bio = null;
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('Null value not allowed for property "bio"');
+        $this->expectExceptionMessageIsOrContains('Null value not allowed for property "bio"');
 
         new ReflectionPersister($this->registry())->insert(
             $this->connected(),
@@ -227,7 +227,7 @@ final class ReflectionPersisterTest extends EntityTestCase
     public function it_reports_a_property_the_entity_does_not_declare(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('Unknown property "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown property "missing"');
 
         new ReflectionPersister($this->registry())->insert(
             $this->connected(),
@@ -305,7 +305,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article->id = 1;
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('Failed to update entity');
+        $this->expectExceptionMessageIsOrContains('Failed to update entity');
 
         new ReflectionPersister($this->registry())->update(
             $this->connected(),
@@ -379,7 +379,7 @@ final class ReflectionPersisterTest extends EntityTestCase
         $article->id = 1;
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('Failed to delete entity');
+        $this->expectExceptionMessageIsOrContains('Failed to delete entity');
 
         new ReflectionPersister($this->registry())->delete(
             $this->connected(),

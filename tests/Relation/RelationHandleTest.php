@@ -186,7 +186,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_to_dissociate_a_relation_that_does_not_accept_null(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf('Relation "writer" of entity "%s" does not accept null', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Relation "writer" of entity "%s" does not accept null', Book::class));
 
         $this->belongsToOne($this->book('Earthsea'), 'writer')->dissociate();
     }
@@ -195,7 +195,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_to_associate_something_the_relation_does_not_point_at(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "writer" of entity "%s" expects a "%s", got "%s"',
             Book::class,
             Writer::class,
@@ -209,7 +209,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_to_associate_something_that_has_not_been_saved(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage('points at a "' . Writer::class . '" that has no identifier yet');
+        $this->expectExceptionMessageIsOrContains('points at a "' . Writer::class . '" that has no identifier yet');
 
         $this->belongsToOne($this->book('Earthsea'), 'writer')->associate(new Writer());
     }
@@ -218,7 +218,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_to_write_a_relation_of_an_entity_that_has_no_identifier(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf('Property "id" of entity "%s" is not initialised', Book::class));
+        $this->expectExceptionMessageIs(sprintf('Property "id" of entity "%s" is not initialised', Book::class));
 
         $this->belongsToOne(new Book(), 'writer')->associate($this->writer(1));
     }
@@ -299,7 +299,7 @@ final class RelationHandleTest extends EntityTestCase
         $this->connection->execute("INSERT INTO plates (book_id, name) VALUES (1, 'extra')");
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Unexpected related rows "2" for relation "plate" on entity "%s"',
             Book::class,
         ));
@@ -349,7 +349,7 @@ final class RelationHandleTest extends EntityTestCase
         $other = $this->book('Discworld');
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "plate" of entity "%s" cannot take a "%s" that already belongs to "1"',
             Book::class,
             Plate::class,
@@ -381,7 +381,7 @@ final class RelationHandleTest extends EntityTestCase
         $this->connection->execute('DELETE FROM plates WHERE id = 2');
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "plate" of entity "%s" points at a "%s" with identifier "2" that does not exist',
             Book::class,
             Plate::class,
@@ -424,7 +424,7 @@ final class RelationHandleTest extends EntityTestCase
         $owner = self::entity(RequiredHasOne::class, $this->store(RequiredHasOne::class)->query()->first());
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "jacket" of entity "%s" does not accept null',
             RequiredHasOne::class,
         ));
@@ -650,7 +650,7 @@ final class RelationHandleTest extends EntityTestCase
         $handle = $this->store(UnknownForeignKeyColumn::class)->belongsToOne($owner, 'writer');
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Failed to write relation "writer" of entity "%s"',
             UnknownForeignKeyColumn::class,
         ));
@@ -666,7 +666,7 @@ final class RelationHandleTest extends EntityTestCase
         $handle = $this->store(MissingHasOneTable::class)->hasOne($owner, 'row');
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Failed to write relation "row" of entity "%s"',
             MissingHasOneTable::class,
         ));
@@ -682,7 +682,7 @@ final class RelationHandleTest extends EntityTestCase
         $handle = $this->store(MissingPivotTable::class)->belongsToMany($owner, 'topics');
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Failed to write relation "topics" of entity "%s"',
             MissingPivotTable::class,
         ));
@@ -714,7 +714,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_a_typed_accessor_for_a_relation_of_another_kind(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "topics" of entity "%s" answers a "%s", not a "%s"',
             Book::class,
             BelongsToManyHandle::class,
@@ -728,7 +728,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_a_to_one_accessor_for_the_other_kind_of_to_one(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "writer" of entity "%s" answers a "%s", not a "%s"',
             Book::class,
             BelongsToOneHandle::class,
@@ -742,7 +742,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_reports_a_relation_the_entity_does_not_map(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Unknown relation "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown relation "missing"');
 
         $this->store(Book::class)->relation($this->book('Earthsea'), 'missing');
     }
@@ -759,7 +759,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_reports_a_relation_kind_it_has_no_handle_for(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relation "chapters" of entity "%s" is of unsupported kind "%s"',
             Book::class,
             UnknownRelation::class,
@@ -776,7 +776,7 @@ final class RelationHandleTest extends EntityTestCase
         $handle = $this->store(MissingTargetTable::class)->hasMany($owner, 'rows');
 
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Failed to write relation "rows" of entity "%s"',
             MissingTargetTable::class,
         ));

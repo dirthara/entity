@@ -188,7 +188,7 @@ final class EntityQueryRelationTest extends EntityTestCase
     public function it_refuses_to_stream_rows_with_a_relation_it_was_asked_for(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relations "writer" of entity "%s" cannot be loaded from a cursor',
             Book::class,
         ));
@@ -200,7 +200,7 @@ final class EntityQueryRelationTest extends EntityTestCase
     public function it_refuses_to_stream_rows_of_an_entity_that_loads_a_relation_eagerly(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Relations "book" of entity "%s" cannot be loaded from a cursor',
             Review::class,
         ));
@@ -253,7 +253,7 @@ final class EntityQueryRelationTest extends EntityTestCase
     public function it_refuses_a_relation_the_entity_does_not_map(): void
     {
         $this->expectException(MappingException::class);
-        $this->expectExceptionMessage('Unknown relation "missing"');
+        $this->expectExceptionMessageIsOrContains('Unknown relation "missing"');
 
         $this->store(Book::class)->query()->with('missing');
     }

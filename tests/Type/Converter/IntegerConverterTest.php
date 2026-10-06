@@ -30,7 +30,7 @@ final class IntegerConverterTest extends TestCase
     public function it_refuses_to_write_a_numeric_string(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "string", expected "integer"');
+        $this->expectExceptionMessageIs('Invalid value of type "string", expected "integer"');
 
         new IntegerConverter()->toDatabase('42');
     }
@@ -48,7 +48,7 @@ final class IntegerConverterTest extends TestCase
     public function it_refuses_a_column_value_that_is_not_an_integer(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "string", expected "int"');
+        $this->expectExceptionMessageIs('Invalid column value of type "string", expected "int"');
 
         new IntegerConverter()->fromDatabase('4.2');
     }

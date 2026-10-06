@@ -27,7 +27,7 @@ final class BackedEnumConverterTest extends TestCase
     public function it_refuses_a_class_that_is_not_a_backed_enum(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid converter type');
+        $this->expectExceptionMessageIsOrContains('Invalid converter type');
 
         // @mago-expect analysis:invalid-argument
         new BackedEnumConverter(Article::class);
@@ -43,7 +43,7 @@ final class BackedEnumConverterTest extends TestCase
     public function it_refuses_to_write_a_value_of_another_type(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid value of type "string", expected');
+        $this->expectExceptionMessageIsOrContains('Invalid value of type "string", expected');
 
         new BackedEnumConverter(Role::class)->toDatabase('admin');
     }
@@ -58,7 +58,7 @@ final class BackedEnumConverterTest extends TestCase
     public function it_refuses_a_column_value_that_cannot_back_an_enum(): void
     {
         $this->expectException(TypeConversionException::class);
-        $this->expectExceptionMessage('Invalid column value of type "float", expected "backing value for');
+        $this->expectExceptionMessageIsOrContains('Invalid column value of type "float", expected "backing value for');
 
         new BackedEnumConverter(Role::class)->fromDatabase(1.5);
     }

@@ -98,7 +98,7 @@ final class RelationStateRegistryTest extends EntityTestCase
     public function it_reports_a_row_without_the_foreign_key_column(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Missing foreign key column "writer_id" for relation "writer" in entity "%s"',
             Book::class,
         ));
@@ -135,7 +135,7 @@ final class RelationStateRegistryTest extends EntityTestCase
     public function it_refuses_to_answer_a_foreign_key_it_never_captured(): void
     {
         $this->expectException(RelationLoadingException::class);
-        $this->expectExceptionMessage(sprintf(
+        $this->expectExceptionMessageIs(sprintf(
             'Foreign key not captured for relation "writer" in entity "%s"',
             Book::class,
         ));
