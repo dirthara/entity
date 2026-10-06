@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use Throwable;
+use RuntimeException;
 
-final class HydrationException extends EntityException
+use function sprintf;
+
+final class HydrationException extends RuntimeException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function missingColumn(string $entity, string $property, string $column): self
     {
         return new self(sprintf(

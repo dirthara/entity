@@ -9,6 +9,8 @@ use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
+use function array_key_exists;
+
 final class RelationStateRegistry
 {
     /**

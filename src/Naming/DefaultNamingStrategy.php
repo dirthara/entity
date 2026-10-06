@@ -4,6 +4,17 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Naming;
 
+use function sort;
+use function strlen;
+use function substr;
+use function implode;
+use function sprintf;
+use function preg_match;
+use function strtolower;
+use function preg_replace;
+use function str_ends_with;
+use function str_starts_with;
+
 final readonly class DefaultNamingStrategy implements NamingStrategy
 {
     private const array IRREGULAR_PLURALS = [
@@ -28,7 +39,7 @@ final readonly class DefaultNamingStrategy implements NamingStrategy
 
     public function table(string $entityShortName): string
     {
-        return $this->pluralize($this->snakeCase($entityShortName));
+        return $this->pluralise($this->snakeCase($entityShortName));
     }
 
     public function column(string $property): string
@@ -74,7 +85,7 @@ final readonly class DefaultNamingStrategy implements NamingStrategy
         return strtolower($value ?? '');
     }
 
-    private function pluralize(string $value): string
+    private function pluralise(string $value): string
     {
         $irregular = $this->irregularPlural($value);
 

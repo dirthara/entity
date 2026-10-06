@@ -12,6 +12,8 @@ use Dirthara\Entity\Metadata\BelongsToManyMetadata;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
+use function array_values;
+
 final readonly class BelongsToManyReader
 {
     public function __construct(

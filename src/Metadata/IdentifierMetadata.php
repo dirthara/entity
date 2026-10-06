@@ -6,6 +6,9 @@ namespace Dirthara\Entity\Metadata;
 
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+use function count;
+use function array_map;
+
 final readonly class IdentifierMetadata
 {
     /**

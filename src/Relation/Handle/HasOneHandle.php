@@ -17,6 +17,9 @@ use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+use function is_array;
+use function is_scalar;
+
 final readonly class HasOneHandle implements RelationHandle
 {
     public function __construct(

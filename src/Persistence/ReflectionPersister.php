@@ -17,6 +17,8 @@ use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+use function get_debug_type;
+
 final class ReflectionPersister implements EntityPersister
 {
     /**
@@ -54,7 +56,7 @@ final class ReflectionPersister implements EntityPersister
             );
         }
 
-        $this->assertRelationsInitialized(metadata: $metadata, entity: $entity);
+        $this->assertRelationsInitialised(metadata: $metadata, entity: $entity);
 
         $values = [...$values, ...$this->relationValues(metadata: $metadata, entity: $entity)];
 
@@ -203,7 +205,7 @@ final class ReflectionPersister implements EntityPersister
      *
      * @throws PersistenceException
      */
-    private function assertRelationsInitialized(EntityMetadata $metadata, object $entity): void
+    private function assertRelationsInitialised(EntityMetadata $metadata, object $entity): void
     {
         foreach ($metadata->relations as $relation) {
             if (!$relation instanceof BelongsToOneMetadata) {
@@ -214,7 +216,7 @@ final class ReflectionPersister implements EntityPersister
                 continue;
             }
 
-            throw PersistenceException::uninitializedProperty(entity: $metadata->entity, property: $relation->property);
+            throw PersistenceException::uninitialisedProperty(entity: $metadata->entity, property: $relation->property);
         }
     }
 
@@ -312,7 +314,7 @@ final class ReflectionPersister implements EntityPersister
         $reflection = $this->property(entity: $metadata->entity, property: $property->property);
 
         if (!$reflection->isInitialized($entity)) {
-            throw PersistenceException::uninitializedProperty(entity: $metadata->entity, property: $property->property);
+            throw PersistenceException::uninitialisedProperty(entity: $metadata->entity, property: $property->property);
         }
 
         $value = $reflection->getRawValue($entity);

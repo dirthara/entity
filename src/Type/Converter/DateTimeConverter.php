@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Type\Converter;
 
 use DateTime;
-use Exception;
 use DateTimeZone;
 use DateTimeImmutable;
 use DateTimeInterface;
+use DateMalformedStringException;
 use Dirthara\Entity\Type\TemporalFormat;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
+
+use function is_string;
 
 final readonly class DateTimeConverter implements ColumnConverter
 {
@@ -86,7 +88,7 @@ final readonly class DateTimeConverter implements ColumnConverter
 
         try {
             $reported = new DateTimeImmutable($value, self::utc());
-        } catch (Exception $exception) {
+        } catch (DateMalformedStringException $exception) {
             throw TypeConversionException::conversionFailed(type: $this->type, value: $value, previous: $exception);
         }
 

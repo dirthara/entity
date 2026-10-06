@@ -24,6 +24,9 @@ use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
+use function array_keys;
+use function array_values;
+
 /**
  * @template T of object
  */

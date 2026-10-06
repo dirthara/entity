@@ -10,6 +10,8 @@ use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
+use function array_values;
+
 final readonly class BelongsToOneReader
 {
     public function __construct(

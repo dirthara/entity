@@ -2,13 +2,14 @@
     "name": "dirthara/entity",
     "description": "Entities for the Dirthara framework",
     "type": "library",
+    "homepage": "https://dirthara.github.io/docs/",
     "require": {
         "php": "^8.5",
         "dirthara/collection": "^0.1",
         "dirthara/database": "^0.1"
     },
     "require-dev": {
-        "phpunit/phpunit": "^12.0 || ^13.0"
+        "phpunit/phpunit": "^13.0"
     },
     "suggest": {
         "ext-pdo_mysql": "To map entities against the MySQL driver",
@@ -32,6 +33,11 @@
             "name": "Dirthara"
         }
     ],
+    "support": {
+        "docs": "https://dirthara.github.io/docs/",
+        "issues": "https://github.com/dirthara/entity/issues",
+        "source": "https://github.com/dirthara/entity"
+    },
     "prefer-stable": true,
     "config": {
         "sort-packages": true

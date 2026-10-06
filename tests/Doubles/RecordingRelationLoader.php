@@ -9,6 +9,8 @@ use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Relation\RelationLoader;
 use Dirthara\Entity\Relation\RelationLoading;
 
+use function count;
+
 final class RecordingRelationLoader implements RelationLoader
 {
     /**

@@ -7,7 +7,9 @@ namespace Dirthara\Entity\Tests\Naming;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Naming\NoNamingStrategy;
+use PHPUnit\Framework\Attributes\CoversClass;
 
+#[CoversClass(NoNamingStrategy::class)]
 final class NoNamingStrategyTest extends TestCase
 {
     #[Test]

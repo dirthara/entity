@@ -12,15 +12,35 @@ use PHPUnit\Framework\TestCase;
 use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
+use Dirthara\Entity\Type\TemporalFormat;
+use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Tests\Entities\UnbackedRole;
 use Dirthara\Entity\Tests\Doubles\ArrayConverter;
+use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function sprintf;
+
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(TypeRegistry::class)]
+#[UsesClass(BackedEnumConverter::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TemporalFormat::class)]
 final class TypeRegistryTest extends TestCase
 {
     /**

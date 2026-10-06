@@ -7,6 +7,12 @@ namespace Dirthara\Entity\Type\Converter;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+use function is_int;
+use function is_string;
+use function filter_var;
+
+use const FILTER_VALIDATE_INT;
+
 final readonly class IntegerConverter implements ColumnConverter
 {
     public function type(): string

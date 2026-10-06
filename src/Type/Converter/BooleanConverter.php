@@ -7,6 +7,8 @@ namespace Dirthara\Entity\Type\Converter;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+use function is_bool;
+
 final readonly class BooleanConverter implements ColumnConverter
 {
     public function type(): string

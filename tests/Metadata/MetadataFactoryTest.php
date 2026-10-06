@@ -5,7 +5,13 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Tests\Metadata;
 
 use ReflectionException;
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Column;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Attribute\Ignore;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\Entities\Plain;
 use Dirthara\Entity\Tests\EntityTestCase;
@@ -14,23 +20,37 @@ use Dirthara\Entity\Tests\Entities\Account;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Profile;
 use Dirthara\Entity\Tests\Entities\Replica;
+use PHPUnit\Framework\Attributes\UsesClass;
+use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Tests\Entities\Document;
+use Dirthara\Entity\Metadata\MetadataFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Tests\Entities\Membership;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\Contract;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Tests\Doubles\UppercaseConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\Behaviour;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Tests\Doubles\ConfiguredConverter;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
+use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\MixedProperty;
 use Dirthara\Entity\Tests\Entities\Invalid\AbstractEntity;
 use Dirthara\Entity\Tests\Entities\Invalid\IgnoredMapping;
 use Dirthara\Entity\Tests\Entities\Invalid\DuplicateColumn;
 use Dirthara\Entity\Tests\Entities\Invalid\UnsupportedType;
 use Dirthara\Entity\Tests\Entities\Invalid\UntypedProperty;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\WithoutIdentifier;
 use Dirthara\Entity\Tests\Entities\Invalid\UnionTypedProperty;
 use Dirthara\Entity\Tests\Entities\Invalid\ConflictingAttributes;
@@ -38,6 +58,32 @@ use Dirthara\Entity\Tests\Entities\Invalid\ConverterFactoryReturn;
 use Dirthara\Entity\Tests\Entities\Invalid\UninstantiableConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\ConverterNeedingArguments;
 
+use function sprintf;
+use function array_map;
+use function array_keys;
+
+#[CoversClass(Column::class)]
+#[CoversClass(Entity::class)]
+#[CoversClass(Generated::class)]
+#[CoversClass(Id::class)]
+#[CoversClass(Ignore::class)]
+#[CoversClass(MappingException::class)]
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(MetadataFactory::class)]
+#[CoversClass(PropertyMetadata::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(BackedEnumConverter::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class MetadataFactoryTest extends EntityTestCase
 {
     /**

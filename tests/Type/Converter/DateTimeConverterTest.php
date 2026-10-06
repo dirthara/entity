@@ -11,10 +11,14 @@ use DateTimeInterface;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Type\TemporalFormat;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(DateTimeConverter::class)]
+#[CoversClass(TemporalFormat::class)]
 final class DateTimeConverterTest extends TestCase
 {
     /**

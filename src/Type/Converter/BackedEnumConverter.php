@@ -9,6 +9,11 @@ use ValueError;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+use function is_int;
+use function sprintf;
+use function is_string;
+use function is_subclass_of;
+
 /**
  * @template T of BackedEnum
  */

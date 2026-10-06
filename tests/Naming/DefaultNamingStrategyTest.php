@@ -6,9 +6,11 @@ namespace Dirthara\Entity\Tests\Naming;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Naming\DefaultNamingStrategy;
 
+#[CoversClass(DefaultNamingStrategy::class)]
 final class DefaultNamingStrategyTest extends TestCase
 {
     /**

@@ -7,9 +7,12 @@ namespace Dirthara\Entity\Tests\Type\Converter;
 use JsonException;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(JsonArrayConverter::class)]
 final class JsonArrayConverterTest extends TestCase
 {
     #[Test]
@@ -43,7 +46,7 @@ final class JsonArrayConverterTest extends TestCase
         } catch (TypeConversionException $exception) {
             self::assertStringStartsWith('Conversion failed for type "json"', $exception->getMessage());
             self::assertInstanceOf(JsonException::class, $exception->getPrevious());
-            self::assertSame('json', $exception->getContext()['type']);
+            self::assertSame('json', $exception->context['type']);
         }
     }
 

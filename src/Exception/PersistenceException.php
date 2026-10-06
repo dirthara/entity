@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use Throwable;
+use RuntimeException;
 
-final class PersistenceException extends EntityException
+use function sprintf;
+
+final class PersistenceException extends RuntimeException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function invalidEntity(string $expected, string $actual): self
     {
         return new self(sprintf('Invalid entity type, expected "%s", got "%s"', $expected, $actual))->addContext([
@@ -16,9 +21,9 @@ final class PersistenceException extends EntityException
         ]);
     }
 
-    public static function uninitializedProperty(string $entity, string $property): self
+    public static function uninitialisedProperty(string $entity, string $property): self
     {
-        return new self(sprintf('Property "%s" of entity "%s" is not initialized', $property, $entity))->addContext([
+        return new self(sprintf('Property "%s" of entity "%s" is not initialised', $property, $entity))->addContext([
             'entity' => $entity,
             'property' => $property,
         ]);
@@ -107,7 +112,7 @@ final class PersistenceException extends EntityException
             $relation,
             $entity,
             $target,
-            $identifier,
+            self::printable((string) $identifier),
         ))->addContext([
             'entity' => $entity,
             'relation' => $relation,
@@ -127,7 +132,7 @@ final class PersistenceException extends EntityException
             $relation,
             $entity,
             $target,
-            $owner,
+            self::printable((string) $owner),
         ))->addContext([
             'entity' => $entity,
             'relation' => $relation,

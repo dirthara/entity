@@ -9,9 +9,12 @@ use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\Entities\Article;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(BackedEnumConverter::class)]
 final class BackedEnumConverterTest extends TestCase
 {
     #[Test]
@@ -70,7 +73,7 @@ final class BackedEnumConverterTest extends TestCase
         } catch (TypeConversionException $exception) {
             self::assertStringContainsString('Conversion failed', $exception->getMessage());
             self::assertInstanceOf(ValueError::class, $exception->getPrevious());
-            self::assertSame('owner', $exception->getContext()['value']);
+            self::assertSame('owner', $exception->context['value']);
         }
     }
 }

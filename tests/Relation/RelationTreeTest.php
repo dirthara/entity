@@ -7,9 +7,14 @@ namespace Dirthara\Entity\Tests\Relation;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Relation\RelationTree;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Exception\MappingException;
 
+use function sprintf;
+
+#[CoversClass(MappingException::class)]
+#[CoversClass(RelationTree::class)]
 final class RelationTreeTest extends TestCase
 {
     #[Test]
@@ -121,7 +126,7 @@ final class RelationTreeTest extends TestCase
 
             self::fail('Expected the path to be refused.');
         } catch (MappingException $exception) {
-            self::assertSame('writer..books', $exception->getContext()['path']);
+            self::assertSame('writer..books', $exception->context['path']);
         }
     }
 }

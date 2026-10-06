@@ -6,6 +6,12 @@ namespace Dirthara\Entity\Relation;
 
 use Dirthara\Entity\Exception\MappingException;
 
+use function explode;
+use function implode;
+use function array_map;
+use function array_keys;
+use function array_slice;
+
 final readonly class RelationTree
 {
     /**

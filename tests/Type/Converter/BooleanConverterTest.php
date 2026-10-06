@@ -6,10 +6,13 @@ namespace Dirthara\Entity\Tests\Type\Converter;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(BooleanConverter::class)]
 final class BooleanConverterTest extends TestCase
 {
     /**

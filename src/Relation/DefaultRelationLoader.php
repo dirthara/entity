@@ -25,6 +25,11 @@ use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Relation\Read\BelongsToManyReader;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
+use function sprintf;
+use function is_array;
+use function array_keys;
+use function get_debug_type;
+
 final class DefaultRelationLoader implements RelationLoader
 {
     private readonly RelatedRows $rows;

@@ -6,9 +6,12 @@ namespace Dirthara\Entity\Tests\Type\Converter;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(StringConverter::class)]
 final class StringConverterTest extends TestCase
 {
     #[Test]

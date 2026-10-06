@@ -9,21 +9,25 @@ description: The exception hierarchy, the context each exception carries, and wh
 
 ## The hierarchy
 
-Every exception the package throws extends `EntityException`, so one `catch`
-covers all of them.
+Every exception the package throws implements the `EntityException` interface,
+so one `catch` covers all of them. Each also extends the SPL exception that fits
+it: `InvalidArgumentException` when the caller handed the package something it
+cannot accept, `RuntimeException` when an operation failed while running.
 
 ```text
 EntityException
-├── MappingException
-├── TypeConversionException
-├── CreateEntityException
-├── HydrationException
-├── PersistenceException
-├── InvalidEntityException
-├── InvalidIdentifierException
-├── EntityNotFoundException
-├── RelationLoadingException
-└── EntityDatabaseException
+├── InvalidArgumentException
+│   ├── MappingException
+│   ├── InvalidEntityException
+│   └── InvalidIdentifierException
+└── RuntimeException
+    ├── TypeConversionException
+    ├── CreateEntityException
+    ├── HydrationException
+    ├── PersistenceException
+    ├── EntityNotFoundException
+    ├── RelationLoadingException
+    └── EntityDatabaseException
 ```
 
 | Exception | Thrown when |
@@ -43,19 +47,19 @@ EntityException
 class, so a class that cannot be mapped fails on the first `of()` call rather
 than when a row is read.
 
-All ten are `final`. `EntityException` is the one open class, and it is what to
-catch to catch everything.
+All ten are `final`. `EntityException` is an interface rather than a class, and
+it is what to catch to catch everything.
 
 ## Context
 
-`EntityException` carries an `array<string, mixed>` of diagnostic data
-alongside the message.
+Every `EntityException` carries an `array<string, mixed>` of diagnostic data
+alongside the message, readable through its `context` property.
 
 ```php
 try {
     $articles->insert($article);
 } catch (EntityException $exception) {
-    $logger->error($exception->getMessage(), $exception->getContext() + [
+    $logger->error($exception->getMessage(), $exception->context + [
         'exception' => $exception,
     ]);
 }
@@ -64,12 +68,17 @@ try {
 The `exception` key must contain the caught exception even when the context
 already has an entry under that name.
 
-`addContext()` merges more in and returns the exception, so a layer that knows
+The property cannot be written from outside. `addContext()` merges more in and
+returns the exception, so a layer that knows
 something the thrower did not can add it and rethrow:
 
 ```php
 throw $exception->addContext(['request' => $requestId]);
 ```
+
+A message that quotes a value from a row or a caller, such as an identifier or a
+relation path, escapes the control characters in it, so a value holding a line
+break cannot forge a line in a log. The context keeps the value as it was given.
 
 ### What each carries
 

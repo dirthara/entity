@@ -4,25 +4,83 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Relation;
 
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Attribute\HasMany;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Doubles\Money;
 use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Relation\RelationTree;
 use Dirthara\Entity\Tests\Entities\Writer;
+use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Tests\Entities\Chapter;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\HasManyMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
 use Dirthara\Entity\Relation\RelationLoading;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Metadata\RelationMetadata;
+use Dirthara\Entity\Relation\Read\RelatedRows;
+use Dirthara\Entity\Relation\Read\HasOneReader;
 use Dirthara\Entity\Tests\Entities\Measurement;
 use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\Read\HasManyReader;
+use Dirthara\Entity\Relation\RelationCollection;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
 use Dirthara\Entity\Tests\Doubles\MoneyConverter;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Entity\Tests\Doubles\UnknownRelation;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Relation\Read\BelongsToOneReader;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Relation\Read\BelongsToManyReader;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Exception\RelationLoadingException;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function sprintf;
+
+#[CoversClass(RelationLoadingException::class)]
+#[CoversClass(DefaultRelationLoader::class)]
+#[CoversClass(BelongsToManyReader::class)]
+#[CoversClass(BelongsToOneReader::class)]
+#[CoversClass(HasManyReader::class)]
+#[CoversClass(HasOneReader::class)]
+#[CoversClass(RelatedRows::class)]
+#[UsesClass(BelongsToOne::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(HasMany::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(BelongsToOneMetadata::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(HasManyMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataFactory::class)]
+#[UsesClass(MetadataRegistry::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(RelationMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(RelationCollection::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(RelationTree::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class DefaultRelationLoaderTest extends EntityTestCase
 {
     #[Test]

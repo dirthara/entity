@@ -4,6 +4,10 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Naming;
 
+use function sort;
+use function implode;
+use function sprintf;
+
 final readonly class NoNamingStrategy implements NamingStrategy
 {
     public function table(string $entityShortName): string

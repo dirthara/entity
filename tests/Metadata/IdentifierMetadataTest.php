@@ -6,11 +6,19 @@ namespace Dirthara\Entity\Tests\Metadata;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\UsesTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Exception\HasExceptionContext;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+#[CoversClass(InvalidIdentifierException::class)]
+#[CoversClass(IdentifierMetadata::class)]
+#[UsesTrait(HasExceptionContext::class)]
+#[UsesClass(PropertyMetadata::class)]
 final class IdentifierMetadataTest extends TestCase
 {
     #[Test]
@@ -44,7 +52,7 @@ final class IdentifierMetadataTest extends TestCase
             self::fail('Expected the composite identifier to be reported.');
         } catch (InvalidIdentifierException $exception) {
             self::assertStringContainsString('teamId, userId', $exception->getMessage());
-            self::assertSame(['teamId', 'userId'], $exception->getContext()['properties']);
+            self::assertSame(['teamId', 'userId'], $exception->context['properties']);
         }
     }
 

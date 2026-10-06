@@ -7,6 +7,11 @@ namespace Dirthara\Entity\Type\Converter;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+use function is_array;
+use function is_string;
+use function serialize;
+use function unserialize;
+
 final readonly class SerializedArrayConverter implements ColumnConverter
 {
     public function type(): string

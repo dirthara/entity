@@ -36,6 +36,13 @@ use Dirthara\Database\Connection\ValueObjects\SavepointPrefix;
 use Dirthara\Database\Connection\ValueObjects\ConnectionConfig;
 use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
 
+use function sprintf;
+use function array_map;
+use function is_object;
+use function is_string;
+use function is_iterable;
+use function get_debug_type;
+
 abstract class EntityTestCase extends TestCase
 {
     protected Connection $connection;

@@ -5,11 +5,17 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use Throwable;
+use RuntimeException;
 
 use function sprintf;
+use function is_scalar;
+use function json_encode;
+use function get_debug_type;
 
-final class EntityNotFoundException extends EntityException
+final class EntityNotFoundException extends RuntimeException implements EntityException
 {
+    use HasExceptionContext;
+
     /**
      * @param class-string $entity
      */
@@ -27,7 +33,7 @@ final class EntityNotFoundException extends EntityException
     private static function describe(mixed $identifier): string
     {
         if (is_scalar($identifier)) {
-            return sprintf('"%s"', $identifier);
+            return sprintf('"%s"', self::printable((string) $identifier));
         }
 
         $encoded = json_encode($identifier);

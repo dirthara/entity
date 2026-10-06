@@ -5,9 +5,15 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use Throwable;
+use RuntimeException;
 
-final class TypeConversionException extends EntityException
+use function sprintf;
+use function get_debug_type;
+
+final class TypeConversionException extends RuntimeException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function unsupportedType(string $type): self
     {
         return new self(sprintf('Unsupported type "%s"', $type))->addContext([

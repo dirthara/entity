@@ -9,6 +9,8 @@ use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Type\CompositeConverter;
 use Dirthara\Entity\Exception\MappingException;
 
+use function array_values;
+
 final readonly class PropertyMetadata
 {
     /**

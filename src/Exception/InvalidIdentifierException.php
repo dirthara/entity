@@ -4,8 +4,15 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Exception;
 
-final class InvalidIdentifierException extends EntityException
+use InvalidArgumentException;
+
+use function implode;
+use function sprintf;
+
+final class InvalidIdentifierException extends InvalidArgumentException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function compositeExpected(string $entity): self
     {
         return new self(sprintf('Composite identifier expected for entity "%s"', $entity))->addContext([

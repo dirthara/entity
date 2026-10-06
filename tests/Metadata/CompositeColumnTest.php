@@ -4,14 +4,47 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Metadata;
 
+use Dirthara\Entity\EntityStore;
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Column;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Query\EntityQuery;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Tests\Doubles\Money;
 use Dirthara\Entity\Tests\Entities\Order;
 use Dirthara\Entity\Tests\EntityTestCase;
+use PHPUnit\Framework\Attributes\UsesClass;
+use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\MetadataRegistry;
+use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Relation\Read\RelatedRows;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Relation\Read\HasOneReader;
+use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\Read\HasManyReader;
+use Dirthara\Entity\Hydration\ReflectionHydrator;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
 use Dirthara\Entity\Tests\Doubles\MoneyConverter;
+use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Persistence\ReflectionPersister;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Relation\Read\BelongsToOneReader;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Relation\Handle\RelationRefresher;
+use Dirthara\Entity\Relation\Read\BelongsToManyReader;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\NamedColumnsEmpty;
 use Dirthara\Entity\Tests\Entities\Invalid\GeneratedComposite;
 use Dirthara\Entity\Tests\Entities\Invalid\CompositeIdentifier;
@@ -20,6 +53,38 @@ use Dirthara\Entity\Tests\Entities\Invalid\NamedColumnsMismatch;
 use Dirthara\Entity\Tests\Entities\Invalid\NamedColumnsOnSingle;
 use Dirthara\Entity\Tests\Entities\Invalid\CompositeCollidesWithColumn;
 
+#[CoversClass(MappingException::class)]
+#[CoversClass(MetadataFactory::class)]
+#[CoversClass(PropertyMetadata::class)]
+#[UsesClass(Column::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(EntityStore::class)]
+#[UsesClass(ReflectionHydrator::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataRegistry::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(ReflectionPersister::class)]
+#[UsesClass(EntityQuery::class)]
+#[UsesClass(DefaultRelationHandleFactory::class)]
+#[UsesClass(DefaultRelationLoader::class)]
+#[UsesClass(RelationRefresher::class)]
+#[UsesClass(BelongsToManyReader::class)]
+#[UsesClass(BelongsToOneReader::class)]
+#[UsesClass(HasManyReader::class)]
+#[UsesClass(HasOneReader::class)]
+#[UsesClass(RelatedRows::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(Relations::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class CompositeColumnTest extends EntityTestCase
 {
     /**

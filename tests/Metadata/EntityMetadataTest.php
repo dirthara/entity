@@ -7,14 +7,23 @@ namespace Dirthara\Entity\Tests\Metadata;
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Article;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\HasManyMetadata;
 use Dirthara\Entity\Relation\RelationLoading;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Metadata\RelationMetadata;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Metadata\IdentifierMetadata;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
 
+#[CoversClass(MappingException::class)]
+#[CoversClass(EntityMetadata::class)]
+#[UsesClass(HasManyMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(RelationMetadata::class)]
 final class EntityMetadataTest extends TestCase
 {
     #[Test]

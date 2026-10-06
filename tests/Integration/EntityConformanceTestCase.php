@@ -41,6 +41,7 @@ use Dirthara\Database\Connection\Transaction\StandardTransactionGrammar;
 use function getenv;
 use function sprintf;
 use function in_array;
+use function get_debug_type;
 
 abstract class EntityConformanceTestCase extends TestCase
 {

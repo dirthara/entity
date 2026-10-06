@@ -6,6 +6,9 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\ColumnConverter;
 
+use function strtolower;
+use function strtoupper;
+
 final readonly class UppercaseConverter implements ColumnConverter
 {
     public function type(): string

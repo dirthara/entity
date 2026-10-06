@@ -6,6 +6,8 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Entity\Type\ColumnConverter;
 
+use function serialize;
+
 final readonly class FaultyConverter implements ColumnConverter
 {
     public function type(): string

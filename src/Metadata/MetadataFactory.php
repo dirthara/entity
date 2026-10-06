@@ -29,6 +29,21 @@ use Dirthara\Entity\Relation\RelationCollection;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+use function is_a;
+use function count;
+use function assert;
+use function ucfirst;
+use function in_array;
+use function is_array;
+use function array_map;
+use function is_string;
+use function array_keys;
+use function array_filter;
+use function array_unique;
+use function array_values;
+use function array_combine;
+use function get_debug_type;
+
 final readonly class MetadataFactory
 {
     public function __construct(

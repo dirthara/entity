@@ -6,9 +6,12 @@ namespace Dirthara\Entity\Tests\Type\Converter;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(IntegerConverter::class)]
 final class IntegerConverterTest extends TestCase
 {
     #[Test]

@@ -6,7 +6,11 @@ namespace Dirthara\Entity\Tests\Metadata;
 
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Column;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Attribute\HasOne;
 use Dirthara\Entity\Attribute\Ignore;
+use Dirthara\Entity\Attribute\HasMany;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Tag;
 use Dirthara\Entity\Attribute\Generated;
@@ -21,21 +25,39 @@ use Dirthara\Entity\Tests\Entities\Chapter;
 use Dirthara\Entity\Tests\Entities\Comment;
 use Dirthara\Entity\Tests\Entities\Country;
 use Dirthara\Entity\Tests\Entities\Profile;
+use PHPUnit\Framework\Attributes\UsesClass;
+use Dirthara\Entity\Attribute\BelongsToMany;
+use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\HasOneMetadata;
 use Dirthara\Entity\Tests\Entities\Category;
 use Dirthara\Entity\Metadata\HasManyMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
 use Dirthara\Entity\Relation\RelationLoading;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Metadata\RelationMetadata;
 use Dirthara\Entity\Tests\Entities\Membership;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\RelationCollection;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
 use Dirthara\Entity\Metadata\BelongsToOneMetadata;
+use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Entity\Metadata\BelongsToManyMetadata;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\MappedRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\StringRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\BuiltinRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\CompositeHasOne;
 use Dirthara\Entity\Tests\Entities\Invalid\UnrelatedTarget;
 use Dirthara\Entity\Tests\Entities\Invalid\CompositeHasMany;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\MultipleRelations;
 use Dirthara\Entity\Tests\Entities\Invalid\WithoutIdentifier;
 use Dirthara\Entity\Tests\Entities\Invalid\CollidingRelations;
@@ -48,6 +70,37 @@ use Dirthara\Entity\Tests\Entities\Invalid\CompositeRelationTarget;
 use Dirthara\Entity\Tests\Entities\Invalid\SelfReferencingRelation;
 use Dirthara\Entity\Tests\Entities\Invalid\TargetWithoutIdentifier;
 
+use function sprintf;
+use function array_keys;
+
+#[CoversClass(BelongsToMany::class)]
+#[CoversClass(BelongsToOne::class)]
+#[CoversClass(HasMany::class)]
+#[CoversClass(HasOne::class)]
+#[CoversClass(MappingException::class)]
+#[CoversClass(BelongsToManyMetadata::class)]
+#[CoversClass(BelongsToOneMetadata::class)]
+#[CoversClass(HasManyMetadata::class)]
+#[CoversClass(HasOneMetadata::class)]
+#[CoversClass(MetadataFactory::class)]
+#[CoversClass(RelationMetadata::class)]
+#[UsesClass(Column::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(RelationCollection::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class RelationTest extends EntityTestCase
 {
     /**
@@ -298,7 +351,7 @@ final class RelationTest extends EntityTestCase
         } catch (MappingException $exception) {
             self::assertSame(
                 [BelongsToOne::class, Id::class, Column::class, Generated::class, Ignore::class],
-                $exception->getContext()['attributes'],
+                $exception->context['attributes'],
             );
         }
     }

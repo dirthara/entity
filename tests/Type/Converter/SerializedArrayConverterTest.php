@@ -6,11 +6,14 @@ namespace Dirthara\Entity\Tests\Type\Converter;
 
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
 use function serialize;
 
+#[CoversClass(TypeConversionException::class)]
+#[CoversClass(SerializedArrayConverter::class)]
 final class SerializedArrayConverterTest extends TestCase
 {
     #[Test]

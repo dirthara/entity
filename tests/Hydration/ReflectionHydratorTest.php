@@ -8,23 +8,62 @@ use Closure;
 use TypeError;
 use ReflectionProperty;
 use ReflectionException;
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Column;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Tests\EntityTestCase;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Country;
 use Dirthara\Entity\Tests\Entities\Profile;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
 use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Entity\Tests\Entities\Measurement;
 use Dirthara\Entity\Metadata\IdentifierMetadata;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Entity\Hydration\ReflectionHydrator;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
 use Dirthara\Entity\Tests\Doubles\FaultyConverter;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Relation\RelationStateRegistry;
 use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Exception\CreateEntityException;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
+use Dirthara\Entity\Type\Converter\BackedEnumConverter;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function array_slice;
+use function array_filter;
+
+#[CoversClass(CreateEntityException::class)]
+#[CoversClass(HydrationException::class)]
+#[CoversClass(ReflectionHydrator::class)]
+#[UsesClass(Column::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataFactory::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(BackedEnumConverter::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class ReflectionHydratorTest extends EntityTestCase
 {
     #[Test]
@@ -110,7 +149,7 @@ final class ReflectionHydratorTest extends EntityTestCase
         } catch (HydrationException $exception) {
             self::assertStringContainsString('Column "title" is null', $exception->getMessage());
             self::assertStringContainsString('does not accept null', $exception->getMessage());
-            self::assertSame('title', $exception->getContext()['property']);
+            self::assertSame('title', $exception->context['property']);
         }
     }
 
@@ -153,7 +192,7 @@ final class ReflectionHydratorTest extends EntityTestCase
             self::fail('Expected the hydration to fail.');
         } catch (HydrationException $exception) {
             self::assertStringContainsString('Missing column "published"', $exception->getMessage());
-            self::assertSame('published', $exception->getContext()['column']);
+            self::assertSame('published', $exception->context['column']);
         }
     }
 

@@ -5,18 +5,108 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Tests\Relation;
 
 use ReflectionProperty;
+use Dirthara\Entity\EntityStore;
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Attribute\HasOne;
+use Dirthara\Entity\Attribute\HasMany;
+use Dirthara\Entity\Query\EntityQuery;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Relation\RelationTree;
 use Dirthara\Entity\Tests\Entities\Folder;
+use Dirthara\Entity\Attribute\BelongsToOne;
+use Dirthara\Entity\Relation\RelationState;
+use PHPUnit\Framework\Attributes\UsesClass;
+use Dirthara\Entity\Attribute\BelongsToMany;
+use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\HasOneMetadata;
+use Dirthara\Entity\Metadata\HasManyMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
 use Dirthara\Entity\Tests\Entities\EagerBook;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\MetadataRegistry;
+use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Metadata\RelationMetadata;
+use Dirthara\Entity\Relation\Read\RelatedRows;
 use Dirthara\Entity\Tests\Entities\CyclicBook;
 use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Relation\Read\HasOneReader;
 use Dirthara\Entity\Tests\Entities\EagerReview;
 use Dirthara\Entity\Tests\Entities\PlainReview;
+use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\Read\HasManyReader;
+use Dirthara\Entity\Relation\RelationCollection;
+use Dirthara\Entity\Hydration\ReflectionHydrator;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
 use Dirthara\Entity\Tests\Entities\CyclicChapter;
+use Dirthara\Entity\Metadata\BelongsToOneMetadata;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Metadata\BelongsToManyMetadata;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Persistence\ReflectionPersister;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Relation\Read\BelongsToOneReader;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Relation\Handle\RelationRefresher;
+use Dirthara\Entity\Relation\Read\BelongsToManyReader;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Exception\RelationLoadingException;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function sprintf;
+
+#[CoversClass(MappingException::class)]
+#[CoversClass(RelationLoadingException::class)]
+#[CoversClass(EntityQuery::class)]
+#[CoversClass(DefaultRelationLoader::class)]
+#[CoversClass(BelongsToManyReader::class)]
+#[CoversClass(BelongsToOneReader::class)]
+#[CoversClass(HasManyReader::class)]
+#[CoversClass(HasOneReader::class)]
+#[CoversClass(RelatedRows::class)]
+#[UsesClass(BelongsToMany::class)]
+#[UsesClass(BelongsToOne::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(HasMany::class)]
+#[UsesClass(HasOne::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(EntityStore::class)]
+#[UsesClass(ReflectionHydrator::class)]
+#[UsesClass(BelongsToManyMetadata::class)]
+#[UsesClass(BelongsToOneMetadata::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(HasManyMetadata::class)]
+#[UsesClass(HasOneMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataFactory::class)]
+#[UsesClass(MetadataRegistry::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(RelationMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(ReflectionPersister::class)]
+#[UsesClass(DefaultRelationHandleFactory::class)]
+#[UsesClass(RelationRefresher::class)]
+#[UsesClass(RelationCollection::class)]
+#[UsesClass(RelationState::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(RelationTree::class)]
+#[UsesClass(Relations::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class EagerRelationLoadingTest extends EntityTestCase
 {
     protected function setUp(): void

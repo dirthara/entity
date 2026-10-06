@@ -5,15 +5,83 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Tests;
 
 use Dirthara\Entity\EntityStore;
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Query\EntityQuery;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Relation\Relations;
+use Dirthara\Entity\Relation\RelationTree;
 use Dirthara\Entity\Tests\Entities\Article;
 use Dirthara\Entity\Tests\Entities\Country;
+use PHPUnit\Framework\Attributes\UsesClass;
 use Dirthara\Collection\Contract\Collection;
+use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\MetadataRegistry;
+use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Relation\Read\RelatedRows;
 use Dirthara\Entity\Tests\Entities\Membership;
+use Dirthara\Entity\Relation\Read\HasOneReader;
+use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\Read\HasManyReader;
+use Dirthara\Entity\Hydration\ReflectionHydrator;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Persistence\ReflectionPersister;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Exception\InvalidEntityException;
+use Dirthara\Entity\Relation\Read\BelongsToOneReader;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
 use Dirthara\Entity\Exception\EntityNotFoundException;
+use Dirthara\Entity\Relation\Handle\RelationRefresher;
+use Dirthara\Entity\Relation\Read\BelongsToManyReader;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function sprintf;
+
+#[CoversClass(EntityStore::class)]
+#[CoversClass(EntityNotFoundException::class)]
+#[CoversClass(InvalidIdentifierException::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(InvalidEntityException::class)]
+#[UsesClass(ReflectionHydrator::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataFactory::class)]
+#[UsesClass(MetadataRegistry::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(ReflectionPersister::class)]
+#[UsesClass(EntityQuery::class)]
+#[UsesClass(DefaultRelationHandleFactory::class)]
+#[UsesClass(DefaultRelationLoader::class)]
+#[UsesClass(RelationRefresher::class)]
+#[UsesClass(BelongsToManyReader::class)]
+#[UsesClass(BelongsToOneReader::class)]
+#[UsesClass(HasManyReader::class)]
+#[UsesClass(HasOneReader::class)]
+#[UsesClass(RelatedRows::class)]
+#[UsesClass(RelationStateRegistry::class)]
+#[UsesClass(RelationTree::class)]
+#[UsesClass(Relations::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class EntityStoreTest extends EntityTestCase
 {
     #[Test]
@@ -52,8 +120,8 @@ final class EntityStoreTest extends EntityTestCase
             self::fail('Expected the missing entity to be reported.');
         } catch (EntityNotFoundException $exception) {
             self::assertStringContainsString('not found for identifier "404"', $exception->getMessage());
-            self::assertSame(404, $exception->getContext()['identifier']);
-            self::assertSame(Article::class, $exception->getContext()['type']);
+            self::assertSame(404, $exception->context['identifier']);
+            self::assertSame(Article::class, $exception->context['type']);
         }
     }
 
@@ -74,7 +142,7 @@ final class EntityStoreTest extends EntityTestCase
             self::fail('Expected the missing entity to be reported.');
         } catch (EntityNotFoundException $exception) {
             self::assertStringContainsString('{"teamId":1,"userId":404}', $exception->getMessage());
-            self::assertSame(['teamId' => 1, 'userId' => 404], $exception->getContext()['identifier']);
+            self::assertSame(['teamId' => 1, 'userId' => 404], $exception->context['identifier']);
         }
     }
 
@@ -156,8 +224,8 @@ final class EntityStoreTest extends EntityTestCase
                 self::fail(sprintf('Expected %s() to refuse the entity.', $operation));
             } catch (InvalidEntityException $exception) {
                 self::assertStringContainsString('Invalid entity set', $exception->getMessage());
-                self::assertSame(Article::class, $exception->getContext()['expected']);
-                self::assertSame(Country::class, $exception->getContext()['actual']);
+                self::assertSame(Article::class, $exception->context['expected']);
+                self::assertSame(Country::class, $exception->context['actual']);
             }
         }
     }

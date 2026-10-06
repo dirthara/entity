@@ -18,6 +18,8 @@ use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
 use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function is_subclass_of;
+
 final class TypeRegistry
 {
     /**

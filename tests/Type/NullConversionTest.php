@@ -11,9 +11,31 @@ use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Role;
 use Dirthara\Entity\Type\ColumnConverter;
+use PHPUnit\Framework\Attributes\UsesClass;
+use PHPUnit\Framework\Attributes\UsesTrait;
+use PHPUnit\Framework\Attributes\CoversClass;
 use PHPUnit\Framework\Attributes\DataProvider;
+use Dirthara\Entity\Exception\HasExceptionContext;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Exception\TypeConversionException;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Type\Converter\BackedEnumConverter;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+#[CoversClass(BackedEnumConverter::class)]
+#[CoversClass(BooleanConverter::class)]
+#[CoversClass(DateTimeConverter::class)]
+#[CoversClass(FloatConverter::class)]
+#[CoversClass(IntegerConverter::class)]
+#[CoversClass(JsonArrayConverter::class)]
+#[CoversClass(SerializedArrayConverter::class)]
+#[CoversClass(StringConverter::class)]
+#[UsesTrait(HasExceptionContext::class)]
+#[UsesClass(TypeConversionException::class)]
 final class NullConversionTest extends TestCase
 {
     /**

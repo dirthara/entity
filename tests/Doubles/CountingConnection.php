@@ -9,6 +9,12 @@ use Dirthara\Database\Connection\Result\Result;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Connection\Transaction\TransactionManager;
 
+use function ltrim;
+use function strtoupper;
+use function array_filter;
+use function array_values;
+use function str_starts_with;
+
 final class CountingConnection implements Connection
 {
     /**

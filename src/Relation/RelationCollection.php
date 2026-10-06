@@ -6,6 +6,8 @@ namespace Dirthara\Entity\Relation;
 
 use Dirthara\Collection\ImmutableCollection;
 
+use function is_a;
+
 final readonly class RelationCollection
 {
     public static function accepts(string $type): bool

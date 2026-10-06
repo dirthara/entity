@@ -6,36 +6,126 @@ namespace Dirthara\Entity\Tests\Relation;
 
 use ReflectionProperty;
 use Dirthara\Entity\EntityStore;
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Attribute\HasOne;
+use Dirthara\Entity\Attribute\HasMany;
+use Dirthara\Entity\Query\EntityQuery;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
+use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\Entities\Plain;
 use Dirthara\Entity\Tests\Entities\Plate;
 use Dirthara\Entity\Tests\Entities\Topic;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Relation\RelationTree;
 use Dirthara\Entity\Tests\Entities\Jacket;
 use Dirthara\Entity\Tests\Entities\Writer;
+use Dirthara\Entity\Attribute\BelongsToOne;
+use Dirthara\Entity\Relation\RelationState;
 use Dirthara\Entity\Tests\Entities\Chapter;
+use PHPUnit\Framework\Attributes\UsesClass;
+use Dirthara\Entity\Attribute\BelongsToMany;
 use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\HasOneMetadata;
+use Dirthara\Entity\Metadata\HasManyMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
 use Dirthara\Entity\Relation\RelationLoading;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Metadata\RelationMetadata;
+use Dirthara\Entity\Relation\Read\RelatedRows;
 use Dirthara\Entity\Exception\MappingException;
+use Dirthara\Entity\Relation\Read\HasOneReader;
 use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\Read\HasManyReader;
+use Dirthara\Entity\Relation\RelationCollection;
 use Dirthara\Entity\Hydration\ReflectionHydrator;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
 use Dirthara\Entity\Relation\Handle\HasOneHandle;
+use Dirthara\Entity\Metadata\BelongsToOneMetadata;
 use Dirthara\Entity\Relation\Handle\HasManyHandle;
 use Dirthara\Entity\Tests\Doubles\UnknownRelation;
+use Dirthara\Entity\Type\Converter\FloatConverter;
 use Dirthara\Entity\Exception\PersistenceException;
+use Dirthara\Entity\Metadata\BelongsToManyMetadata;
+use Dirthara\Entity\Relation\DefaultRelationLoader;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
 use Dirthara\Entity\Persistence\ReflectionPersister;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
 use Dirthara\Entity\Type\Converter\IntegerConverter;
 use Dirthara\Entity\Exception\InvalidEntityException;
+use Dirthara\Entity\Relation\Handle\RelationIdentity;
+use Dirthara\Entity\Relation\Read\BelongsToOneReader;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Relation\Handle\RelationRefresher;
+use Dirthara\Entity\Relation\Read\BelongsToManyReader;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Relation\Handle\BelongsToOneHandle;
 use Dirthara\Entity\Relation\Handle\BelongsToManyHandle;
+use Dirthara\Entity\Relation\DefaultRelationHandleFactory;
 use Dirthara\Entity\Tests\Entities\Invalid\RequiredHasOne;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 use Dirthara\Entity\Tests\Entities\Invalid\MissingPivotTable;
 use Dirthara\Entity\Tests\Entities\Invalid\MissingHasOneTable;
 use Dirthara\Entity\Tests\Entities\Invalid\MissingTargetTable;
 use Dirthara\Entity\Tests\Entities\Invalid\UnknownForeignKeyColumn;
 
+use function sprintf;
+
+#[CoversClass(EntityStore::class)]
+#[CoversClass(InvalidEntityException::class)]
+#[CoversClass(MappingException::class)]
+#[CoversClass(PersistenceException::class)]
+#[CoversClass(DefaultRelationHandleFactory::class)]
+#[CoversClass(BelongsToManyHandle::class)]
+#[CoversClass(BelongsToOneHandle::class)]
+#[CoversClass(HasManyHandle::class)]
+#[CoversClass(HasOneHandle::class)]
+#[CoversClass(RelationIdentity::class)]
+#[CoversClass(RelationRefresher::class)]
+#[CoversClass(RelationState::class)]
+#[CoversClass(RelationStateRegistry::class)]
+#[UsesClass(BelongsToMany::class)]
+#[UsesClass(BelongsToOne::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(HasMany::class)]
+#[UsesClass(HasOne::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(ReflectionHydrator::class)]
+#[UsesClass(BelongsToManyMetadata::class)]
+#[UsesClass(BelongsToOneMetadata::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(HasManyMetadata::class)]
+#[UsesClass(HasOneMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataFactory::class)]
+#[UsesClass(MetadataRegistry::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(RelationMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(ReflectionPersister::class)]
+#[UsesClass(EntityQuery::class)]
+#[UsesClass(DefaultRelationLoader::class)]
+#[UsesClass(BelongsToManyReader::class)]
+#[UsesClass(BelongsToOneReader::class)]
+#[UsesClass(HasManyReader::class)]
+#[UsesClass(HasOneReader::class)]
+#[UsesClass(RelatedRows::class)]
+#[UsesClass(RelationCollection::class)]
+#[UsesClass(RelationTree::class)]
+#[UsesClass(Relations::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class RelationHandleTest extends EntityTestCase
 {
     protected function setUp(): void
@@ -128,7 +218,7 @@ final class RelationHandleTest extends EntityTestCase
     public function it_refuses_to_write_a_relation_of_an_entity_that_has_no_identifier(): void
     {
         $this->expectException(PersistenceException::class);
-        $this->expectExceptionMessage(sprintf('Property "id" of entity "%s" is not initialized', Book::class));
+        $this->expectExceptionMessage(sprintf('Property "id" of entity "%s" is not initialised', Book::class));
 
         $this->belongsToOne(new Book(), 'writer')->associate($this->writer(1));
     }

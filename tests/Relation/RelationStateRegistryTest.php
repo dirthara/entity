@@ -4,12 +4,70 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Tests\Relation;
 
+use Dirthara\Entity\Attribute\Id;
+use Dirthara\Entity\Attribute\Entity;
+use Dirthara\Entity\Attribute\HasOne;
+use Dirthara\Entity\Attribute\HasMany;
+use Dirthara\Entity\Type\TypeRegistry;
 use PHPUnit\Framework\Attributes\Test;
 use Dirthara\Entity\Tests\Entities\Book;
 use Dirthara\Entity\Tests\EntityTestCase;
+use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Relation\RelationState;
+use PHPUnit\Framework\Attributes\UsesClass;
+use Dirthara\Entity\Attribute\BelongsToMany;
+use Dirthara\Entity\Metadata\EntityMetadata;
+use Dirthara\Entity\Metadata\HasOneMetadata;
+use Dirthara\Entity\Metadata\HasManyMetadata;
+use Dirthara\Entity\Metadata\MetadataFactory;
+use PHPUnit\Framework\Attributes\CoversClass;
+use Dirthara\Entity\Metadata\PropertyMetadata;
+use Dirthara\Entity\Metadata\RelationMetadata;
+use Dirthara\Entity\Metadata\IdentifierMetadata;
+use Dirthara\Entity\Relation\RelationCollection;
+use Dirthara\Entity\Naming\DefaultNamingStrategy;
+use Dirthara\Entity\Metadata\BelongsToOneMetadata;
+use Dirthara\Entity\Type\Converter\FloatConverter;
+use Dirthara\Entity\Metadata\BelongsToManyMetadata;
+use Dirthara\Entity\Relation\RelationStateRegistry;
+use Dirthara\Entity\Type\Converter\StringConverter;
+use Dirthara\Entity\Type\Converter\BooleanConverter;
+use Dirthara\Entity\Type\Converter\IntegerConverter;
+use Dirthara\Entity\Type\Converter\DateTimeConverter;
+use Dirthara\Entity\Type\Converter\JsonArrayConverter;
 use Dirthara\Entity\Exception\RelationLoadingException;
+use Dirthara\Entity\Type\Converter\SerializedArrayConverter;
 
+use function sprintf;
+
+#[CoversClass(RelationLoadingException::class)]
+#[CoversClass(RelationState::class)]
+#[CoversClass(RelationStateRegistry::class)]
+#[UsesClass(BelongsToMany::class)]
+#[UsesClass(BelongsToOne::class)]
+#[UsesClass(Entity::class)]
+#[UsesClass(HasMany::class)]
+#[UsesClass(HasOne::class)]
+#[UsesClass(Id::class)]
+#[UsesClass(BelongsToManyMetadata::class)]
+#[UsesClass(BelongsToOneMetadata::class)]
+#[UsesClass(EntityMetadata::class)]
+#[UsesClass(HasManyMetadata::class)]
+#[UsesClass(HasOneMetadata::class)]
+#[UsesClass(IdentifierMetadata::class)]
+#[UsesClass(MetadataFactory::class)]
+#[UsesClass(PropertyMetadata::class)]
+#[UsesClass(RelationMetadata::class)]
+#[UsesClass(DefaultNamingStrategy::class)]
+#[UsesClass(RelationCollection::class)]
+#[UsesClass(BooleanConverter::class)]
+#[UsesClass(DateTimeConverter::class)]
+#[UsesClass(FloatConverter::class)]
+#[UsesClass(IntegerConverter::class)]
+#[UsesClass(JsonArrayConverter::class)]
+#[UsesClass(SerializedArrayConverter::class)]
+#[UsesClass(StringConverter::class)]
+#[UsesClass(TypeRegistry::class)]
 final class RelationStateRegistryTest extends EntityTestCase
 {
     #[Test]
@@ -93,8 +151,8 @@ final class RelationStateRegistryTest extends EntityTestCase
 
             self::fail('Expected the lookup to fail.');
         } catch (RelationLoadingException $exception) {
-            self::assertSame(Book::class, $exception->getContext()['entity']);
-            self::assertSame('writer', $exception->getContext()['relation']);
+            self::assertSame(Book::class, $exception->context['entity']);
+            self::assertSame('writer', $exception->context['relation']);
         }
     }
 

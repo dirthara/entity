@@ -8,6 +8,13 @@ use JsonException;
 use Dirthara\Entity\Type\ColumnConverter;
 use Dirthara\Entity\Exception\TypeConversionException;
 
+use function is_array;
+use function is_string;
+use function json_decode;
+use function json_encode;
+
+use const JSON_THROW_ON_ERROR;
+
 final readonly class JsonArrayConverter implements ColumnConverter
 {
     public function type(): string

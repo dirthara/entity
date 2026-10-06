@@ -31,7 +31,7 @@ final class RelationIdentity
         $value = $this->value(metadata: $metadata, entity: $entity);
 
         if ($value === null) {
-            throw PersistenceException::uninitializedProperty(
+            throw PersistenceException::uninitialisedProperty(
                 entity: $metadata->entity,
                 property: $metadata->identifier->single()->property,
             );

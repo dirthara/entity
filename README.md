@@ -97,8 +97,9 @@ docker compose exec php composer guard
 `composer mago` runs the formatting, import-order, lint, analysis, and
 architecture checks. `composer ci` also runs tooling tests, unit tests, and the
 coverage gate. The architecture rules in `mago.toml` keep the mapping, hydration,
-type, and naming layers free of any dependency on the database packages, and
-require every class outside `EntityException` to be final.
+type, and naming layers free of any dependency on the database packages, require
+every class that is not an abstract base to be final, and require every exception
+to implement `EntityException` and use the `HasExceptionContext` trait.
 
 Apply formatting and import sorting with `composer fmt`, or include automatic
 lint fixes with `composer cs`:

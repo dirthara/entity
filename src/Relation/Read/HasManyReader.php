@@ -12,6 +12,8 @@ use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 
+use function array_values;
+
 final readonly class HasManyReader
 {
     public function __construct(

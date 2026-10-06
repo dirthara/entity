@@ -31,6 +31,9 @@ use Dirthara\Entity\Relation\Handle\BelongsToOneHandle;
 use Dirthara\Entity\Relation\Handle\BelongsToManyHandle;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+use function is_array;
+use function array_key_exists;
+
 /**
  * @template T of object
  */

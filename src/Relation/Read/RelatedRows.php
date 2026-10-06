@@ -23,6 +23,14 @@ use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+use function is_int;
+use function is_bool;
+use function is_float;
+use function is_string;
+use function array_values;
+use function spl_object_id;
+use function array_key_exists;
+
 final class RelatedRows
 {
     /**
@@ -234,7 +242,7 @@ final class RelatedRows
         $reflection = $this->property(entity: $metadata->entity, property: $identifier->property);
 
         if (!$reflection->isInitialized($entity)) {
-            throw RelationLoadingException::uninitializedIdentifier(
+            throw RelationLoadingException::uninitialisedIdentifier(
                 entity: $metadata->entity,
                 property: $identifier->property,
             );

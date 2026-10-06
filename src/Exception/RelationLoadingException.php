@@ -5,9 +5,17 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use Throwable;
+use RuntimeException;
 
-final class RelationLoadingException extends EntityException
+use function implode;
+use function sprintf;
+use function array_map;
+use function get_debug_type;
+
+final class RelationLoadingException extends RuntimeException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function missingForeignKeyColumn(string $entity, string $relation, string $column): self
     {
         return new self(sprintf(
@@ -98,7 +106,7 @@ final class RelationLoadingException extends EntityException
             'Related entity "%s" not found for relation "%s" with identifier "%s"',
             $entity,
             $relation,
-            $identifier,
+            self::printable((string) $identifier),
         ))->addContext([
             'entity' => $entity,
             'relation' => $relation,
@@ -112,7 +120,7 @@ final class RelationLoadingException extends EntityException
             'Multiple related entities found for relation "%s" in entity "%s" with identifier "%s"',
             $relation,
             $entity,
-            $identifier,
+            self::printable((string) $identifier),
         ))->addContext([
             'entity' => $entity,
             'relation' => $relation,
@@ -120,9 +128,9 @@ final class RelationLoadingException extends EntityException
         ]);
     }
 
-    public static function uninitializedIdentifier(string $entity, string $property): self
+    public static function uninitialisedIdentifier(string $entity, string $property): self
     {
-        return new self(sprintf('Identifier "%s" for entity "%s" is not initialized', $property, $entity))->addContext([
+        return new self(sprintf('Identifier "%s" for entity "%s" is not initialised', $property, $entity))->addContext([
             'entity' => $entity,
             'property' => $property,
         ]);

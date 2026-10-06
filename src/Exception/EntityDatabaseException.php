@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace Dirthara\Entity\Exception;
 
+use RuntimeException;
 use Dirthara\Database\Exceptions\DatabaseException;
 
-final class EntityDatabaseException extends EntityException
+use function sprintf;
+
+final class EntityDatabaseException extends RuntimeException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function fromDatabaseException(DatabaseException $exception, string $entity, string $operation): self
     {
         return new self(

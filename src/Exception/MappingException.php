@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use ReflectionException;
+use InvalidArgumentException;
 use Dirthara\Entity\Attribute\Id;
 use Dirthara\Entity\Attribute\Column;
 use Dirthara\Entity\Attribute\HasOne;
@@ -14,12 +15,21 @@ use Dirthara\Entity\Attribute\Generated;
 use Dirthara\Entity\Attribute\BelongsToOne;
 use Dirthara\Entity\Attribute\BelongsToMany;
 
-final class MappingException extends EntityException
+use function implode;
+use function sprintf;
+
+final class MappingException extends InvalidArgumentException implements EntityException
 {
+    use HasExceptionContext;
+
     public static function fromReflection(ReflectionException $exception, string $entity): self
     {
         return new self(
-            message: sprintf('Failed to create mapping for entity "%s": %s', $entity, $exception->getMessage()),
+            message: sprintf(
+                'Failed to create mapping for entity "%s": %s',
+                self::printable($entity),
+                self::printable($exception->getMessage()),
+            ),
             previous: $exception,
         )->addContext([
             'entity' => $entity,
@@ -227,7 +237,11 @@ final class MappingException extends EntityException
      */
     public static function unknownProperty(string $entity, string $property): self
     {
-        return new self(message: sprintf('Unknown property "%s" in entity "%s"', $property, $entity))->addContext([
+        return new self(message: sprintf(
+            'Unknown property "%s" in entity "%s"',
+            self::printable($property),
+            $entity,
+        ))->addContext([
             'entity' => $entity,
             'property' => $property,
         ]);
@@ -339,7 +353,7 @@ final class MappingException extends EntityException
     {
         return new self(message: sprintf(
             'Invalid relation path "%s": every segment between dots has to name a relation',
-            $path,
+            self::printable($path),
         ))->addContext([
             'path' => $path,
         ]);
@@ -347,7 +361,11 @@ final class MappingException extends EntityException
 
     public static function unknownRelation(string $entity, string $relation): self
     {
-        return new self(message: sprintf('Unknown relation "%s" in entity "%s"', $relation, $entity))->addContext([
+        return new self(message: sprintf(
+            'Unknown relation "%s" in entity "%s"',
+            self::printable($relation),
+            $entity,
+        ))->addContext([
             'entity' => $entity,
             'relation' => $relation,
         ]);

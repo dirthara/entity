@@ -17,6 +17,15 @@ use Dirthara\Entity\Exception\TypeConversionException;
 use Dirthara\Entity\Exception\RelationLoadingException;
 use Dirthara\Entity\Exception\InvalidIdentifierException;
 
+use function is_int;
+use function is_bool;
+use function in_array;
+use function is_float;
+use function array_map;
+use function is_string;
+use function array_diff;
+use function array_values;
+
 final readonly class BelongsToManyHandle implements RelationHandle
 {
     public function __construct(

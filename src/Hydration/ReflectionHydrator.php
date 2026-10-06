@@ -14,6 +14,8 @@ use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\HydrationException;
 use Dirthara\Entity\Exception\CreateEntityException;
 
+use function array_key_exists;
+
 final class ReflectionHydrator implements Hydrator
 {
     /**
