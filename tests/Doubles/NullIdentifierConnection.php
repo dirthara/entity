@@ -6,6 +6,7 @@ namespace Dirthara\Entity\Tests\Doubles;
 
 use Dirthara\Database\Connection\Connection;
 use Dirthara\Database\Connection\Result\Result;
+use Dirthara\Database\Connection\Lock\LockManager;
 use Dirthara\Database\Connection\Driver\DriverName;
 use Dirthara\Database\Connection\Transaction\TransactionManager;
 
@@ -28,6 +29,11 @@ final readonly class NullIdentifierConnection implements Connection
     public function transactions(): TransactionManager
     {
         return $this->connection->transactions();
+    }
+
+    public function locks(): LockManager
+    {
+        return $this->connection->locks();
     }
 
     public function disconnect(): void

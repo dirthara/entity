@@ -16,7 +16,7 @@ composer require dirthara/entity
 | Requirement | Why |
 | --- | --- |
 | PHP 8.5 | Reflection writes raw property values, and the code uses `new` without parentheses and typed class constants. |
-| `dirthara/database` `^0.1` | Owns the connections, drivers and query builder this package maps onto. |
+| `dirthara/database` `^0.2` | Owns the connections, drivers and query builder this package maps onto. |
 | `dirthara/collection` `^0.1` | A result set is returned as a collection rather than an array. |
 
 Composer installs both Dirthara packages for you. This package never touches PDO

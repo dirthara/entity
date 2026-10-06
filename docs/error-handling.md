@@ -135,7 +135,7 @@ wrapped the same way, with the `ReflectionException` as `previous`.
 | `get()`, `first()`, `cursor()`, `exists()`, `count()` | `EntityDatabaseException` |
 | Loading a relation | `EntityDatabaseException`, `operation` of `load relation "name"` |
 | Writing a relation through a handle | `PersistenceException` |
-| Resolving a connection in `of()` | `EntityDatabaseException`, `operation` of `connect` |
+| Resolving a connection in `of()`, including one that is not configured | `EntityDatabaseException`, `operation` of `connect` |
 
 ## Catching the right thing
 

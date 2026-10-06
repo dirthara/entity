@@ -8,7 +8,7 @@ use Dirthara\Database\ConnectedDatabase;
 use Dirthara\Entity\Metadata\EntityMetadata;
 use Dirthara\Entity\Metadata\RelationMetadata;
 use Dirthara\Entity\Exception\MappingException;
-use Dirthara\Database\Exceptions\DatabaseException;
+use Dirthara\Database\Exception\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\PersistenceException;
 use Dirthara\Entity\Metadata\BelongsToManyMetadata;

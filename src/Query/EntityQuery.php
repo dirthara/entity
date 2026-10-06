@@ -17,7 +17,7 @@ use Dirthara\Entity\Metadata\PropertyMetadata;
 use Dirthara\Database\Query\Sql\OrderDirection;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Exception\HydrationException;
-use Dirthara\Database\Exceptions\DatabaseException;
+use Dirthara\Database\Exception\DatabaseException;
 use Dirthara\Database\Query\Sql\ComparisonOperator;
 use Dirthara\Entity\Exception\CreateEntityException;
 use Dirthara\Entity\Exception\EntityDatabaseException;

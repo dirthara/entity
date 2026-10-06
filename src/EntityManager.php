@@ -10,9 +10,9 @@ use Dirthara\Entity\Relation\Relations;
 use Dirthara\Entity\Metadata\MetadataRegistry;
 use Dirthara\Entity\Exception\MappingException;
 use Dirthara\Entity\Persistence\EntityPersister;
+use Dirthara\Database\Exception\DatabaseException;
 use Dirthara\Entity\Exception\EntityDatabaseException;
 use Dirthara\Entity\Exception\TypeConversionException;
-use Dirthara\Database\Connection\Exceptions\ConnectionException;
 
 final readonly class EntityManager
 {
@@ -47,7 +47,7 @@ final readonly class EntityManager
                 persister: $this->persister,
                 relations: $this->relations,
             );
-        } catch (ConnectionException $exception) {
+        } catch (DatabaseException $exception) {
             throw EntityDatabaseException::fromDatabaseException(
                 exception: $exception,
                 entity: $entity,

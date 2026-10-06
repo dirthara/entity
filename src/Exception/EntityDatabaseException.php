@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Dirthara\Entity\Exception;
 
 use RuntimeException;
-use Dirthara\Database\Exceptions\DatabaseException;
+use Dirthara\Database\Exception\DatabaseException;
 
 use function sprintf;
 

@@ -15,7 +15,7 @@ composer require dirthara/entity
 ```
 
 The package requires PHP 8.5,
-[`dirthara/database`](https://github.com/dirthara/database) `^0.1` and
+[`dirthara/database`](https://github.com/dirthara/database) `^0.2` and
 [`dirthara/collection`](https://github.com/dirthara/collection) `^0.1`, which
 Composer installs for you. The database package owns the connections, drivers and
 query builder; this one maps classes onto them. It never touches PDO itself, but
